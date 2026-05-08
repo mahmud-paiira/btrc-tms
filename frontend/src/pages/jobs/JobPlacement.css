@@ -1,0 +1,25 @@
+.job-placement-page .card-header h6 {
+  font-size: 0.95rem;
+}
+.job-placement-page .table th {
+  white-space: nowrap;
+  font-size: 0.85rem;
+}
+.job-placement-page .table td {
+  font-size: 0.9rem;
+}
+.job-placement-page .form-check-inline {
+  padding: 0.5rem 1rem;
+  border: 1px solid #dee2e6;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.job-placement-page .form-check-inline:hover {
+  background-color: #f0f8ff;
+  border-color: #0d6efd;
+}
+.job-placement-page .form-check-inline input:checked ~ label {
+  color: #0d6efd;
+  font-weight: bold;
+}

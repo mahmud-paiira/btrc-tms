@@ -1,0 +1,152 @@
+.registration-page {
+  min-height: 100vh;
+  background: #f0f4f8;
+  font-family: 'NikoshBAN', system-ui, -apple-system, sans-serif;
+}
+
+.registration-page .card {
+  border-radius: 12px;
+  border: none;
+}
+
+/* ── Steps Indicator ─────────────────────────────── */
+.steps-indicator {
+  display: flex;
+  justify-content: center;
+  gap: 0;
+  position: relative;
+}
+
+.steps-indicator::before {
+  content: '';
+  position: absolute;
+  top: 20px;
+  left: 15%;
+  right: 15%;
+  height: 2px;
+  background: #dee2e6;
+  z-index: 0;
+}
+
+.step-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  position: relative;
+  z-index: 1;
+}
+
+.step-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.95rem;
+  background: #e9ecef;
+  color: #6c757d;
+  border: 2px solid #dee2e6;
+  transition: all 0.3s;
+}
+
+.step-item.active .step-circle {
+  background: #0d6efd;
+  color: #fff;
+  border-color: #0d6efd;
+}
+
+.step-item.completed .step-circle {
+  background: #198754;
+  color: #fff;
+  border-color: #198754;
+}
+
+.step-label {
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: #6c757d;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.step-item.active .step-label {
+  color: #0d6efd;
+  font-weight: 600;
+}
+
+.step-item.completed .step-label {
+  color: #198754;
+}
+
+/* ── Drop Zone ───────────────────────────────────── */
+.drop-zone {
+  cursor: pointer;
+  transition: background 0.2s;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.drop-zone:hover {
+  background: #f8f9fa;
+  border-color: #0d6efd !important;
+}
+
+.preview-wrapper img {
+  max-height: 250px;
+  object-fit: contain;
+}
+
+/* ── Section Title ───────────────────────────────── */
+.section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #212529;
+  margin: 0;
+}
+
+/* ── Review Table ────────────────────────────────── */
+.review-table th {
+  background: #f8f9fa;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.review-table td {
+  font-size: 0.9rem;
+}
+
+/* ── Upload Box ──────────────────────────────────── */
+.upload-box {
+  background: #fff;
+  transition: border-color 0.2s;
+}
+
+.upload-box h6 {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+/* ── Responsive ──────────────────────────────────── */
+@media (max-width: 576px) {
+  .steps-indicator::before {
+    left: 10%;
+    right: 10%;
+  }
+
+  .step-label {
+    font-size: 0.7rem;
+    white-space: normal;
+  }
+
+  .step-circle {
+    width: 34px;
+    height: 34px;
+    font-size: 0.85rem;
+  }
+}

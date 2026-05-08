@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<style>
+  @page { size: A4 landscape; margin: 15mm; }
+  body { font-family: 'Nikosh', 'Segoe UI', sans-serif; font-size: 11px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+  th, td { border: 1px solid #333; padding: 4px 6px; text-align: left; }
+  th { background: #1a5276; color: #fff; font-weight: bold; }
+  tr:nth-child(even) { background: #f2f2f2; }
+  h2 { text-align: center; margin-bottom: 5px; }
+  .meta { text-align: right; font-size: 10px; color: #666; margin-bottom: 10px; }
+</style>
+</head>
+<body>
+<h2>আবেদনকারীর তালিকা</h2>
+<div class="meta">প্রতিবেদন তৈরি: {{ generated_at }}</div>
+<table>
+<thead>
+<tr>
+  <th>আবেদন নম্বর</th>
+  <th>নাম</th>
+  <th>পিতার নাম</th>
+  <th>মাতার নাম</th>
+  <th>এনআইডি</th>
+  <th>মোবাইল</th>
+  <th>সার্কুলার</th>
+  <th>কেন্দ্র</th>
+  <th>অবস্থা</th>
+  <th>আবেদনের তারিখ</th>
+</tr>
+</thead>
+<tbody>
+{% for app in applications %}
+<tr>
+  <td>{{ app.application_no }}</td>
+  <td>{{ app.name_bn }}</td>
+  <td>{{ app.father_name_bn }}</td>
+  <td>{{ app.mother_name_bn }}</td>
+  <td>{{ app.nid }}</td>
+  <td>{{ app.phone }}</td>
+  <td>{{ app.circular_title }}</td>
+  <td>{{ app.center_name }}</td>
+  <td>{{ app.status_display }}</td>
+  <td>{{ app.applied_at }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</body>
+</html>

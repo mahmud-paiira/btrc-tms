@@ -1,0 +1,10 @@
+.certificate-issue .table th {
+  white-space: nowrap;
+  font-size: 0.85rem;
+}
+.certificate-issue .table td {
+  font-size: 0.9rem;
+}
+.certificate-issue .card-header h6 {
+  font-size: 0.95rem;
+}

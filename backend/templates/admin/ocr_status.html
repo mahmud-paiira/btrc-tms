@@ -1,0 +1,80 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div class="module">
+    <h2>OCR System Status</h2>
+
+    <table style="width: 100%; margin-top: 20px;">
+        <tr>
+            <th style="text-align: left; padding: 8px;">Component</th>
+            <th style="text-align: left; padding: 8px;">Status</th>
+            <th style="text-align: left; padding: 8px;">Details</th>
+        </tr>
+        <tr>
+            <td style="padding: 8px;">Tesseract Installation</td>
+            <td style="padding: 8px;">
+                {% if tesseract_version %}
+                <span style="color: green;">✓ Working</span>
+                {% else %}
+                <span style="color: red;">✗ Not Found</span>
+                {% endif %}
+            </td>
+            <td style="padding: 8px;">{{ tesseract_version|default:"Not installed" }}</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px;">Tesseract Path</td>
+            <td style="padding: 8px;">
+                {% if tesseract_path %}
+                <span style="color: green;">✓ Configured</span>
+                {% else %}
+                <span style="color: red;">✗ Missing</span>
+                {% endif %}
+            </td>
+            <td style="padding: 8px;">{{ tesseract_path }}</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px;">Bengali Language Data</td>
+            <td style="padding: 8px;">
+                {% if ben_available %}
+                <span style="color: green;">✓ Available</span>
+                {% else %}
+                <span style="color: orange;">⚠ Missing</span>
+                {% endif %}
+            </td>
+            <td style="padding: 8px;">
+                {% if ben_available %}
+                Bengali (ben) is ready
+                {% else %}
+                <a href="#" id="download-ben">Download ben.traineddata</a>
+                {% endif %}
+            </td>
+        </tr>
+    </table>
+
+    <div style="margin-top: 20px;">
+        <h3>Test OCR</h3>
+        <form method="post" enctype="multipart/form-data" action="{% url 'ocr-test' %}">
+            {% csrf_token %}
+            <input type="file" name="test_image" accept="image/*">
+            <select name="image_type">
+                <option value="front">NID Front</option>
+                <option value="back">NID Back</option>
+            </select>
+            <button type="submit">Test Extraction</button>
+        </form>
+    </div>
+</div>
+
+<script>
+document.getElementById('download-ben')?.addEventListener('click', async function(e) {
+    e.preventDefault();
+    const response = await fetch('/api/admin/download-ben-data/', {
+        method: 'POST',
+        headers: {'X-CSRFToken': '{{ csrf_token }}'}
+    });
+    const result = await response.json();
+    alert(result.message);
+    location.reload();
+});
+</script>
+{% endblock %}

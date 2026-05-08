@@ -1,0 +1,25 @@
+.public-verify-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+.public-verify-page .verify-logo {
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+.public-verify-page .card {
+  border-radius: 0.75rem;
+}
+.public-verify-page .card-header {
+  border-radius: 0.75rem 0.75rem 0 0 !important;
+}
+.public-verify-page .verify-table td {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.95rem;
+}
+.public-verify-page .verify-table td:first-child {
+  padding-left: 0;
+}

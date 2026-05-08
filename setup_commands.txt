@@ -1,0 +1,86 @@
+============================================================
+  BRTC Training Management System – Setup Commands
+============================================================
+
+Prerequisites:
+  - Python 3.11+
+  - Node.js 20+
+  - PostgreSQL 15+
+  - Redis 7+
+
+─────────────────────────────────────────────────────────────
+1. CLONE & ENVIRONMENT
+─────────────────────────────────────────────────────────────
+
+  git clone <repo-url> brtc-tms
+  cd brtc-tms
+
+  # Backend virtual environment
+  python -m venv venv
+
+  # Windows
+  venv\Scripts\activate
+
+  # Linux / macOS
+  # source venv/bin/activate
+
+─────────────────────────────────────────────────────────────
+2. BACKEND SETUP
+─────────────────────────────────────────────────────────────
+
+  cd backend
+  pip install --upgrade pip
+  pip install -r requirements.txt
+
+  # Copy environment file
+  copy ..\.env.example .env
+  # (edit .env with your DB credentials)
+
+  # Database
+  python manage.py makemigrations
+  python manage.py migrate
+  python manage.py createsuperuser
+  python manage.py collectstatic
+
+  # Run dev server
+  python manage.py runserver
+
+  # Celery worker (separate terminal)
+  celery -A celery worker --loglevel=info -P solo
+
+  # Celery beat (if scheduled tasks)
+  celery -A celery beat --loglevel=info
+
+─────────────────────────────────────────────────────────────
+3. FRONTEND SETUP
+─────────────────────────────────────────────────────────────
+
+  cd ../frontend
+  npm install
+  npm run dev
+
+─────────────────────────────────────────────────────────────
+4. DOCKER (alternative – does everything)
+─────────────────────────────────────────────────────────────
+
+  docker compose up --build
+
+─────────────────────────────────────────────────────────────
+5. ACCESS
+─────────────────────────────────────────────────────────────
+
+  Frontend : http://localhost:5173
+  Backend  : http://localhost:8000/admin/
+  API Docs : http://localhost:8000/swagger/
+  ReDoc    : http://localhost:8000/redoc/
+
+─────────────────────────────────────────────────────────────
+6. NIKOSH BAN FONT
+─────────────────────────────────────────────────────────────
+
+  Place the NikoshBAN.ttf file in:
+    frontend/src/assets/fonts/NikoshBAN.ttf
+
+  Supported apps (OCR): install Bengali Tesseract data
+    - Linux: apt install tesseract-ocr-ben
+    - Windows: include ben in TESSDATA_PREFIX

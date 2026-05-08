@@ -1,0 +1,176 @@
+@font-face {
+  font-family: 'NikoshBAN';
+  src: url('../../assets/fonts/NikoshBAN.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+.public-circular-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family: 'NikoshBAN', system-ui, -apple-system, sans-serif;
+}
+
+.public-circular-page.ltr {
+  direction: ltr;
+  text-align: left;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+.public-circular-page.rtl {
+  direction: rtl;
+  text-align: right;
+  font-family: 'NikoshBAN', sans-serif;
+}
+
+/* ── Header ─────────────────────────────────────────── */
+.circular-header {
+  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.brand-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.brand-subtitle {
+  font-size: 0.9rem;
+  opacity: 0.85;
+}
+
+.lang-toggle {
+  border-color: rgba(255, 255, 255, 0.6);
+  color: #fff;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.lang-toggle:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: #fff;
+}
+
+/* ── Center Info ────────────────────────────────────── */
+.center-info {
+  border-bottom: 2px solid #e9ecef;
+  padding-bottom: 1rem;
+}
+
+.center-name {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #212529;
+  margin: 0;
+}
+
+.center-address {
+  font-size: 0.95rem;
+}
+
+/* ── Page Heading ───────────────────────────────────── */
+.page-heading h3 {
+  font-weight: 600;
+  color: #212529;
+}
+
+/* ── Circular Card ──────────────────────────────────── */
+.circular-card {
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
+  transition: transform 0.2s, box-shadow 0.2s;
+  overflow: hidden;
+}
+
+.circular-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+}
+
+.circular-card.rtl {
+  text-align: right;
+}
+
+.circular-card.ltr {
+  text-align: left;
+}
+
+.circular-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #212529;
+}
+
+.circular-meta {
+  color: #495057;
+}
+
+.meta-item {
+  margin-bottom: 0.35rem;
+  font-size: 0.92rem;
+}
+
+.apply-btn {
+  border-radius: 8px;
+  font-weight: 600;
+  padding: 0.6rem;
+  transition: background 0.2s;
+}
+
+.apply-btn:hover {
+  filter: brightness(1.1);
+}
+
+/* ── Footer ─────────────────────────────────────────── */
+.circular-footer {
+  background: #212529;
+  color: #f8f9fa;
+  margin-top: auto;
+}
+
+.circular-footer h5 {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.circular-footer .small {
+  font-size: 0.85rem;
+}
+
+/* ── Responsive ─────────────────────────────────────── */
+@media (max-width: 576px) {
+  .brand-title {
+    font-size: 1.1rem;
+  }
+
+  .brand-subtitle {
+    font-size: 0.8rem;
+  }
+
+  .center-name {
+    font-size: 1.3rem;
+  }
+
+  .circular-title {
+    font-size: 1rem;
+  }
+
+  .circular-header .d-flex {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .lang-toggle {
+    width: 100%;
+  }
+}
+
+@media (min-width: 577px) and (max-width: 768px) {
+  .brand-title {
+    font-size: 1.2rem;
+  }
+}

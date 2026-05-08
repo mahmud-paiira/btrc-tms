@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <title>সার্টিফিকেট - {{ certificate.certificate_no }}</title>
+  <style>
+    @page {
+      size: A4 landscape;
+      margin: 1.2cm;
+    }
+    @font-face {
+      font-family: 'Nikosh';
+      src: url('file://{{ STATIC_URL }}fonts/Nikosh.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Nikosh';
+      src: url('file://{{ STATIC_URL }}fonts/NikoshBold.ttf') format('truetype');
+      font-weight: bold;
+      font-style: normal;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Nikosh', 'Noto Sans Bengali', 'Arial', sans-serif;
+      color: #222;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .border-frame {
+      border: 3px solid #1a5276;
+      padding: 1.2cm;
+      min-height: 14cm;
+      position: relative;
+      text-align: center;
+      background: #fff;
+    }
+    .inner-border {
+      border: 1px solid #1a5276;
+      padding: 1cm;
+      min-height: 12cm;
+      position: relative;
+    }
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    .govt-logo {
+      font-size: 11px;
+      color: #1a5276;
+      text-align: left;
+    }
+    .header {
+      margin-bottom: 10px;
+    }
+    .header .bn-title {
+      font-size: 20px;
+      font-weight: bold;
+      color: #1a5276;
+      letter-spacing: 1px;
+    }
+    .header .en-title {
+      font-size: 14px;
+      color: #2c3e50;
+      font-weight: normal;
+      letter-spacing: 0.5px;
+    }
+    .header .sub-title {
+      font-size: 12px;
+      color: #666;
+    }
+    .divider-thick {
+      border-top: 3px solid #1a5276;
+      margin: 12px 0;
+      width: 60%;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .divider-thin {
+      border-top: 1px solid #1a5276;
+      margin: 10px 0;
+      width: 40%;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .cert-title-bn {
+      font-size: 30px;
+      font-weight: bold;
+      color: #1a5276;
+      margin: 18px 0 5px;
+      letter-spacing: 2px;
+    }
+    .cert-title-en {
+      font-size: 16px;
+      color: #555;
+      font-weight: normal;
+      letter-spacing: 1px;
+      margin-bottom: 18px;
+    }
+    .body-text {
+      font-size: 14px;
+      line-height: 2.2;
+      margin: 20px 0;
+    }
+    .body-text .intro { font-size: 14px; }
+    .body-text .trainee-name-bn {
+      font-size: 26px;
+      font-weight: bold;
+      color: #000;
+      margin: 8px 0 3px;
+    }
+    .body-text .trainee-name-en {
+      font-size: 16px;
+      color: #555;
+      font-weight: normal;
+      margin-bottom: 8px;
+    }
+    .body-text .course-name-bn {
+      font-size: 18px;
+      font-weight: bold;
+      color: #1a5276;
+    }
+    .body-text .course-name-en {
+      font-size: 13px;
+      color: #666;
+    }
+    .details-table {
+      margin: 18px auto;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .details-table td {
+      padding: 4px 12px;
+      vertical-align: top;
+    }
+    .details-table .label {
+      font-weight: bold;
+      text-align: right;
+      color: #444;
+      white-space: nowrap;
+    }
+    .details-table .value {
+      text-align: left;
+      color: #222;
+    }
+    .footer {
+      margin-top: 35px;
+      display: flex;
+      justify-content: space-around;
+      align-items: flex-end;
+      font-size: 12px;
+    }
+    .footer .signature-block {
+      text-align: center;
+      min-width: 180px;
+    }
+    .footer .signature-block .sig-line {
+      border-top: 1px solid #333;
+      margin-top: 45px;
+      padding-top: 8px;
+    }
+    .footer .signature-block .sig-label {
+      font-weight: bold;
+      font-size: 12px;
+    }
+    .footer .signature-block .sig-en {
+      font-size: 10px;
+      color: #777;
+    }
+    .qr-block {
+      position: absolute;
+      bottom: 0.5cm;
+      right: 0.5cm;
+      text-align: center;
+    }
+    .qr-block img {
+      width: 70px;
+      height: 70px;
+    }
+    .qr-block .qr-label {
+      font-size: 8px;
+      color: #999;
+      margin-top: 2px;
+    }
+    .watermark {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      opacity: 0.035;
+      font-size: 100px;
+      font-weight: bold;
+      color: #1a5276;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .serial-no {
+      position: absolute;
+      top: 0.3cm;
+      right: 0.3cm;
+      font-size: 10px;
+      color: #888;
+    }
+  </style>
+</head>
+<body>
+  <div class="border-frame">
+    <div class="inner-border">
+      <div class="watermark">BRTC</div>
+      <div class="serial-no">#{{ certificate.certificate_no }}</div>
+
+      <!-- Header -->
+      <div class="top-bar">
+        <div class="govt-logo">
+          {{ batch.center.name_bn|default:"বাংলাদেশ সড়ক পরিবহন কর্তৃপক্ষ" }}
+        </div>
+      </div>
+
+      <div class="header">
+        <div class="bn-title">বাংলাদেশ সড়ক পরিবহন কর্তৃপক্ষ</div>
+        <div class="en-title">Bangladesh Road Transport Corporation (BRTC)</div>
+        <div class="sub-title">প্রশিক্ষণ বিভাগ &mdash; Training Division</div>
+      </div>
+
+      <div class="divider-thick"></div>
+      <div class="cert-title-bn">প্রশিক্ষণ সনদপত্র</div>
+      <div class="cert-title-en">Certificate of Training</div>
+      <div class="divider-thin"></div>
+
+      <!-- Body -->
+      <div class="body-text">
+        <div class="intro">এতদ্বারা সত্যায়িত করা যাচ্ছে যে / This is to certify that</div>
+
+        <div class="trainee-name-bn">{{ trainee.user.full_name_bn }}</div>
+        <div class="trainee-name-en">{{ trainee.user.full_name_en|default:"" }}</div>
+
+        <div>
+          রেজিস্ট্রেশন নং / Registration No:
+          <strong>{{ trainee.registration_no }}</strong>
+          {% if trainee.user.nid %}
+          &nbsp;&nbsp;|&nbsp;&nbsp; জাতীয় পরিচয়পত্র / NID:
+          <strong>{{ trainee.user.nid }}</strong>
+          {% endif %}
+        </div>
+
+        <div>
+          নিম্নবর্ণিত কোর্সে সাফল্যের সাথে অংশগ্রহণ ও উত্তীর্ণ হয়েছেন /
+          has successfully completed the training course:
+        </div>
+
+        <div class="course-name-bn">{{ batch.course.name_bn }}</div>
+        <div class="course-name-en">{{ batch.course.name_en|default:"" }}</div>
+      </div>
+
+      <!-- Details -->
+      <table class="details-table">
+        <tr>
+          <td class="label">ব্যাচ নং / Batch No:</td>
+          <td class="value">{{ batch.custom_batch_no|default:batch.batch_no }}</td>
+          <td style="width:30px"></td>
+          <td class="label">প্রশিক্ষণ কেন্দ্র / Center:</td>
+          <td class="value">{{ batch.center.name_bn }}</td>
+        </tr>
+        <tr>
+          <td class="label">শুরুর তারিখ / Start Date:</td>
+          <td class="value">{{ batch.start_date|date:"d/m/Y" }}</td>
+          <td></td>
+          <td class="label">শেষের তারিখ / End Date:</td>
+          <td class="value">{{ batch.end_date|date:"d/m/Y" }}</td>
+        </tr>
+        <tr>
+          <td class="label">সার্টিফিকেট নং / Cert No:</td>
+          <td class="value">{{ certificate.certificate_no }}</td>
+          <td></td>
+          <td class="label">ইস্যুর তারিখ / Issue Date:</td>
+          <td class="value">{{ certificate.issue_date|date:"d/m/Y" }}</td>
+        </tr>
+      </table>
+
+      <div class="divider-thin"></div>
+
+      <!-- Footer -->
+      <div class="footer">
+        <div class="signature-block">
+          <div class="sig-line">
+            <div class="sig-label">প্রশিক্ষণ পরিচালক</div>
+            <div class="sig-en">Director of Training</div>
+          </div>
+        </div>
+        <div class="signature-block">
+          <div class="sig-line">
+            <div class="sig-label">চেয়ারম্যান</div>
+            <div class="sig-en">Chairman</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- QR Code -->
+      <div class="qr-block">
+        {% if certificate.qr_code_image %}
+          <img src="file://{{ certificate.qr_code_image.path }}" alt="QR">
+        {% endif %}
+        <div class="qr-label">Scan to verify</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,40 @@
+.assessor-assessment .card {
+  border-radius: 0.5rem;
+}
+
+.assessor-assessment .table th {
+  white-space: nowrap;
+  font-size: 0.85rem;
+}
+
+.assessor-assessment .table td {
+  vertical-align: middle;
+  font-size: 0.9rem;
+}
+
+.assessor-assessment .progress {
+  border-radius: 0.5rem;
+}
+
+.assessor-assessment .progress-bar {
+  font-weight: 600;
+  transition: width 0.4s ease;
+}
+
+.assessor-assessment .btn-group-sm .btn {
+  padding: 0.2rem 0.4rem;
+}
+
+.assessor-assessment .input-group-sm .form-control {
+  font-size: 0.8rem;
+}
+
+.assessor-assessment .form-select-sm {
+  font-size: 0.8rem;
+}
+
+@media (max-width: 768px) {
+  .assessor-assessment .table-responsive {
+    font-size: 0.8rem;
+  }
+}

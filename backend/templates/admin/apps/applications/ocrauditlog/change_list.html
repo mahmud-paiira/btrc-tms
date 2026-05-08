@@ -1,0 +1,33 @@
+{% extends "admin/change_list.html" %}
+
+{% block content_title %}
+  {{ block.super }}
+  {% if ocr_stats %}
+  <div style="display:flex;gap:12px;margin:12px 0;flex-wrap:wrap">
+    <div style="background:#f8f9fa;border:1px solid #dee2e6;border-radius:8px;padding:12px 20px;min-width:140px;text-align:center">
+      <div style="font-size:24px;font-weight:700">{{ ocr_stats.total }}</div>
+      <div style="font-size:11px;color:#666">Total</div>
+    </div>
+    <div style="background:#d4edda;border:1px solid #c3e6cb;border-radius:8px;padding:12px 20px;min-width:140px;text-align:center">
+      <div style="font-size:24px;font-weight:700;color:#155724">{{ ocr_stats.success }}</div>
+      <div style="font-size:11px;color:#155724">Success</div>
+    </div>
+    <div style="background:#fff3cd;border:1px solid #ffeeba;border-radius:8px;padding:12px 20px;min-width:140px;text-align:center">
+      <div style="font-size:24px;font-weight:700;color:#856404">{{ ocr_stats.low }}</div>
+      <div style="font-size:11px;color:#856404">Low Confidence</div>
+    </div>
+    <div style="background:#f8d7da;border:1px solid #f5c6cb;border-radius:8px;padding:12px 20px;min-width:140px;text-align:center">
+      <div style="font-size:24px;font-weight:700;color:#721c24">{{ ocr_stats.failed }}</div>
+      <div style="font-size:11px;color:#721c24">Failed</div>
+    </div>
+    <div style="background:#e2e3f8;border:1px solid #d0d1f5;border-radius:8px;padding:12px 20px;min-width:140px;text-align:center">
+      <div style="font-size:24px;font-weight:700;color:#3f51b5">{{ ocr_stats.success_rate }}%</div>
+      <div style="font-size:11px;color:#3f51b5">Success Rate</div>
+    </div>
+    <div style="background:#e8f5e9;border:1px solid #c8e6c9;border-radius:8px;padding:12px 20px;min-width:140px;text-align:center">
+      <div style="font-size:24px;font-weight:700;color:#2e7d32">{{ ocr_stats.avg_conf|floatformat:1 }}</div>
+      <div style="font-size:11px;color:#2e7d32">Avg Confidence</div>
+    </div>
+  </div>
+  {% endif %}
+{% endblock %}

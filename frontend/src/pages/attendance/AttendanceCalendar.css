@@ -1,0 +1,116 @@
+.attendance-calendar {
+  padding-bottom: 2rem;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.calendar-header {
+  text-align: center;
+  font-weight: 600;
+  padding: 8px;
+  background: #f8f9fa;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.calendar-cell {
+  min-height: 80px;
+  padding: 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+  position: relative;
+}
+
+.calendar-cell:hover {
+  transform: scale(1.02);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.calendar-cell.empty {
+  cursor: default;
+}
+
+.calendar-cell.empty:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.calendar-cell .day-number {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.calendar-cell .session-count {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  font-size: 0.7rem;
+  background: rgba(255, 255, 255, 0.6);
+  padding: 1px 5px;
+  border-radius: 8px;
+}
+
+/* Week view */
+.week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.week-cell {
+  min-height: 120px;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s;
+}
+
+.week-cell:hover {
+  transform: scale(1.03);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+}
+
+.week-cell .day-name {
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.week-cell .day-number {
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+/* Day view */
+.day-view {
+  text-align: center;
+  padding: 20px;
+}
+
+.day-cell {
+  display: inline-block;
+  padding: 30px 50px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.day-cell:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.day-cell .day-number {
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+
+.day-cell .day-name {
+  font-size: 1.1rem;
+  font-weight: 500;
+}
