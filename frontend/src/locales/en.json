@@ -51,7 +51,22 @@
     "attendance": "Attendance",
     "assessment": "Assessment",
     "certificate": "Certificate",
-    "profile": "Profile"
+    "profile": "Profile",
+    "finance": "Finance",
+    "system": "System"
+  },
+  "navSub": {
+    "financeDashboard": "Dashboard",
+    "financeBudgets": "Budgets",
+    "financeVouchers": "Vouchers",
+    "financeSoe": "Statement of Expenditure",
+    "financeTrialBalance": "Trial Balance",
+    "systemSettings": "Settings",
+    "systemEmailTemplates": "Email Templates",
+    "systemSmsTemplates": "SMS Templates",
+    "systemIntegrations": "Integrations",
+    "systemHealth": "System Health",
+    "systemCertificateTemplate": "Certificate Template"
   },
   "auth": {
     "login": "Login",

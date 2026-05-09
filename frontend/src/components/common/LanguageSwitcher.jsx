@@ -6,7 +6,7 @@ export default function LanguageSwitcher({ dropdown = false, size = 'sm' }) {
 
   if (dropdown) {
     return (
-      <button className={`btn btn-outline-light btn-${size} d-flex align-items-center gap-1`} onClick={toggleLang} title={lang === 'bn' ? 'Switch to English' : 'বাংলায় দেখুন'}>
+      <button className={`btn btn-outline-secondary btn-${size} d-flex align-items-center gap-1`} onClick={toggleLang} title={lang === 'bn' ? 'Switch to English' : 'বাংলায় দেখুন'}>
         <i className={`bi ${lang === 'bn' ? 'bi-globe' : 'bi-globe2'} me-1`}></i>
         <span>{lang === 'bn' ? 'EN' : 'বাং'}</span>
       </button>

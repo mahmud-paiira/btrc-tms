@@ -25,20 +25,20 @@ const NAV_LINKS = [
 ];
 
 const FINANCE_SUB = [
-  { to: '/ho/finance', label: 'ড্যাশবোর্ড' },
-  { to: '/ho/finance/budgets', label: 'বাজেট' },
-  { to: '/ho/finance/vouchers', label: 'ভাউচার' },
-  { to: '/ho/finance/soe', label: 'ব্যয় বিবরণী' },
-  { to: '/ho/finance/trial-balance', label: 'ট্রায়াল ব্যালেন্স' },
+  { to: '/ho/finance', labelKey: 'navSub.financeDashboard', label: 'ড্যাশবোর্ড' },
+  { to: '/ho/finance/budgets', labelKey: 'navSub.financeBudgets', label: 'বাজেট' },
+  { to: '/ho/finance/vouchers', labelKey: 'navSub.financeVouchers', label: 'ভাউচার' },
+  { to: '/ho/finance/soe', labelKey: 'navSub.financeSoe', label: 'ব্যয় বিবরণী' },
+  { to: '/ho/finance/trial-balance', labelKey: 'navSub.financeTrialBalance', label: 'ট্রায়াল ব্যালেন্স' },
 ];
 
 const SYSTEM_SUB = [
-  { to: '/ho/system', label: 'সেটিংস' },
-  { to: '/ho/system/email-templates', label: 'ইমেইল টেমপ্লেট' },
-  { to: '/ho/system/sms-templates', label: 'এসএমএস টেমপ্লেট' },
-  { to: '/ho/system/integrations', label: 'ইন্টিগ্রেশন' },
-  { to: '/ho/system/health', label: 'সিস্টেম হেলথ' },
-  { to: '/ho/system/certificate-template', label: 'সার্টিফিকেট টেমপ্লেট' },
+  { to: '/ho/system', labelKey: 'navSub.systemSettings', label: 'সেটিংস' },
+  { to: '/ho/system/email-templates', labelKey: 'navSub.systemEmailTemplates', label: 'ইমেইল টেমপ্লেট' },
+  { to: '/ho/system/sms-templates', labelKey: 'navSub.systemSmsTemplates', label: 'এসএমএস টেমপ্লেট' },
+  { to: '/ho/system/integrations', labelKey: 'navSub.systemIntegrations', label: 'ইন্টিগ্রেশন' },
+  { to: '/ho/system/health', labelKey: 'navSub.systemHealth', label: 'সিস্টেম হেলথ' },
+  { to: '/ho/system/certificate-template', labelKey: 'navSub.systemCertificateTemplate', label: 'সার্টিফিকেট টেমপ্লেট' },
 ];
 
 export default function HoLayout() {
@@ -100,7 +100,7 @@ export default function HoLayout() {
       {/* Sidebar */}
       <div className={`d-flex flex-column text-white flex-shrink-0 position-${isMobile ? 'fixed' : 'sticky'} ${isMobile ? 'start-0' : ''}`}
         style={{
-          width: sidebarWidth, minHeight: '100vh', height: '100vh', overflowY: 'auto',
+          width: sidebarWidth, minHeight: '100vh', overflow: 'hidden auto',
           background: 'linear-gradient(180deg, #1a1d23 0%, #212529 100%)',
           transition: 'width 0.25s ease', zIndex: 1040,
           transform: isMobile && !sidebarOpen ? 'translateX(-100%)' : 'none',
@@ -120,7 +120,7 @@ export default function HoLayout() {
         </div>
 
         {/* Navigation */}
-        <nav className="nav flex-column pt-2 px-2 flex-grow-1 overflow-auto">
+        <nav className="nav flex-column pt-2 px-2 flex-grow-1" style={{ overflowX: 'hidden', overflowY: 'auto' }}>
           {filteredLinks.map((l) => {
             const isActive = l.to === '/ho/dashboard'
               ? location.pathname === '/ho/dashboard'
@@ -155,7 +155,7 @@ export default function HoLayout() {
                         }
                         style={{ fontSize: 12 }}>
                         <i className="bi bi-dot"></i>
-                        <span>{sub.label}</span>
+                        <span>{t(sub.labelKey, sub.label)}</span>
                       </NavLink>
                     ))}
                   </div>
