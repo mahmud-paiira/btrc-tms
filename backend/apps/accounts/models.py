@@ -8,6 +8,13 @@ from .managers import UserManager
 class Role(models.Model):
     name = models.CharField(max_length=100, unique=True, verbose_name='ভূমিকার নাম')
     description = models.TextField(blank=True, verbose_name='বিবরণ')
+    user_type = models.CharField(
+        max_length=20,
+        blank=True,
+        default='',
+        verbose_name='ব্যবহারকারীর ধরণ',
+        help_text='কোন ধরণের ব্যবহারকারীর জন্য এই ভূমিকা (খালি রাখলে সবার জন্য)',
+    )
     permissions = models.JSONField(default=list, blank=True, verbose_name='অনুমতি')
     is_system = models.BooleanField(default=False, verbose_name='সিস্টেম ভূমিকা')
     created_at = models.DateTimeField(auto_now_add=True)

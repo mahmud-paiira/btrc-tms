@@ -15,9 +15,9 @@ export default defineConfig({
   },
   css: {
     preprocessorOptions: {
-      scss: {
-        silenceDeprecations: ['color-functions', 'global-builtin', 'import'],
-      },
+        scss: {
+          silenceDeprecations: ['color-functions', 'global-builtin', 'import', 'legacy-js-api', 'if-function'],
+        },
     },
   },
   server: {

@@ -301,10 +301,10 @@ class CenterDashboardViewSet(viewsets.ViewSet):
         ).select_related('circular').order_by('-applied_at')[:5]
 
         pending_trainers = Trainer.objects.filter(
-            center=center, approval_status='pending',
+            user__center=center, approval_status='pending',
         ).count()
         pending_assessors = Assessor.objects.filter(
-            center=center, approval_status='pending',
+            user__center=center, approval_status='pending',
         ).count()
 
         return Response({

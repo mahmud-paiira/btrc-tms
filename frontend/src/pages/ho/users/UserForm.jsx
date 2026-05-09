@@ -28,6 +28,7 @@ export default function UserForm({ show, onClose, onSaved, user, centers }) {
   const [profile, setProfile] = useState({
     gender: '', date_of_birth: '', present_address: '', permanent_address: '',
   });
+  const filteredRoles = roles.filter(r => !r.user_type || r.user_type === form.user_type);
 
   useEffect(() => {
     if (user) {
@@ -62,6 +63,10 @@ export default function UserForm({ show, onClose, onSaved, user, centers }) {
   const handleSubmit = async () => {
     if (!form.email || !form.full_name_bn || !form.full_name_en || !form.phone || !form.nid) {
       toast.warning(t('users.requiredFields', 'ইমেইল, নাম, ফোন ও এনআইডি আবশ্যক'));
+      return;
+    }
+    if (needsCenter && !form.center) {
+      toast.warning(t('users.centerRequired', 'কেন্দ্র নির্বাচন আবশ্যক'));
       return;
     }
     setLoading(true);
@@ -164,7 +169,7 @@ export default function UserForm({ show, onClose, onSaved, user, centers }) {
               <Form.Label className="fw-semibold">{t('users.role', 'ভূমিকা')}</Form.Label>
               <Form.Select value={form.role} onChange={e => setForm({ ...form, role: e.target.value })}>
                 <option value="">{t('common.none', 'ছাড়া')}</option>
-                {roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+                {filteredRoles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
               </Form.Select>
             </div>
             {needsCenter && (
@@ -247,7 +252,7 @@ export default function UserForm({ show, onClose, onSaved, user, centers }) {
               <Form.Label className="fw-semibold">{t('users.role', 'ভূমিকা')}</Form.Label>
               <Form.Select value={form.role} onChange={e => setForm({ ...form, role: e.target.value })}>
                 <option value="">{t('common.none', 'ছাড়া')}</option>
-                {roles.map(r => <option key={r.id} value={r.id}>{r.name} ({r.permission_count || 0} permissions)</option>)}
+                {filteredRoles.map(r => <option key={r.id} value={r.id}>{r.name} ({r.permission_count || 0} permissions)</option>)}
               </Form.Select>
             </div>
             {!user && (

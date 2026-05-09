@@ -4,6 +4,15 @@ import { toast } from 'react-toastify';
 import hoService from '../../../services/hoService';
 import { useTranslation } from '../../../hooks/useTranslation';
 
+const USER_TYPES = [
+  { value: '', label: 'সব ধরণের (যে কোনো ব্যবহারকারী)' },
+  { value: 'head_office', label: 'হেড অফিস' },
+  { value: 'center_admin', label: 'কেন্দ্র প্রশাসক' },
+  { value: 'trainer', label: 'প্রশিক্ষক' },
+  { value: 'assessor', label: 'মূল্যায়নকারী' },
+  { value: 'trainee', label: 'প্রশিক্ষণার্থী' },
+];
+
 const PERMISSION_CATEGORIES = [
   { key: 'centers', label: 'Center Permissions' },
   { key: 'courses', label: 'Course Permissions' },
@@ -22,7 +31,7 @@ export default function RoleManagement({ show, onClose }) {
   const [loading, setLoading] = useState(true);
   const [editRole, setEditRole] = useState(null);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ name: '', description: '' });
+  const [form, setForm] = useState({ name: '', description: '', user_type: '' });
   const [selectedPerms, setSelectedPerms] = useState([]);
   const [saving, setSaving] = useState(false);
 
@@ -51,14 +60,14 @@ export default function RoleManagement({ show, onClose }) {
 
   const openEdit = (role) => {
     setEditRole(role);
-    setForm({ name: role.name, description: role.description || '' });
+    setForm({ name: role.name, description: role.description || '', user_type: role.user_type || '' });
     setSelectedPerms(role.permissions || []);
     setShowForm(true);
   };
 
   const openCreate = () => {
     setEditRole(null);
-    setForm({ name: '', description: '' });
+    setForm({ name: '', description: '', user_type: '' });
     setSelectedPerms([]);
     setShowForm(true);
   };
@@ -84,8 +93,7 @@ export default function RoleManagement({ show, onClose }) {
     setSaving(true);
     try {
       if (editRole) {
-        await hoService.updateRole(editRole.id, form);
-        await hoService.updateRolePermissions(editRole.id, { permissions: selectedPerms });
+        await hoService.updateRole(editRole.id, { ...form, permissions: selectedPerms });
         toast.success(t('roles.updated', 'হালনাগাদ করা হয়েছে'));
       } else {
         await hoService.createRole({ ...form, permissions: selectedPerms });
@@ -144,9 +152,16 @@ export default function RoleManagement({ show, onClose }) {
                         <td style={{ fontSize: 13 }}>{r.description || '-'}</td>
                         <td><span className="badge bg-primary">{r.permission_count || 0}</span></td>
                         <td>
-                          <span className={`badge ${r.is_system ? 'bg-warning' : 'bg-info'}`}>
-                            {r.is_system ? t('roles.system', 'সিস্টেম') : t('roles.custom', 'কাস্টম')}
-                          </span>
+                          <div className="d-flex gap-1">
+                            <span className={`badge ${r.is_system ? 'bg-warning' : 'bg-info'}`}>
+                              {r.is_system ? t('roles.system', 'সিস্টেম') : t('roles.custom', 'কাস্টম')}
+                            </span>
+                            {r.user_type && (
+                              <span className="badge bg-secondary">
+                                {USER_TYPES.find(u => u.value === r.user_type)?.label || r.user_type}
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td>
                           <div className="d-flex gap-1">
@@ -177,6 +192,15 @@ export default function RoleManagement({ show, onClose }) {
                 <label className="fw-semibold mb-1">{t('roles.description', 'বিবরণ')}</label>
                 <input className="form-control" value={form.description}
                   onChange={e => setForm({ ...form, description: e.target.value })} />
+              </div>
+              <div className="col-md-6">
+                <label className="fw-semibold mb-1">{t('roles.userType', 'ব্যবহারকারীর ধরণ')}</label>
+                <select className="form-select" value={form.user_type}
+                  onChange={e => setForm({ ...form, user_type: e.target.value })}>
+                  {USER_TYPES.map(ut => (
+                    <option key={ut.value} value={ut.value}>{ut.label}</option>
+                  ))}
+                </select>
               </div>
             </div>
 

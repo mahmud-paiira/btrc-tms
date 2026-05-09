@@ -238,7 +238,8 @@ export default function UserList() {
 
       <UserForm show={showForm} onClose={() => { setShowForm(false); setEditUser(null); }}
         onSaved={fetchUsers} user={editUser} centers={centers} />
-      <UserDetail show={!!detailUser} onClose={() => setDetailUser(null)} user={detailUser} />
+      <UserDetail show={!!detailUser} onClose={() => setDetailUser(null)} user={detailUser}
+        onEdit={(u) => { setDetailUser(null); setEditUser(u); setShowForm(true); }} />
       <BulkUserImport show={showImport} onClose={() => setShowImport(false)} onImported={fetchUsers} />
       <RoleManagement show={showRoles} onClose={() => setShowRoles(false)} />
     </div>

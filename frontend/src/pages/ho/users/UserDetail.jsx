@@ -7,7 +7,7 @@ import { formatDate } from '../../../utils/numberFormatter';
 
 const TABS = ['Overview', 'Login History', 'Audit Log'];
 
-export default function UserDetail({ show, onClose, user }) {
+export default function UserDetail({ show, onClose, onEdit, user }) {
   const { t } = useTranslation();
   const [tab, setTab] = useState('Overview');
   const [loginLogs, setLoginLogs] = useState([]);
@@ -176,6 +176,9 @@ export default function UserDetail({ show, onClose, user }) {
         )}
       </Modal.Body>
       <Modal.Footer>
+        <Button variant="primary" onClick={() => { onClose(); setTimeout(() => onEdit?.(user), 100); }}>
+          <i className="bi bi-pencil me-1"></i>{t('common.edit', 'সম্পাদনা')}
+        </Button>
         <Button variant="secondary" onClick={onClose}>{t('common.close', 'বন্ধ')}</Button>
       </Modal.Footer>
     </Modal>

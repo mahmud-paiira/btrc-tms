@@ -101,7 +101,7 @@ class HOUserUpdateSerializer(serializers.ModelSerializer):
         fields = (
             'full_name_bn', 'full_name_en', 'phone', 'nid',
             'birth_certificate_no', 'profile_image', 'is_active',
-            'user_type', 'center', 'role',
+            'user_type', 'center', 'role', 'profile',
         )
 
     def update(self, instance, validated_data):
@@ -142,7 +142,7 @@ class RoleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Role
-        fields = ('id', 'name', 'description', 'permissions', 'permission_count',
+        fields = ('id', 'name', 'description', 'user_type', 'permissions', 'permission_count',
                   'is_system', 'created_at')
         read_only_fields = ('is_system',)
 
