@@ -69,7 +69,10 @@ class HOCircularViewSet(viewsets.ModelViewSet):
             return Response({'error': 'শুধুমাত্র খসড়া অবস্থায় প্রকাশ করা যাবে'}, status=400)
         circular.status = Circular.Status.PUBLISHED
         circular.published_at = timezone.now()
-        circular.save(update_fields=['status', 'published_at'])
+        if not circular.public_url:
+            import uuid
+            circular.public_url = uuid.uuid4().hex[:12]
+        circular.save(update_fields=['status', 'published_at', 'public_url'])
         self._log(request, f'Published circular {circular.title_bn}', circular.id)
         return Response(CircularDetailSerializer(circular).data)
 

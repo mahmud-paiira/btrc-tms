@@ -128,7 +128,10 @@ class PublicCircularViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=False, methods=['get'], url_path=r'by-url/(?P<slug>[^/.]+)')
     def by_url(self, request, slug=None):
         try:
-            circular = self.get_queryset().get(public_url=slug)
+            circular = Circular.objects.get(
+                public_url=slug,
+                status=Circular.Status.PUBLISHED,
+            )
             return Response(PublicCircularSerializer(circular).data)
         except Circular.DoesNotExist:
             return Response({'error': 'সার্কুলার পাওয়া যায়নি'}, status=404)
