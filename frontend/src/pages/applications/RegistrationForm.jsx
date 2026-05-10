@@ -157,7 +157,7 @@ export default function RegistrationForm() {
 
   const renderOcrStep = () => (
     <>
-      {!ocrAvailable && (
+      {(!ocrAvailable || ocrError) && (
         <div className="alert alert-warning d-flex align-items-center gap-2">
           <i className="bi bi-exclamation-triangle fs-4"></i>
           <span>
@@ -177,6 +177,15 @@ export default function RegistrationForm() {
         disabled={!ocrAvailable}
         onError={setOcrError}
       />
+      <div className="text-center mt-3">
+        <button
+          className="btn btn-link text-decoration-none"
+          onClick={() => setStep(1)}
+        >
+          <i className="bi bi-pencil me-1"></i>
+          OCR ছাড়াই ম্যানুয়ালি ফর্ম পূরণ করুন
+        </button>
+      </div>
     </>
   );
 

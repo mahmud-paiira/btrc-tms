@@ -6,14 +6,10 @@ import './PublicCircular.css';
 
 function getCenterInfo(code) {
   const centers = {
-    dhaka: { nameBn: 'ঢাকা প্রশিক্ষণ কেন্দ্র', nameEn: 'Dhaka Training Center', address: 'ধানমন্ডি, ঢাকা' },
-    chitt: { nameBn: 'চট্টগ্রাম প্রশিক্ষণ কেন্দ্র', nameEn: 'Chattogram Training Center', address: 'আগ্রাবাদ, চট্টগ্রাম' },
-    rajshahi: { nameBn: 'রাজশাহী প্রশিক্ষণ কেন্দ্র', nameEn: 'Rajshahi Training Center', address: 'কাদিরগঞ্জ, রাজশাহী' },
-    khulna: { nameBn: 'খুলনা প্রশিক্ষণ কেন্দ্র', nameEn: 'Khulna Training Center', address: 'বয়রা, খুলনা' },
-    barishal: { nameBn: 'বরিশাল প্রশিক্ষণ কেন্দ্র', nameEn: 'Barishal Training Center', address: 'নথুল্লাবাদ, বরিশাল' },
-    sylhet: { nameBn: 'সিলেট প্রশিক্ষণ কেন্দ্র', nameEn: 'Sylhet Training Center', address: 'কাজীবাড়ি, সিলেট' },
-    rangpur: { nameBn: 'রংপুর প্রশিক্ষণ কেন্দ্র', nameEn: 'Rangpur Training Center', address: 'বোদা, রংপুর' },
-    mymensingh: { nameBn: 'ময়মনসিংহ প্রশিক্ষণ কেন্দ্র', nameEn: 'Mymensingh Training Center', address: 'আকুয়া, ময়মনসিংহ' },
+    dhaka_tcu: { nameBn: 'ঢাকা প্রশিক্ষণ কেন্দ্র', nameEn: 'Dhaka Training Center', address: '১০৮, পুরানা পল্টন, ঢাকা-১০০০' },
+    ctg_tcu: { nameBn: 'চট্টগ্রাম প্রশিক্ষণ কেন্দ্র', nameEn: 'Chattogram Training Center', address: 'আগ্রাবাদ, চট্টগ্রাম' },
+    khl_tcu: { nameBn: 'খুলনা প্রশিক্ষণ কেন্দ্র', nameEn: 'Khulna Training Center', address: 'বয়রা, খুলনা' },
+    rsh_tcu: { nameBn: 'রাজশাহী প্রশিক্ষণ কেন্দ্র', nameEn: 'Rajshahi Training Center', address: 'সপুরা, রাজশাহী' },
   };
   return centers[code.toLowerCase()] || { nameBn: 'প্রশিক্ষণ কেন্দ্র', nameEn: 'Training Center', address: '' };
 }
@@ -25,13 +21,13 @@ export default function PublicCircularList() {
   const [error, setError] = useState(null);
   const [lang, setLang] = useState('bn');
 
-  const isRtl = lang === 'bn';
+  const isRtl = false;
   const center = getCenterInfo(center_code);
 
   useEffect(() => {
     document.documentElement.lang = lang;
-    document.documentElement.dir = isRtl ? 'rtl' : 'ltr';
-  }, [lang, isRtl]);
+    document.documentElement.dir = 'ltr';
+  }, [lang]);
 
   useEffect(() => {
     setLoading(true);
@@ -106,7 +102,7 @@ export default function PublicCircularList() {
       <main className="container py-4">
         <div className="center-info mb-4">
           <h2 className="center-name">
-            {isRtl ? center.nameBn : center.nameEn}
+            {lang === 'bn' ? center.nameBn : center.nameEn}
           </h2>
           <p className="center-address text-muted">
             <i className="bi bi-geo-alt me-1"></i>
@@ -165,7 +161,7 @@ export default function PublicCircularList() {
             <div className="col-md-6">
               <h5>{text.footer}</h5>
               <p className="mb-1">
-                {isRtl ? center.nameBn : center.nameEn}
+                {lang === 'bn' ? center.nameBn : center.nameEn}
               </p>
               <p className="small text-muted">{center.address}</p>
             </div>

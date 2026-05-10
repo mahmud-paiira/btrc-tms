@@ -142,8 +142,8 @@ def seed_circulars(centers, courses, users_map):
     ]
     for ci, coi, title_bn, title_en, app_start, app_end, train_start, train_end, seats in configs:
         circ, _ = Circular.objects.get_or_create(
-            center=centers[ci], course=courses[coi], public_url=f'{centers[ci].code}-{courses[coi].code}'.lower(),
-            defaults=dict(title_bn=title_bn, title_en=title_en, description=f'{title_bn} - বিস্তারিত তথ্যের জন্য কেন্দ্রে যোগাযোগ করুন।', application_start_date=app_start, application_end_date=app_end, training_start_date=train_start, training_end_date=train_end, total_seats=seats, remaining_seats=seats, fee=courses[coi].fee, status='published', public_url=f'{centers[ci].code}-{courses[coi].code}'.lower()),
+            public_url=f'{centers[ci].code}-{courses[coi].code}'.lower(),
+            defaults=dict(center=centers[ci], course=courses[coi], title_bn=title_bn, title_en=title_en, description=f'{title_bn} - বিস্তারিত তথ্যের জন্য কেন্দ্রে যোগাযোগ করুন।', application_start_date=app_start, application_end_date=app_end, training_start_date=train_start, training_end_date=train_end, total_seats=seats, remaining_seats=seats, fee=courses[coi].fee, status='published'),
         )
         circulars.append(circ)
     return circulars

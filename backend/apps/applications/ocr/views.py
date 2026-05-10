@@ -4,7 +4,7 @@ import tempfile
 import logging
 
 from rest_framework import status
-from rest_framework.decorators import api_view, parser_classes
+from rest_framework.decorators import api_view, parser_classes, permission_classes
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 @parser_classes([MultiPartParser, FormParser])
 def ocr_extract(request):
     serializer = NIDUploadSerializer(data=request.data)

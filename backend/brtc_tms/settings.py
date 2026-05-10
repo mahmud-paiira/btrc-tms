@@ -166,6 +166,10 @@ REST_FRAMEWORK = {
     'DATE_FORMAT': '%Y-%m-%d',
 }
 
+# ── File Upload ────────────────────────────────────────────────────────────
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10 MB for NID images
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024   # 10 MB before streaming to disk
+
 # ── SimpleJWT ─────────────────────────────────────────────────────────────
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=2),
