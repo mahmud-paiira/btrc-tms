@@ -1,12 +1,13 @@
-from django.db import models
+﻿from django.db import models
 from apps.accounts.models import User
 from apps.centers.models import Center
 from apps.courses.models import Course
+from apps.system_config.models import Education
 
 
 class Assessor(models.Model):
     class Status(models.TextChoices):
-        PENDING = 'pending', 'বিচারাধীন'
+        PENDING = 'pending', 'পেন্ডিং'
         ACTIVE = 'active', 'সক্রিয়'
         SUSPENDED = 'suspended', 'স্থগিত'
 
@@ -29,11 +30,12 @@ class Assessor(models.Model):
         max_length=17, blank=True, null=True, verbose_name='জন্ম নিবন্ধন নং',
     )
     date_of_birth = models.DateField(verbose_name='জন্ম তারিখ')
-    father_name_bn = models.CharField(max_length=255, verbose_name='পিতার নাম (বাংলায়)')
-    mother_name_bn = models.CharField(max_length=255, verbose_name='মাতার নাম (বাংলায়)')
-    education_qualification = models.TextField(verbose_name='শিক্ষাগত যোগ্যতা')
+    father_name_bn = models.CharField(max_length=255, blank=True, verbose_name='পিতার নাম (বাংলায়)')
+    mother_name_bn = models.CharField(max_length=255, blank=True, verbose_name='মাতার নাম (বাংলায়)')
+    education = models.ForeignKey(Education, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='শিক্ষাগত যোগ্যতা')
+    education_qualification = models.TextField(blank=True, verbose_name='শিক্ষাগত যোগ্যতা (বিস্তারিত)')
     years_of_experience = models.PositiveIntegerField(default=0, verbose_name='অভিজ্ঞতা (বছর)')
-    expertise_area = models.CharField(max_length=255, verbose_name='দক্ষতার ক্ষেত্র')
+    expertise_area = models.CharField(max_length=255, blank=True, verbose_name='দক্ষতার ক্ষেত্র')
     certification = models.TextField(blank=True, verbose_name='সার্টিফিকেশন')
     bank_account_no = models.CharField(max_length=30, blank=True, verbose_name='ব্যাংক একাউন্ট নং')
     bank_name = models.CharField(max_length=255, blank=True, verbose_name='ব্যাংকের নাম')
@@ -64,7 +66,7 @@ class Assessor(models.Model):
 
 class AssessorMapping(models.Model):
     class Status(models.TextChoices):
-        PENDING = 'pending', 'বিচারাধীন'
+        PENDING = 'pending', 'পেন্ডিং'
         ACTIVE = 'active', 'সক্রিয়'
         SUSPENDED = 'suspended', 'স্থগিত'
 
@@ -124,3 +126,4 @@ class TrainerAssessorLink(models.Model):
 
     def __str__(self):
         return f'{self.trainer.trainer_no} ↔ {self.assessor.assessor_no}'
+

@@ -1,5 +1,5 @@
 import logging
-from django.db.models.signals import pre_save
+from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from django.db import transaction
 
@@ -22,27 +22,45 @@ def auto_enroll_trainee(sender, instance, **kwargs):
     was_pending = old.status != Application.ApplicationStatus.SELECTED
     now_selected = instance.status == Application.ApplicationStatus.SELECTED
 
-    if was_pending and now_selected and not instance.user:
-        transaction.on_commit(lambda: _execute_enrollment(instance.pk))
+    if was_pending and now_selected:
+        transaction.on_commit(lambda: _ensure_trainee(instance.pk))
 
 
-def _execute_enrollment(application_pk):
+@receiver(post_save, sender=Application)
+def auto_enroll_new_selected(sender, instance, created, **kwargs):
+    if created and instance.status == Application.ApplicationStatus.SELECTED:
+        transaction.on_commit(lambda: _ensure_trainee(instance.pk))
+
+
+def _ensure_trainee(application_pk):
     from apps.applications.models import Application
+    from .models import Trainee
 
     try:
-        app = Application.objects.select_related('circular__center').get(pk=application_pk)
+        app = Application.objects.select_related(
+            'circular', 'chosen_center', 'user'
+        ).get(pk=application_pk)
 
         if app.user:
-            log = EnrollmentAuditLog(
-                application_no=app.application_no,
-                result=EnrollmentAuditLog.Result.USER_EXISTS,
-                error_message='User already linked to this application',
+            trainee, created = Trainee.objects.get_or_create(
+                user=app.user,
+                defaults={
+                    'application': app,
+                    'center': app.chosen_center,
+                },
             )
-            log.save()
-            logger.warning(f'Enrollment skipped: application {app.application_no} already has user')
-            return
-
-        trainee, is_new_user = create_trainee_from_application(app)
+            if not created:
+                changed = False
+                if trainee.center_id != app.chosen_center_id:
+                    trainee.center = app.chosen_center
+                    changed = True
+                if trainee.application_id != app.id:
+                    trainee.application = app
+                    changed = True
+                if changed:
+                    trainee.save(update_fields=['center', 'application'])
+        else:
+            trainee, is_new_user = create_trainee_from_application(app)
 
         log = EnrollmentAuditLog(
             application_no=app.application_no,
@@ -54,8 +72,7 @@ def _execute_enrollment(application_pk):
 
         logger.info(
             f'Enrolled trainee: reg={trainee.registration_no}, '
-            f'email={trainee.user.email}, '
-            f'new_user={is_new_user}'
+            f'email={trainee.user.email}'
         )
 
     except Exception as e:

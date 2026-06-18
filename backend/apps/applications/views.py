@@ -47,7 +47,7 @@ class ApplicationFilter(FilterSet):
 
 class ApplicationViewSet(viewsets.ModelViewSet):
     queryset = Application.objects.select_related(
-        'circular', 'circular__center', 'circular__course', 'reviewed_by'
+        'circular', 'circular__course', 'reviewed_by', 'chosen_center'
     )
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]

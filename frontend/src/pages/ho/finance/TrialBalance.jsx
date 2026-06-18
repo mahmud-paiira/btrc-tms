@@ -58,7 +58,7 @@ export default function TrialBalance() {
   }
 
   return (
-    <div>
+    <div className="px-4 py-4">
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h5 className="fw-bold mb-0">{t('trialBalance.title', 'ট্রায়াল ব্যালেন্স')}</h5>
         <button className="btn btn-outline-primary btn-sm" onClick={exportExcel}>
@@ -90,7 +90,7 @@ export default function TrialBalance() {
         </div>
       </div>
 
-      <div className="card shadow-sm" style={{ borderRadius: 12, border: 'none' }}>
+      <div className="card shadow-sm table-card">
         <div className="table-responsive">
           <table className="table table-hover mb-0">
             <thead className="table-light">

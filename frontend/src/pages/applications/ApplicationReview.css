@@ -1,45 +1,171 @@
-.application-review .card {
-  border-radius: 0.5rem;
-}
-
-.application-review .table th {
-  white-space: nowrap;
-  font-size: 0.85rem;
-}
-
-.application-review .table td {
-  vertical-align: middle;
-  font-size: 0.9rem;
-}
-
-.application-review .table-striped > tbody > tr:nth-of-type(odd) {
-  background-color: rgba(0, 0, 0, 0.02);
-}
-
-.application-review .form-select-sm,
-.application-review .form-control-sm {
-  font-size: 0.85rem;
+.application-review {
+  width: 100%;
 }
 
 .application-review .stats-card {
   transition: transform 0.15s;
+  border-radius: 0.5rem;
 }
 
 .application-review .stats-card:hover {
   transform: translateY(-2px);
 }
 
-.application-review .badge {
-  font-size: 0.8rem;
-  padding: 0.35em 0.65em;
+/* Table */
+.application-review .table th {
+  white-space: nowrap;
+  font-size: 0.85rem;
+  font-weight: 600;
+  user-select: none;
 }
 
+.application-review .table td {
+  vertical-align: middle;
+  font-size: 0.88rem;
+}
+
+.application-review .table .sortable {
+  cursor: pointer;
+}
+
+.application-review .table .sortable:hover {
+  color: #0d6efd;
+}
+
+/* Status select styling */
+.application-review .status-select-pending {
+  color: #856404;
+}
+
+.application-review .status-select-selected {
+  color: #155724;
+}
+
+.application-review .status-select-rejected {
+  color: #721c24;
+}
+
+.application-review .status-select-waitlisted {
+  color: #0c5460;
+}
+
+.application-review .form-select-sm {
+  font-size: 0.8rem;
+  padding: 0.15rem 1.5rem 0.15rem 0.4rem;
+  background-position: right 0.25rem center;
+  background-size: 12px;
+  min-width: 110px;
+}
+
+.application-review .form-select-sm:focus {
+  box-shadow: none;
+  border-color: #86b7fe;
+}
+
+/* Badge */
+.application-review .badge {
+  font-size: 0.78rem;
+  padding: 0.35em 0.65em;
+  font-weight: 500;
+}
+
+/* Pagination */
 .application-review .pagination {
   margin-bottom: 0;
+}
+
+.application-review .page-link {
+  padding: 0.25rem 0.6rem;
+  font-size: 0.82rem;
+}
+
+/* Button group */
+.application-review .btn-group-sm .btn {
+  font-size: 0.8rem;
+}
+
+/* Action buttons */
+.application-review .btn-sm i {
+  font-size: 0.85rem;
+}
+
+.application-review .btn-outline-primary:hover i,
+.application-review .btn-outline-info:hover i,
+.application-review .btn-outline-danger:hover i,
+.application-review .btn-outline-secondary:hover i {
+  color: #fff;
+}
+
+/* Responsive */
+@media (max-width: 991.98px) {
+  .application-review .stats-card .stat-value {
+    font-size: 1.5rem;
+  }
+  .application-review .d-flex.gap-1 {
+    flex-wrap: wrap;
+  }
 }
 
 @media (max-width: 768px) {
   .application-review .table-responsive {
     font-size: 0.8rem;
+  }
+
+  .application-review .form-select-sm {
+    min-width: 90px;
+  }
+
+  .application-review .stats-row {
+    gap: 8px;
+  }
+
+  .application-review .stats-row > div {
+    flex: 1 1 calc(50% - 4px);
+    min-width: 120px;
+  }
+
+  .application-review .filter-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .application-review .filter-row > div {
+    width: 100%;
+  }
+
+  .application-review .bulk-action-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .application-review .bulk-action-bar .d-flex {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .application-review .pagination-wrap {
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+  }
+
+  .application-review .page-size-select {
+    width: 100%;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .application-review .stats-row > div {
+    flex: 1 1 100%;
+  }
+
+  .application-review .btn-group-sm .btn {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.4rem;
+  }
+
+  .application-review .status-select {
+    min-width: 100%;
   }
 }

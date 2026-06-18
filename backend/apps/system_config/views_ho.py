@@ -10,10 +10,10 @@ from rest_framework.response import Response
 
 from apps.accounts.models import User
 from apps.centers.models import ActionLog
-from .models import SystemSetting, EmailTemplate, SmsTemplate, IntegrationConfig, BackupConfig
+from .models import SystemSetting, EmailTemplate, SmsTemplate, IntegrationConfig, BackupConfig, Gender, Education, Demography
 from .serializers import (
     SystemSettingSerializer, EmailTemplateSerializer, SmsTemplateSerializer,
-    IntegrationConfigSerializer, BackupConfigSerializer,
+    IntegrationConfigSerializer, BackupConfigSerializer, GenderSerializer, EducationSerializer, DemographySerializer,
 )
 
 logger = logging.getLogger(__name__)
@@ -320,3 +320,23 @@ class HOSystemConfigViewSet(viewsets.ViewSet):
             return Response({'detail': 'ক্যাশ ক্লিয়ার করা হয়েছে'})
         except Exception as e:
             return Response({'error': str(e)}, status=500)
+
+
+class MasterDataModelViewSet(viewsets.ModelViewSet):
+    """Base viewset for master data CRUD by HO users."""
+    permission_classes = [permissions.IsAuthenticated, IsHeadOffice]
+
+
+class GenderViewSet(MasterDataModelViewSet):
+    queryset = Gender.objects.all()
+    serializer_class = GenderSerializer
+
+
+class EducationViewSet(MasterDataModelViewSet):
+    queryset = Education.objects.all()
+    serializer_class = EducationSerializer
+
+
+class DemographyViewSet(MasterDataModelViewSet):
+    queryset = Demography.objects.select_related('parent').all()
+    serializer_class = DemographySerializer

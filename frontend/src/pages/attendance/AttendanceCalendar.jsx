@@ -49,7 +49,7 @@ export default function AttendanceCalendar() {
       ]);
       setCalendar(calRes.data.calendar || []);
       setBatch(batchRes.data);
-      setWeekPlans(plansRes.data || []);
+      setWeekPlans(plansRes.data.results || plansRes.data || []);
       setSummaries(summaryRes.data.summaries || []);
       setEligible(eligRes.data.trainees || []);
     } catch (err) {

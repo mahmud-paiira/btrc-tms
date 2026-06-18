@@ -52,7 +52,7 @@ export default function CircularMonitor() {
                   <span className={`badge bg-${STATUS_BG[c.status]}`} style={{ fontSize: 10 }}>{c.status_display}</span>
                 </div>
                 <div className="d-flex justify-content-between text-muted" style={{ fontSize: 11 }}>
-                  <span>{c.center_code} - {c.course_code}</span>
+                  <span>{c.all_centers ? 'সব কেন্দ্র' : (c.eligible_centers || []).map(ec => ec.code).join(', ') || '-'} - {c.course_code}</span>
                   <span className={daysLeft <= 3 ? 'text-danger fw-bold' : daysLeft <= 7 ? 'text-warning fw-bold' : ''}>
                     {daysLeft > 0 ? `বাকি ${daysLeft} দিন` : 'সময় শেষ'}
                   </span>

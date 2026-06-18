@@ -52,7 +52,7 @@ export default function FinancialDashboard() {
   };
 
   return (
-    <div>
+    <div className="px-4 py-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h4 className="fw-bold mb-0">{t('finance.title', 'অর্থ ব্যবস্থাপনা')}</h4>
         <button className="btn btn-outline-primary btn-sm" onClick={fetchData}>

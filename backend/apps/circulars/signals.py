@@ -45,11 +45,12 @@ def update_circular_seats_on_status_change(sender, instance, **kwargs):
     if old.status == instance.status:
         return
 
-    if instance.status == Application.ApplicationStatus.SELECTED:
+    consuming = (Application.ApplicationStatus.SELECTED, Application.ApplicationStatus.ENROLLED)
+    if instance.status in consuming:
         Circular.objects.filter(pk=instance.circular_id).update(
             remaining_seats=F('remaining_seats') - 1,
         )
-    elif old.status == Application.ApplicationStatus.SELECTED:
+    elif old.status in consuming:
         Circular.objects.filter(pk=instance.circular_id).update(
             remaining_seats=F('remaining_seats') + 1,
         )

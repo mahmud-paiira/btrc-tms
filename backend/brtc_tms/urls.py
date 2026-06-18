@@ -4,6 +4,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.shortcuts import redirect, render
 from django.http import JsonResponse
+
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
@@ -148,11 +149,17 @@ urlpatterns = [
     path('api/ho/', include('apps.finance.urls_ho')),
     path('api/ho/', include('apps.reports.urls_ho')),
     path('api/ho/', include('apps.accounts.urls_ho')),
+    path('api/ho/', include('apps.trainees.urls_ho')),
     path('api/ho/system/', include('apps.system_config.urls_ho')),
+
+    # Allowance
+    path('api/allowance/', include('apps.allowance.urls')),
 
     # Public endpoints
     path('api/public/', include('apps.applications.urls_public')),
     path('api/public/', include('apps.certificates.urls_public')),
+    path('api/public/', include('apps.system_config.urls_public')),
+    path('api/public/auth/', include('apps.accounts.urls_public')),
 
     # Swagger / ReDoc
     re_path(r'^swagger(?P<format>\.json|\.yaml)$',

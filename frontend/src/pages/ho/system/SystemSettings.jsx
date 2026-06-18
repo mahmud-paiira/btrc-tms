@@ -44,7 +44,7 @@ export default function SystemSettings() {
   if (loading) return <div className="text-center py-5"><div className="spinner-border" /></div>;
 
   return (
-    <div>
+    <div className="px-4 py-4">
       <h5 className="fw-bold mb-3"><i className="bi bi-gear me-2"></i>সিস্টেম সেটিংস</h5>
       <div className="row g-3">
         {SETTING_GROUPS.map(group => (

@@ -102,7 +102,7 @@ export default function ReportList() {
         </div>
       </div>
 
-      <div className="card shadow-sm" style={{ borderRadius: 12, border: 'none' }}>
+      <div className="card shadow-sm table-card">
         <div className="card-header bg-white fw-semibold">পূর্ববর্তী প্রতিবেদন</div>
         <div className="table-responsive">
           <table className="table table-hover align-middle mb-0" style={{ fontSize: 13 }}>

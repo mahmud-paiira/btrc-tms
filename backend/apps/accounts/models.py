@@ -124,6 +124,10 @@ class User(AbstractBaseUser, PermissionsMixin):
         default=True,
         verbose_name='সক্রিয়',
     )
+    is_phone_verified = models.BooleanField(
+        default=False,
+        verbose_name='মোবাইল নিশ্চিতকরণ',
+    )
     mfa_secret = models.CharField(
         max_length=64,
         blank=True,
@@ -204,3 +208,35 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return f'{self.user.full_name_bn} - প্রোফাইল'
+
+
+class OTPVerification(models.Model):
+    class Purpose(models.TextChoices):
+        REGISTRATION = 'registration', 'নিবন্ধন'
+        PASSWORD_RESET = 'password_reset', 'পাসওয়ার্ড রিসেট'
+
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE,
+        related_name='otp_codes', verbose_name='ব্যবহারকারী',
+    )
+    otp_code = models.CharField(max_length=6, verbose_name='OTP কোড')
+    purpose = models.CharField(
+        max_length=20, choices=Purpose.choices,
+        default=Purpose.REGISTRATION, verbose_name='উদ্দেশ্য',
+    )
+    is_verified = models.BooleanField(default=False, verbose_name='নিশ্চিতকরণ')
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(verbose_name='মেয়াদ শেষ')
+
+    class Meta:
+        verbose_name = 'OTP নিশ্চিতকরণ'
+        verbose_name_plural = 'OTP নিশ্চিতকরণ'
+        ordering = ('-created_at',)
+
+    def __str__(self):
+        return f'{self.user.phone} - {self.otp_code} ({self.purpose})'
+
+    @property
+    def is_expired(self):
+        from django.utils import timezone
+        return timezone.now() > self.expires_at

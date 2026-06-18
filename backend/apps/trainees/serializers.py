@@ -4,17 +4,22 @@ from .models import Trainee
 
 class TraineeListSerializer(serializers.ModelSerializer):
     user_name = serializers.CharField(source='user.full_name_bn', read_only=True)
+    user_name_en = serializers.CharField(source='user.full_name_en', read_only=True)
     user_phone = serializers.CharField(source='user.phone', read_only=True)
     user_email = serializers.CharField(source='user.email', read_only=True)
+    user_nid = serializers.CharField(source='user.nid', read_only=True)
+    profile_image = serializers.ImageField(source='user.profile_image', read_only=True)
     batch_name = serializers.CharField(source='batch.batch_name_bn', read_only=True, default=None)
     center_name = serializers.CharField(source='center.name_bn', read_only=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
 
     class Meta:
         model = Trainee
         fields = (
-            'id', 'registration_no', 'user', 'user_name', 'user_phone', 'user_email',
+            'id', 'registration_no', 'user', 'user_name', 'user_name_en', 'user_phone', 'user_email', 'user_nid',
+            'profile_image',
             'center', 'center_name', 'batch', 'batch_name',
-            'status', 'enrollment_date',
+            'status', 'status_display', 'enrollment_date',
         )
 
 

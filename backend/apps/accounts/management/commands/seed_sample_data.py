@@ -1,12 +1,13 @@
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from datetime import date, timedelta
+from decimal import Decimal
 from apps.accounts.models import User, Role
 from apps.centers.models import Center, Infrastructure, Employee
 from apps.courses.models import Course
 from apps.trainers.models import Trainer, TrainerMapping
 from apps.assessors.models import Assessor, AssessorMapping
-from apps.circulars.models import Circular
+from apps.circulars.models import Circular, ChecklistItem
 from apps.applications.models import Application
 from apps.batches.models import Batch
 from apps.trainees.models import Trainee
@@ -141,10 +142,20 @@ def seed_circulars(centers, courses, users_map):
         (3, 0, 'রাজশাহীতে ড্রাইভিং ফাউন্ডেশন কোর্সে ভর্তি বিজ্ঞপ্তি', 'Rajshahi Driving Foundation Admission', today - timedelta(days=5), today + timedelta(days=35), today + timedelta(days=65), today + timedelta(days=155), 45),
     ]
     for ci, coi, title_bn, title_en, app_start, app_end, train_start, train_end, seats in configs:
-        circ, _ = Circular.objects.get_or_create(
+        # Make the Supervisor circular (KHL) an "all centers" circular
+        is_all = (ci == 2)  # KHL supervisor circular = all centers
+        circ, created = Circular.objects.get_or_create(
             public_url=f'{centers[ci].code}-{courses[coi].code}'.lower(),
-            defaults=dict(center=centers[ci], course=courses[coi], title_bn=title_bn, title_en=title_en, description=f'{title_bn} - বিস্তারিত তথ্যের জন্য কেন্দ্রে যোগাযোগ করুন।', application_start_date=app_start, application_end_date=app_end, training_start_date=train_start, training_end_date=train_end, total_seats=seats, remaining_seats=seats, fee=courses[coi].fee, status='published'),
+            defaults=dict(course=courses[coi], title_bn=title_bn, title_en=title_en, description=f'{title_bn} - বিস্তারিত তথ্যের জন্য কেন্দ্রে যোগাযোগ করুন।', application_start_date=app_start, application_end_date=app_end, training_start_date=train_start, training_end_date=train_end, total_seats=seats, remaining_seats=seats, fee=courses[coi].fee, status='published', all_centers=is_all),
         )
+        if created:
+            if is_all:
+                circ.all_centers = True
+                circ.save(update_fields=['all_centers'])
+            else:
+                circ.eligible_centers.add(centers[ci])
+        elif not circ.eligible_centers.exists() and not circ.all_centers:
+            circ.eligible_centers.add(centers[ci])
         circulars.append(circ)
     return circulars
 
@@ -170,7 +181,7 @@ def seed_applications_and_trainees(centers, courses, circulars, users_map):
         course = courses[coi]
         circ = None
         for c in circulars:
-            if c.center_id == center.id and c.course_id == course.id:
+            if center in c.eligible_centers.all() and c.course_id == course.id:
                 circ = c
                 break
         if not circ:
@@ -180,7 +191,7 @@ def seed_applications_and_trainees(centers, courses, circulars, users_map):
         user.set_password(pw)
         user.save(update_fields=['password'])
 
-        app, _ = Application.objects.get_or_create(user=user, circular=circ, defaults=dict(name_bn=name_bn, name_en=name_en, father_name_bn=father, mother_name_bn=mother, date_of_birth=dob, nid=nid_val, phone=phone, present_address=pres, permanent_address=perm, education_qualification=edu, status='selected'))
+        app, _ = Application.objects.get_or_create(user=user, circular=circ, defaults=dict(name_bn=name_bn, name_en=name_en, chosen_center=center, father_name_bn=father, mother_name_bn=mother, date_of_birth=dob, nid=nid_val, phone=phone, present_address=pres, permanent_address=perm, education_qualification=edu, status='selected'))
 
         batch, _ = Batch.objects.get_or_create(circular=circ, center=center, course=course, start_date=circ.training_start_date, end_date=circ.training_end_date, defaults=dict(batch_name_bn=f'{course.name_bn} - {center.short_name_bn or center.name_bn}', batch_name_en=f'{course.name_en} - {center.name_en}', total_seats=circ.total_seats, filled_seats=0, status='running'))
 
@@ -204,6 +215,96 @@ def seed_budgets(centers, courses, users_map):
             b, _ = Budget.objects.get_or_create(center=center, fiscal_year=fiscal_year, course=course, defaults=dict(allocated_amount=1000000 + ci * 100000 + coi * 50000, notes=f'{center.name_bn} - {course.name_bn}', created_by=admin_user))
             budgets.append(b)
     return budgets
+
+
+def seed_additional_applications(centers, circulars):
+    from apps.system_config.models import Gender, Education, Demography
+    apps_created = []
+    gender = Gender.objects.first()
+    edu = Education.objects.first()
+    division = Demography.objects.filter(type='division').first()
+    district = Demography.objects.filter(type='district', parent=division).first() if division else None
+
+    statuses = ['pending', 'rejected', 'waitlisted']
+    extra_data = [
+        # (center_index, circular_index, name_bn, nid)
+        (0, 0, 'আবেদনকারী আনোয়ার', '9934567890'),
+        (0, 0, 'আবেদনকারী হাসিনা', '9934567891'),
+        (0, 1, 'আবেদনকারী জাফর', '9934567892'),
+        (0, 1, 'আবেদনকারী সেলিনা', '9934567893'),
+        (1, 2, 'আবেদনকারী কাইয়ুম', '9934567894'),
+        (1, 2, 'আবেদনকারী পারভীন', '9934567895'),
+        (2, 3, 'আবেদনকারী বাবলু', '9934567896'),
+        (2, 3, 'আবেদনকারী শাহানা', '9934567897'),
+        (3, 4, 'আবেদনকারী সিরাজ', '9934567898'),
+        (3, 4, 'আবেদনকারী তানিয়া', '9934567899'),
+        (0, 0, 'আবেদনকারী ফারুক', '9934567800'),
+        (0, 0, 'আবেদনকারী নাসরিন', '9934567801'),
+    ]
+    for i, (ci, coi, name_bn, nid) in enumerate(extra_data):
+        center = centers[ci]
+        circ = None
+        for c in circulars:
+            if center in c.eligible_centers.all():
+                circ = c
+                break
+        if not circ:
+            circ = circulars[0]
+        status = statuses[i % len(statuses)]
+        days_ago = (i // len(statuses)) * 2 + 1
+        app = Application.objects.create(
+            name_bn=name_bn, name_en=f'Applicant {name_bn.split()[-1]}',
+            father_name_bn='পিতা মিয়া', mother_name_bn='মাতা বেগম',
+            date_of_birth=date(1995 + (i % 10), (i % 12) + 1, (i % 28) + 1),
+            nid=nid, phone=f'017{9990000 + i:04d}',
+            present_address='ঢাকা', permanent_address='ঢাকা',
+            education_qualification='এসএসসি',
+            circular=circ, chosen_center=center,
+            gender=gender, education_level=edu,
+            present_division=division, present_district=district,
+            permanent_division=division, permanent_district=district,
+            status=status,
+            applied_at=timezone.now() - timedelta(days=days_ago),
+            auto_screen_pass=True if status == 'waitlisted' else (None if status == 'pending' else False),
+        )
+        apps_created.append(app)
+    return apps_created
+
+
+def seed_checklist_items(circulars):
+    items = []
+    checklist_configs = [
+        (0, 'age', 'বয়স', 'Age', '>=', '21', 10, True, 0),
+        (0, 'education', 'শিক্ষাগত যোগ্যতা', 'Education', '>=', 'p8', 10, True, 1),
+        (0, 'height_cm', 'উচ্চতা', 'Height', '>=', '160', 5, False, 2),
+        (0, 'weight_kg', 'ওজন', 'Weight', '>=', '50', 5, False, 3),
+        (1, 'age', 'বয়স', 'Age', '>=', '21', 10, True, 0),
+        (1, 'education', 'শিক্ষাগত যোগ্যতা', 'Education', '>=', 'ssc', 10, True, 1),
+        (1, 'experience_years', 'ড্রাইভিং অভিজ্ঞতা', 'Driving Experience', '>=', '2', 15, True, 2),
+        (2, 'age', 'বয়স', 'Age', '>=', '21', 10, True, 0),
+        (2, 'education', 'শিক্ষাগত যোগ্যতা', 'Education', '>=', 'p8', 10, True, 1),
+        (3, 'age', 'বয়স', 'Age', '>=', '21', 10, True, 0),
+        (3, 'education', 'শিক্ষাগত যোগ্যতা', 'Education', '>=', 'hsc', 10, True, 1),
+        (3, 'experience_years', 'কাজের অভিজ্ঞতা', 'Work Experience', '>=', '3', 15, True, 2),
+        (4, 'age', 'বয়স', 'Age', '>=', '21', 10, True, 0),
+        (4, 'education', 'শিক্ষাগত যোগ্যতা', 'Education', '>=', 'ssc', 10, True, 1),
+    ]
+    for ci, ctype, lbn, len_, op, val, score, required, order in checklist_configs:
+        if ci >= len(circulars):
+            continue
+        item, _ = ChecklistItem.objects.get_or_create(
+            circular=circulars[ci], criteria_type=ctype, order=order,
+            defaults=dict(label_bn=lbn, label_en=len_, operator=op, expected_value=val, score=score, required=required),
+        )
+        items.append(item)
+    # Recalculate auto_screen scores for all circulars with checklist items
+    for c in circulars:
+        total = sum(c.checklist_items.values_list('score', flat=True))
+        if total > 0:
+            c.auto_screen_total_score = total
+            c.auto_screen_min_score = total * Decimal('0.6')
+            c.save(update_fields=['auto_screen_total_score', 'auto_screen_min_score'])
+    return items
 
 
 def seed_roles():
@@ -303,11 +404,20 @@ def seed_roles():
     return roles
 
 
+def seed_master_data():
+    from django.core.management import call_command
+    call_command('seed_master_data')
+
+
 class Command(BaseCommand):
     help = 'Seed comprehensive sample data for development/testing'
 
     def handle(self, *args, **options):
         self.stdout.write('Seeding comprehensive sample data...\n')
+
+        self.stdout.write('  -- Master Data (Gender, Education, Demography) --')
+        seed_master_data()
+        self.stdout.write('    ✓ Genders, Educations, Demography divisions & districts')
 
         self.stdout.write('  ── Centers ──')
         centers = seed_centers()
@@ -377,6 +487,14 @@ class Command(BaseCommand):
         self.stdout.write('  ── Applications, Batches & Trainees ──')
         trainees = seed_applications_and_trainees(centers, courses, circulars, users_map)
         self.stdout.write(f'    ✓ {len(trainees)} trainees with applications & batches')
+
+        self.stdout.write('  ── Additional Sample Applications ──')
+        extra_apps = seed_additional_applications(centers, circulars)
+        self.stdout.write(f'    ✓ {len(extra_apps)} applications (pending/rejected/waitlisted) added')
+
+        self.stdout.write('  ── Checklist Items ──')
+        items = seed_checklist_items(circulars)
+        self.stdout.write(f'    ✓ {len(items)} checklist items')
 
         self.stdout.write('  ── Budgets ──')
         budgets = seed_budgets(centers, courses, users_map)

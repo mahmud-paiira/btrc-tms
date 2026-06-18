@@ -21,6 +21,9 @@ const hoService = {
   updateCenter(id, data) { return api.put(`/ho/centers/${id}/`, data); },
   deleteCenter(id) { return api.delete(`/ho/centers/${id}/`); },
   toggleCenter(id) { return api.post(`/ho/centers/${id}/toggle/`); },
+  exportCenters(params) { return api.get('/ho/centers/export-list/', { params, responseType: 'blob' }); },
+  importCenters(formData) { return api.post('/ho/centers/import_centers/', formData); },
+  downloadCenterTemplate() { return api.get('/ho/centers/download_template/', { responseType: 'blob' }); },
   getCenterStats(id) { return api.get(`/ho/centers/${id}/stats/`); },
   getCenterInfrastructure(id) { return api.get(`/ho/centers/${id}/infrastructure/`); },
   createInfrastructure(id, data) { return api.post(`/ho/centers/${id}/infrastructure/`, data); },
@@ -80,7 +83,10 @@ const hoService = {
 
   // Applications (HO)
   listApplications(params) { return api.get('/applications/', { params }); },
+  getApplication(id) { return api.get(`/applications/${id}/`); },
   updateApplicationStatus(id, data) { return api.patch(`/applications/${id}/update_status/`, data); },
+  exportApplicationsExcel(params) { return api.get('/applications/export_excel/', { params, responseType: 'blob' }); },
+  exportApplicationsPdf(params) { return api.get('/applications/export_pdf/', { params, responseType: 'blob' }); },
 
   // Courses (HO)
   listCourses(params) { return api.get('/ho/courses/', { params }); },
@@ -118,6 +124,8 @@ const hoService = {
   rejectApplication(id, appId, remarks) { return api.post(`/ho/circulars/${id}/reject_application/`, { application_id: appId, remarks }); },
   getCircularStats() { return api.get('/ho/circulars/stats/'); },
   listActiveCirculars(params) { return api.get('/circulars/head-office/', { params }); },
+  printApplication(id, appId) { return api.get(`/ho/circulars/${id}/print_application/`, { params: { application_id: appId }, responseType: 'blob' }); },
+  printSelectedList(id) { return api.get(`/ho/circulars/${id}/print_selected_list/`, { responseType: 'blob' }); },
 
   // Finance / Budgets
   listBudgets(params) { return api.get('/ho/finance/budgets/', { params }); },
@@ -196,6 +204,40 @@ const hoService = {
   getSystemHealth() { return api.get('/ho/system/health/'); },
   triggerBackup() { return api.post('/ho/system/backup_now/'); },
   clearCache() { return api.post('/ho/system/clear_cache/'); },
+
+  // Master Data
+  listGenders(params) { return api.get('/ho/system/genders/', { params }); },
+  getGender(id) { return api.get(`/ho/system/genders/${id}/`); },
+  createGender(data) { return api.post('/ho/system/genders/', data); },
+  updateGender(id, data) { return api.put(`/ho/system/genders/${id}/`, data); },
+  deleteGender(id) { return api.delete(`/ho/system/genders/${id}/`); },
+  listEducations(params) { return api.get('/ho/system/educations/', { params }); },
+  getEducation(id) { return api.get(`/ho/system/educations/${id}/`); },
+  createEducation(data) { return api.post('/ho/system/educations/', data); },
+  updateEducation(id, data) { return api.put(`/ho/system/educations/${id}/`, data); },
+  deleteEducation(id) { return api.delete(`/ho/system/educations/${id}/`); },
+  listDemographies(params) { return api.get('/ho/system/demographies/', { params }); },
+  getDemography(id) { return api.get(`/ho/system/demographies/${id}/`); },
+  createDemography(data) { return api.post('/ho/system/demographies/', data); },
+  updateDemography(id, data) { return api.put(`/ho/system/demographies/${id}/`, data); },
+  deleteDemography(id) { return api.delete(`/ho/system/demographies/${id}/`); },
+
+  // Shifts (Master Data)
+  listShifts(params) { return api.get('/batches/shifts/', { params }); },
+  createShift(data) { return api.post('/batches/shifts/', data); },
+  updateShift(id, data) { return api.patch(`/batches/shifts/${id}/`, data); },
+  deleteShift(id) { return api.delete(`/batches/shifts/${id}/`); },
+
+  // Holidays (Master Data)
+  listHolidays(params) { return api.get('/batches/holidays/', { params }); },
+  createHoliday(data) { return api.post('/batches/holidays/', data); },
+  updateHoliday(id, data) { return api.patch(`/batches/holidays/${id}/`, data); },
+  deleteHoliday(id) { return api.delete(`/batches/holidays/${id}/`); },
+  seedHolidays(data) { return api.post('/batches/holidays/seed/', data); },
+
+  // Trainees
+  listTrainees(params) { return api.get('/ho/trainees/', { params }); },
+  exportTrainees(params) { return api.get('/ho/trainees/export-list/', { params, responseType: 'blob' }); },
 };
 
 export default hoService;

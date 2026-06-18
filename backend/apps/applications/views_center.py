@@ -9,6 +9,7 @@ from rest_framework.response import Response
 
 from django_filters.rest_framework import DjangoFilterBackend, DateFilter, CharFilter
 from django_filters import FilterSet
+from rest_framework.filters import OrderingFilter
 
 from apps.circulars.models import Circular
 from .models import Application
@@ -51,26 +52,32 @@ class CenterApplicationFilter(FilterSet):
         )
 
 
-class ApplicationCenterViewSet(viewsets.ReadOnlyModelViewSet):
+class ApplicationCenterViewSet(viewsets.ModelViewSet):
     permission_classes = [IsCenterAdminOrHeadOffice]
-    filter_backends = [DjangoFilterBackend]
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = CenterApplicationFilter
     ordering = ('-applied_at',)
+    ordering_fields = ['application_no', 'name_bn', 'nid', 'applied_at']
+    http_method_names = ['get', 'post', 'delete', 'head', 'options']
 
     def get_serializer_class(self):
         if self.action == 'list':
             return ApplicationCenterListSerializer
         return ApplicationCenterDetailSerializer
 
+    def perform_destroy(self, instance):
+        instance.delete()
+
     def get_queryset(self):
         qs = Application.objects.select_related(
-            'circular', 'circular__center', 'circular__course', 'reviewed_by'
+            'circular', 'circular__course', 'reviewed_by', 'chosen_center'
         ).all()
 
         user = self.request.user
         if user.user_type == 'center_admin' and user.center:
-            center_circulars = Circular.objects.filter(center=user.center).values_list('id', flat=True)
-            qs = qs.filter(circular_id__in=center_circulars)
+            qs = qs.filter(
+                Q(chosen_center=user.center) | Q(routed_center=user.center)
+            )
         elif user.user_type == 'center_admin' and not user.center:
             return Application.objects.none()
 
@@ -94,6 +101,8 @@ class ApplicationCenterViewSet(viewsets.ReadOnlyModelViewSet):
         application.status = new_status
         application.reviewed_by = request.user
         application.reviewed_at = timezone.now()
+        application.committee_decision_by = request.user
+        application.committee_decision_at = timezone.now()
         if remarks:
             application.remarks = remarks
         application.save()
@@ -120,6 +129,8 @@ class ApplicationCenterViewSet(viewsets.ReadOnlyModelViewSet):
             app.status = new_status
             app.reviewed_by = request.user
             app.reviewed_at = timezone.now()
+            app.committee_decision_by = request.user
+            app.committee_decision_at = timezone.now()
             if remarks:
                 app.remarks = remarks
             app.save()
@@ -137,10 +148,14 @@ class ApplicationCenterViewSet(viewsets.ReadOnlyModelViewSet):
         user = request.user
         qs = Circular.objects.filter(status=Circular.Status.PUBLISHED)
         if user.user_type == 'center_admin' and user.center:
-            qs = qs.filter(center=user.center)
+            qs = qs.filter(
+                Q(eligible_centers=user.center) |
+                Q(applications__chosen_center=user.center) |
+                Q(applications__routed_center=user.center)
+            ).distinct()
         data = [
-            {'id': c.id, 'title_bn': c.title_bn, 'code': c.center.code}
-            for c in qs.only('id', 'title_bn', 'center__code').select_related('center')
+            {'id': c.id, 'title_bn': c.title_bn}
+            for c in qs.only('id', 'title_bn')
         ]
         return Response(data)
 
@@ -252,3 +267,39 @@ class ApplicationCenterViewSet(viewsets.ReadOnlyModelViewSet):
         response = HttpResponse(pdf, content_type='application/pdf')
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         return response
+
+    @action(detail=False, methods=['post'])
+    def import_csv(self, request):
+        from io import TextIOWrapper
+        import csv
+        from datetime import datetime as dt
+
+        file = request.FILES.get('file')
+        if not file:
+            return Response({'error': 'ফাইল নির্বাচন করুন'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            reader = csv.DictReader(TextIOWrapper(file, encoding='utf-8-sig'))
+            created = 0
+            errors = []
+            for row_num, row in enumerate(reader, start=2):
+                try:
+                    Application.objects.create(
+                        name_bn=row.get('name_bn', ''),
+                        name_en=row.get('name_en', ''),
+                        father_name_bn=row.get('father_name_bn', ''),
+                        mother_name_bn=row.get('mother_name_bn', ''),
+                        nid=row.get('nid', ''),
+                        phone=row.get('phone', ''),
+                        date_of_birth=dt.strptime(row.get('date_of_birth', '2000-01-01'), '%Y-%m-%d').date(),
+                        present_address=row.get('present_address', ''),
+                        permanent_address=row.get('permanent_address', ''),
+                        education_qualification=row.get('education_qualification', ''),
+                        circular_id=row.get('circular_id'),
+                    )
+                    created += 1
+                except Exception as e:
+                    errors.append({'row': row_num, 'error': str(e)})
+            return Response({'created': created, 'errors': errors})
+        except Exception as e:
+            return Response({'error': f'ফাইল প্রসেস করতে ব্যর্থ: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)

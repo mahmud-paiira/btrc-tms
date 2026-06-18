@@ -13,12 +13,12 @@ def validate_no_trainer_overlap(trainer_id, day_of_week, start_time, end_time, e
 
     for existing in qs:
         if _times_overlap(start_time, end_time, existing.start_time, existing.end_time):
-            existing_batch = existing.batch
+            name = existing.lead_trainer.user.full_name_bn or existing.lead_trainer.user.full_name_en or f'প্রশিক্ষক #{trainer_id}'
             raise ValidationError(
-                f'প্রধান প্রশিক্ষক (ID: {trainer_id}) এর ইতিমধ্যে '
-                f'"{existing.batch.batch_name_bn}" ব্যাচের '
-                f'টার্ম {existing.term_no}, সেশন {existing.session_no} '
-                f'({existing.start_time}-{existing.end_time}) সময়ে ক্লাস নির্ধারিত আছে।'
+                f'{name} এর ইতিমধ্যে "{existing.batch.batch_name_bn}" ব্যাচের '
+                f'সেশন {existing.session_no} '
+                f'({existing.start_time}-{existing.end_time}) সময়ে ক্লাস নির্ধারিত আছে। '
+                f'অন্য প্রশিক্ষক বা ভিন্ন সময় বাছাই করুন।'
             )
 
 

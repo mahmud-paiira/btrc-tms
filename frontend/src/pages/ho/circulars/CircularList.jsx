@@ -1,30 +1,85 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import api from '../../../services/api';
 import hoService from '../../../services/hoService';
-import CircularDetail from './CircularDetail';
 import CircularForm from './CircularForm';
 
 const STATUS_BG = { draft: 'secondary', published: 'success', closed: 'danger', completed: 'info' };
 
+function ActionMenu({ children }) {
+  const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState({ top: 0, right: 0 });
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  const toggle = (e) => {
+    e.stopPropagation();
+    const rect = e.currentTarget.getBoundingClientRect();
+    setPos({ top: rect.bottom + 2, right: window.innerWidth - rect.right + 4 });
+    setOpen(o => !o);
+  };
+
+  const wrapChild = (child) => {
+    if (!child) return child;
+    const originalOnClick = child.props?.onClick;
+    if (!originalOnClick) return child;
+    return React.cloneElement(child, {
+      onClick: (e) => { originalOnClick(e); setOpen(false); },
+    });
+  };
+
+  return (
+    <span ref={ref} style={{ position: 'relative' }}>
+      <button className="btn btn-sm btn-outline-secondary border-0" type="button"
+        onClick={toggle}>
+        <i className="bi bi-three-dots-vertical"></i>
+      </button>
+      {open && (
+        <div style={{
+          position: 'fixed', top: pos.top, right: pos.right, zIndex: 1050,
+          minWidth: 160, fontSize: 13, left: 'auto',
+        }} className="dropdown-menu show">
+          {React.Children.map(children, wrapChild)}
+        </div>
+      )}
+    </span>
+  );
+}
+
 export default function CircularList() {
+  const navigate = useNavigate();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
   const [centerFilter, setCenterFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [centers, setCenters] = useState([]);
-  const [selected, setSelected] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const pageSize = 25;
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [showImport, setShowImport] = useState(false);
+  const fileRef = React.useRef(null);
+  const [importFile, setImportFile] = useState(null);
+  const [importLoading, setImportLoading] = useState(false);
+  const [importResults, setImportResults] = useState(null);
 
   const fetchItems = useCallback(async () => {
     setLoading(true);
     try {
       const params = { search: search || undefined, page, page_size: pageSize };
-      if (centerFilter) params.center = centerFilter;
+      if (centerFilter) params.eligible_centers = centerFilter;
       if (statusFilter) params.status = statusFilter;
       const res = await hoService.listCirculars(params);
       const data = res.data;
@@ -43,12 +98,64 @@ export default function CircularList() {
     }).catch(() => {});
   }, []);
 
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedIds(new Set(items.map(c => c.id)));
+    } else {
+      setSelectedIds(new Set());
+    }
+  };
+
+  const handleSelectOne = (id) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleExport = async (fmt = 'xlsx') => {
+    try {
+      const params = { file_format: fmt, page_size: 9999 };
+      if (selectedIds.size > 0) params.ids = [...selectedIds].join(',');
+      else if (search) params.search = search;
+      const res = await api.get('/ho/circulars/export_list/', { params, responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const a = document.createElement('a'); a.href = url; a.download = `circulars.${fmt}`;
+      a.click(); a.remove(); window.URL.revokeObjectURL(url);
+    } catch { toast.error('এক্সপোর্ট ব্যর্থ'); }
+  };
+
+  const handlePrint = () => {
+    const ids = selectedIds.size > 0 ? [...selectedIds] : items.map(c => c.id);
+    const token = localStorage.getItem('access_token');
+    ids.forEach(id => {
+      window.open(`/api/ho/circulars/${id}/print_circular/?token=${token}`, '_blank');
+    });
+  };
+
+  const handleImportSubmit = async () => {
+    if (!importFile) { toast.warning('ফাইল নির্বাচন করুন'); return; }
+    setImportLoading(true);
+    setImportResults(null);
+    try {
+      const formData = new FormData();
+      formData.append('file', importFile);
+      const res = await api.post('/ho/circulars/import_list/', formData);
+      setImportResults(res.data);
+      if (res.data.updated > 0) { toast.success(`${res.data.updated} টি আপডেট`); fetchItems(); }
+    } catch (err) {
+      const msg = err.response?.data?.error || err.response?.data?.detail || 'ইম্পোর্ট ব্যর্থ';
+      toast.error(msg);
+    } finally { setImportLoading(false); }
+  };
+
   const handlePublish = async (id) => {
     try {
       await hoService.publishCircular(id);
       toast.success('সার্কুলার প্রকাশিত হয়েছে');
       fetchItems();
-      if (selected?.id === id) setSelected(null);
     } catch (e) {
       toast.error(e.response?.data?.error || 'প্রকাশ করতে ব্যর্থ');
     }
@@ -59,7 +166,6 @@ export default function CircularList() {
       await hoService.closeCircular(id);
       toast.success('সার্কুলার বন্ধ করা হয়েছে');
       fetchItems();
-      if (selected?.id === id) setSelected(null);
     } catch (e) {
       toast.error(e.response?.data?.error || 'বন্ধ করতে ব্যর্থ');
     }
@@ -71,7 +177,6 @@ export default function CircularList() {
       await hoService.deleteCircular(id);
       toast.success('সার্কুলার মুছে ফেলা হয়েছে');
       fetchItems();
-      if (selected?.id === id) setSelected(null);
     } catch { toast.error('মুছতে ব্যর্থ'); }
   };
 
@@ -84,138 +189,158 @@ export default function CircularList() {
 
   return (
     <div>
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h5 className="mb-0 fw-bold">সার্কুলার ব্যবস্থাপনা</h5>
-        <button className="btn btn-primary btn-sm" onClick={() => { setEditing(null); setShowForm(true); }}>
-          <i className="bi bi-plus-lg me-1"></i>নতুন সার্কুলার
-        </button>
-      </div>
-
-      <div className="row g-2 mb-3">
-        <div className="col-md-4">
-          <input className="form-control form-control-sm" placeholder="শিরোনাম অনুসারে সার্চ..."
-            value={search} onChange={e => setSearch(e.target.value)} />
-        </div>
-        <div className="col-md-3">
-          <select className="form-select form-select-sm" value={centerFilter} onChange={e => setCenterFilter(e.target.value)}>
-            <option value="">সব কেন্দ্র</option>
-            {centers.map(c => <option key={c.id} value={c.id}>{c.code} - {c.name_bn}</option>)}
-          </select>
-        </div>
-        <div className="col-md-2">
-          <select className="form-select form-select-sm" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
-            <option value="">সব অবস্থা</option>
-            <option value="draft">খসড়া</option>
-            <option value="published">প্রকাশিত</option>
-            <option value="closed">বন্ধ</option>
-            <option value="completed">সমাপ্ত</option>
-          </select>
+      <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <h4 className="fw-bold mb-0"><i className="bi bi-megaphone me-2"></i>সার্কুলার ব্যবস্থাপনা</h4>
+        <div className="d-flex gap-2">
+          <button className="btn btn-outline-info btn-sm" onClick={() => { setImportFile(null); setImportResults(null); setShowImport(true); }}>
+            <i className="bi bi-upload me-1"></i>ইম্পোর্ট
+          </button>
+          <button className="btn btn-primary btn-sm" onClick={() => { setEditing(null); setShowForm(true); }}>
+            <i className="bi bi-plus-lg me-1"></i>নতুন সার্কুলার
+          </button>
         </div>
       </div>
 
-      <div className="row">
-        <div className={selected ? 'col-md-7' : 'col-12'}>
-          <div className="card shadow-sm">
-            <div className="card-body p-0">
+      <div className="card shadow-sm mb-3" style={{ borderRadius: 12, border: 'none' }}>
+        <div className="card-body">
+          <div className="row g-2">
+            <div className="col-md-4">
+              <input className="form-control form-control-sm" placeholder="শিরোনাম অনুসারে সার্চ..."
+                value={search} onChange={e => setSearch(e.target.value)} />
+            </div>
+            <div className="col-md-3">
+              <select className="form-select form-select-sm" value={centerFilter} onChange={e => setCenterFilter(e.target.value)}>
+                <option value="">সব কেন্দ্র</option>
+                {centers.map(c => <option key={c.id} value={c.id}>{c.code} - {c.name_bn}</option>)}
+              </select>
+            </div>
+            <div className="col-md-2">
+              <select className="form-select form-select-sm" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+                <option value="">সব অবস্থা</option>
+                <option value="draft">খসড়া</option>
+                <option value="published">প্রকাশিত</option>
+                <option value="closed">বন্ধ</option>
+                <option value="completed">সমাপ্ত</option>
+              </select>
+            </div>
+            <div className="col text-md-end">
+              <span className="text-secondary" style={{ fontSize: 13 }}>মোট: {totalCount}টি সার্কুলার</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {selectedIds.size > 0 && (
+        <div className="alert alert-info py-2 d-flex justify-content-between align-items-center mb-3">
+          <span><i className="bi bi-check-square me-1"></i>{selectedIds.size} টি নির্বাচিত</span>
+          <div className="d-flex gap-2">
+            <div className="btn-group btn-group-sm">
+              <button className="btn btn-sm btn-success" onClick={() => handleExport('xlsx')}>
+                <i className="bi bi-download me-1"></i>নির্বাচিত এক্সপোর্ট
+              </button>
+              <button className="btn btn-sm btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                <span className="visually-hidden">Toggle</span>
+              </button>
+              <ul className="dropdown-menu">
+                <li><button className="dropdown-item" onClick={() => handleExport('xlsx')}><i className="bi bi-file-earmark-excel me-2"></i>Excel (.xlsx)</button></li>
+                <li><button className="dropdown-item" onClick={() => handleExport('csv')}><i className="bi bi-filetype-csv me-2"></i>CSV</button></li>
+              </ul>
+            </div>
+            <button className="btn btn-sm btn-secondary" onClick={handlePrint}>
+              <i className="bi bi-printer me-1"></i>প্রিন্ট
+            </button>
+            <button className="btn btn-sm btn-outline-danger" onClick={() => setSelectedIds(new Set())}>
+              নির্বাচন বাতিল
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="card shadow-sm table-card" style={{ borderRadius: 12, border: 'none' }}>
+        <div className="table-responsive">
+          <table className="table table-hover align-middle mb-0" style={{ fontSize: 13 }}>
+            <thead className="table-light">
+              <tr>
+                <th style={{ width: 36 }}>
+                  <input type="checkbox" className="form-check-input" onChange={handleSelectAll}
+                    checked={items.length > 0 && selectedIds.size === items.length} />
+                </th>
+                <th>শিরোনাম</th>
+                <th className="d-none d-lg-table-cell">কেন্দ্র</th>
+                <th className="text-center" style={{ width: 80 }}>আসন</th>
+                <th className="d-none d-md-table-cell">আবেদনের তারিখ</th>
+                <th className="d-none d-xl-table-cell">প্রশিক্ষণ শুরুর তারিখ</th>
+                <th style={{ width: 90 }}>অবস্থা</th>
+                <th className="text-center" style={{ width: 50 }}>অ্যাকশন</th>
+              </tr>
+            </thead>
+            <tbody>
               {loading ? (
-                <div className="text-center py-4"><div className="spinner-border spinner-border-sm me-2"></div>লোড হচ্ছে...</div>
+                <tr><td colSpan={8} className="text-center py-4"><div className="spinner-border spinner-border-sm me-2" />লোড হচ্ছে...</td></tr>
+              ) : items.length === 0 ? (
+                <tr><td colSpan={8} className="text-center text-secondary py-4">কোনো সার্কুলার পাওয়া যায়নি</td></tr>
               ) : (
-                <div className="table-responsive">
-                  <table className="table table-hover align-middle mb-0" style={{ fontSize: 13 }}>
-                    <thead className="table-dark">
-                      <tr>
-                        <th>শিরোনাম</th>
-                        <th>কেন্দ্র</th>
-                        <th>কোর্স</th>
-                        <th>আবেদনের তারিখ</th>
-                        <th>প্রশিক্ষণের তারিখ</th>
-                        <th>আসন</th>
-                        <th>অবশিষ্ট</th>
-                        <th>অবস্থা</th>
-                        <th className="text-center">অ্যাকশন</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {items.map(c => (
-                        <tr key={c.id} className={selected?.id === c.id ? 'table-primary' : ''}
-                          style={{ cursor: 'pointer' }} onClick={() => setSelected(c)}>
-                          <td className="fw-semibold">{c.title_bn}</td>
-                          <td>{c.center_code}</td>
-                          <td>{c.course_code}</td>
-                          <td style={{ fontSize: 12 }}>{c.application_start_date} → {c.application_end_date}</td>
-                          <td style={{ fontSize: 12 }}>{c.training_start_date} → {c.training_end_date}</td>
-                          <td className="text-center">{c.total_seats}</td>
-                          <td className="text-center">{c.remaining_seats}</td>
-                          <td><span className={`badge bg-${STATUS_BG[c.status]}`}>{c.status_display}</span></td>
-                          <td className="text-center">
-                            <div className="btn-group btn-group-sm" onClick={e => e.stopPropagation()}>
-                              <button className="btn btn-outline-info" title="বিস্তারিত" onClick={() => setSelected(c)}>
-                                <i className="bi bi-eye"></i>
-                              </button>
-                              {c.status === 'draft' && (
-                                <>
-                                  <button className="btn btn-outline-primary" title="সম্পাদনা" onClick={() => openEdit(c)}>
-                                    <i className="bi bi-pencil"></i>
-                                  </button>
-                                  <button className="btn btn-outline-success" title="প্রকাশ" onClick={() => handlePublish(c.id)}>
-                                    <i className="bi bi-send"></i>
-                                  </button>
-                                  <button className="btn btn-outline-danger" title="মুছুন" onClick={() => handleDelete(c.id)}>
-                                    <i className="bi bi-trash"></i>
-                                  </button>
-                                </>
-                              )}
-                              {c.status === 'published' && (
-                                <button className="btn btn-outline-warning" title="বন্ধ করুন" onClick={() => handleClose(c.id)}>
-                                  <i className="bi bi-stop"></i>
-                                </button>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                      {items.length === 0 && (
-                        <tr><td colSpan={9} className="text-center text-muted py-4">কোনো সার্কুলার পাওয়া যায়নি</td></tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+                items.map((c, idx) => (
+                  <tr key={c.id} className={selectedIds.has(c.id) ? 'table-active' : ''}>
+                    <td><input type="checkbox" className="form-check-input" checked={selectedIds.has(c.id)} onChange={() => handleSelectOne(c.id)} /></td>
+                    <td className="fw-semibold" style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 120 }}>{c.title_bn}</td>
+                    <td className="d-none d-lg-table-cell" style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 100 }}>
+                      {c.all_centers ? 'সব কেন্দ্র' : (c.eligible_centers || []).map(ec => ec.code).join(', ')}
+                    </td>
+                    <td className="text-center" style={{ whiteSpace: 'nowrap' }}>
+                      <span className="fw-bold">{c.remaining_seats}</span><small className="text-muted">/{c.total_seats}</small>
+                    </td>
+                    <td className="d-none d-md-table-cell" style={{ fontSize: 12, whiteSpace: 'nowrap' }}>
+                      {c.application_start_date} → {c.application_end_date}
+                    </td>
+                    <td className="d-none d-xl-table-cell" style={{ fontSize: 12, whiteSpace: 'nowrap' }}>
+                      {c.training_start_date || '-'}
+                    </td>
+                    <td style={{ whiteSpace: 'nowrap' }}>
+                      <span className={`badge bg-${STATUS_BG[c.status] || 'secondary'}`}>{c.status_display || c.status}</span>
+                    </td>
+                    <td className="text-center" style={{ width: 50 }}>
+                      <ActionMenu>
+                        <li><button className="dropdown-item" onClick={() => navigate(`/ho/circulars/${c.id}`)}><i className="bi bi-eye me-2"></i>বিস্তারিত</button></li>
+                        <li><button className="dropdown-item" onClick={() => { const t = localStorage.getItem('access_token'); window.open(`/api/ho/circulars/${c.id}/print_circular/?token=${t}`, '_blank'); }}><i className="bi bi-filetype-pdf me-2"></i>পিডিএফ প্রিন্ট</button></li>
+                        {c.status === 'draft' && (
+                          <>
+                            <li><hr className="dropdown-divider" /></li>
+                            <li><button className="dropdown-item" onClick={() => openEdit(c)}><i className="bi bi-pencil me-2"></i>সম্পাদনা</button></li>
+                            <li><button className="dropdown-item text-success" onClick={() => handlePublish(c.id)}><i className="bi bi-send me-2"></i>প্রকাশ</button></li>
+                            <li><button className="dropdown-item text-danger" onClick={() => handleDelete(c.id)}><i className="bi bi-trash me-2"></i>মুছুন</button></li>
+                          </>
+                        )}
+                        {c.status === 'published' && (
+                          <>
+                            <li><hr className="dropdown-divider" /></li>
+                            <li><button className="dropdown-item text-warning" onClick={() => handleClose(c.id)}><i className="bi bi-stop me-2"></i>বন্ধ করুন</button></li>
+                          </>
+                        )}
+                      </ActionMenu>
+                    </td>
+                  </tr>
+                ))
               )}
-            </div>
-            <div className="card-footer d-flex justify-content-between align-items-center text-muted small">
-              <span>মোট: {totalCount}টি সার্কুলার</span>
-              {totalPages > 1 && (
-                <nav>
-                  <ul className="pagination pagination-sm mb-0">
-                    <li className={`page-item ${page <= 1 ? 'disabled' : ''}`}>
-                      <button className="page-link" onClick={() => setPage(p => Math.max(1, p - 1))}>পূর্ববর্তী</button>
-                    </li>
-                    {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                      let p;
-                      if (totalPages <= 5) p = i + 1;
-                      else if (page <= 3) p = i + 1;
-                      else if (page >= totalPages - 2) p = totalPages - 4 + i;
-                      else p = page - 2 + i;
-                      return (
-                        <li key={p} className={`page-item ${p === page ? 'active' : ''}`}>
-                          <button className="page-link" onClick={() => setPage(p)}>{p}</button>
-                        </li>
-                      );
-                    })}
-                    <li className={`page-item ${page >= totalPages ? 'disabled' : ''}`}>
-                      <button className="page-link" onClick={() => setPage(p => Math.min(totalPages, p + 1))}>পরবর্তী</button>
-                    </li>
-                  </ul>
-                </nav>
-              )}
-            </div>
-          </div>
+            </tbody>
+          </table>
         </div>
-        {selected && (
-          <div className="col-md-5">
-            <CircularDetail circularId={selected.id} onClose={() => setSelected(null)} onRefresh={fetchItems} />
-          </div>
-        )}
+        <div className="card-footer bg-white d-flex justify-content-between align-items-center py-2 px-3"
+          style={{ borderRadius: '0 0 12px 12px' }}>
+          <span className="text-muted small">মোট: {totalCount}টি সার্কুলার</span>
+          {totalPages > 1 && (
+            <nav>
+              <ul className="pagination pagination-sm mb-0">
+                <li className={`page-item ${page <= 1 ? 'disabled' : ''}`}>
+                  <button className="page-link" onClick={() => setPage(p => Math.max(1, p - 1))}>পূর্ববর্তী</button>
+                </li>
+                <li className={`page-item ${page >= totalPages ? 'disabled' : ''}`}>
+                  <button className="page-link" onClick={() => setPage(p => Math.min(totalPages, p + 1))}>পরবর্তী</button>
+                </li>
+              </ul>
+            </nav>
+          )}
+        </div>
       </div>
 
       {showForm && (
@@ -224,6 +349,61 @@ export default function CircularList() {
           onClose={() => { setShowForm(false); setEditing(null); }}
           onDone={() => { setShowForm(false); setEditing(null); fetchItems(); }}
         />
+      )}
+
+      {showImport && (
+        <div className="modal d-block" style={{ background: 'rgba(0,0,0,.5)' }}>
+          <div className="modal-dialog modal-md modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header bg-primary text-white">
+                <h5 className="modal-title"><i className="bi bi-upload me-2"></i>সার্কুলার বাল্ক ইম্পোর্ট</h5>
+                <button type="button" className="btn-close btn-close-white" onClick={() => setShowImport(false)} />
+              </div>
+              <div className="modal-body">
+                <div className="border rounded-3 p-4 bg-light mb-3">
+                  <div className="mb-3">
+                    <input ref={fileRef} type="file" className="form-control"
+                      accept=".csv,.xlsx" onChange={e => setImportFile(e.target.files[0] || null)} />
+                    <small className="text-secondary">Excel (.xlsx) বা CSV ফাইল আপলোড করুন</small>
+                  </div>
+                  <div className="d-flex gap-2 mt-2">
+                    <button className="btn btn-outline-success flex-shrink-0" onClick={async () => {
+                      try { const res = await api.get('/ho/circulars/download_template/', { responseType: 'blob' }); const url = window.URL.createObjectURL(new Blob([res.data])); const a = document.createElement('a'); a.href = url; a.download = 'circular_import_template.xlsx'; a.click(); a.remove(); window.URL.revokeObjectURL(url); } catch { toast.error('টেমপ্লেট ডাউনলোড ব্যর্থ'); }
+                    }} type="button">
+                      <i className="bi bi-download me-1"></i>টেমপ্লেট
+                    </button>
+                    <button className="btn btn-primary flex-grow-1" onClick={handleImportSubmit} disabled={importLoading || !importFile}>
+                      {importLoading ? <span className="spinner-border spinner-border-sm me-1" /> : <i className="bi bi-cloud-upload me-1"></i>}
+                      ইম্পোর্ট
+                    </button>
+                  </div>
+                </div>
+                {importResults && (
+                  <div>
+                    <h6 className="fw-bold">ইম্পোর্ট ফলাফল</h6>
+                    <div className="d-flex gap-3 mb-2">
+                      <div className="badge bg-info fs-6">আপডেট: {importResults.updated}</div>
+                    </div>
+                    {importResults.errors && importResults.errors.length > 0 && (
+                      <div className="border rounded p-2 bg-danger bg-opacity-10" style={{ maxHeight: 200, overflowY: 'auto' }}>
+                        <small className="text-danger fw-bold">ত্রুটি:</small>
+                        {importResults.errors.map((err, i) => (
+                          <div key={i} style={{ fontSize: 11 }} className="text-danger">{err}</div>
+                        ))}
+                      </div>
+                    )}
+                    <button className="btn btn-outline-secondary btn-sm w-100 mt-2" onClick={() => { setImportFile(null); setImportResults(null); if (fileRef.current) fileRef.current.value = ''; }}>
+                      <i className="bi bi-arrow-counterclockwise me-1"></i>রিসেট
+                    </button>
+                  </div>
+                )}
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setShowImport(false)}>বন্ধ</button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -92,7 +92,7 @@ export default function HoReportCenter() {
   };
 
   return (
-    <div>
+    <div className="px-4 py-4">
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h4 className="fw-bold mb-0">{t('report.title', 'প্রতিবেদন কেন্দ্র')}</h4>
         <div className="d-flex gap-2">
@@ -179,7 +179,7 @@ export default function HoReportCenter() {
       )}
 
       {/* Recent Reports */}
-      <div className="card shadow-sm mt-3" style={{ borderRadius: 12, border: 'none' }}>
+      <div className="card shadow-sm table-card mt-3">
         <div className="card-header bg-white py-3">
           <h6 className="fw-bold mb-0">{t('report.recent', 'সাম্প্রতিক প্রতিবেদন')}</h6>
         </div>

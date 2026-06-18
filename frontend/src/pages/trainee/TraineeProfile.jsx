@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { useTranslation } from '../../hooks/useTranslation';
 import traineeService from '../../services/traineeService';
+import BanglaInput from '../../components/common/BanglaInput';
 
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 const GENDERS = [
@@ -116,10 +117,10 @@ export default function TraineeProfile() {
 
                 <div className="mb-2">
                   <label className="form-label">{t('trainee.profile.nameBn', 'নাম (বাংলা)')}</label>
-                  <input name="full_name_bn" className="form-control" value={form.full_name_bn} onChange={handleChange} />
+                  <BanglaInput name="full_name_bn" className="form-control" value={form.full_name_bn} onChange={handleChange} />
                 </div>
                 <div className="mb-2">
-                  <label className="form-label">{t('trainee.profile.nameEn', 'নাম (ইংরেজি)')}</label>
+                  <label className="form-label">{t('trainee.profile.nameEn', 'নাম (ইংরেজি)')} <span className="text-muted" style={{ fontSize: '0.75rem' }}>English only</span></label>
                   <input name="full_name_en" className="form-control" value={form.full_name_en} onChange={handleChange} />
                 </div>
                 <div className="mb-2">

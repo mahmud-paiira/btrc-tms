@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import jobService from '../../services/jobService';
 import { useTranslation } from '../../hooks/useTranslation';
 import './JobPlacement.css';
+import BanglaInput from '../../components/common/BanglaInput';
 
 const defaultForm = {
   batch: '',
@@ -196,18 +197,18 @@ export default function JobPlacementForm() {
                 <div className="row g-3">
                   <div className="col-md-6">
                     <label className="form-label fw-bold">{t('job.placement.employerName', 'নিয়োগকর্তার নাম')} <span className="text-danger">*</span></label>
-                    <input className="form-control" name="employer_name" value={form.employer_name} onChange={handleChange} placeholder={t('job.placement.employerNamePlaceholder', 'যেমন: ABC কোম্পানি লিমিটেড')} required />
+                    <BanglaInput className="form-control" name="employer_name" value={form.employer_name} onChange={handleChange} placeholder={t('job.placement.employerNamePlaceholder', 'যেমন: ABC কোম্পানি লিমিটেড')} required />
                   </div>
                   <div className="col-md-6">
                     <label className="form-label fw-bold">{t('job.placement.address', 'ঠিকানা')}</label>
-                    <input className="form-control" name="employer_address" value={form.employer_address} onChange={handleChange} placeholder={t('job.placement.addressPlaceholder', 'নিয়োগকর্তার ঠিকানা')} />
+                    <BanglaInput className="form-control" name="employer_address" value={form.employer_address} onChange={handleChange} placeholder={t('job.placement.addressPlaceholder', 'নিয়োগকর্তার ঠিকানা')} />
                   </div>
                   <div className="col-md-6">
                     <label className="form-label fw-bold">{t('job.placement.designationBn', 'পদবী (বাংলায়)')} <span className="text-danger">*</span></label>
-                    <input className="form-control" name="designation_bn" value={form.designation_bn} onChange={handleChange} placeholder={t('job.placement.designationBnPlaceholder', 'যেমন: জুনিয়র সফটওয়্যার ইঞ্জিনিয়ার')} required />
+                    <BanglaInput className="form-control" name="designation_bn" value={form.designation_bn} onChange={handleChange} placeholder={t('job.placement.designationBnPlaceholder', 'যেমন: জুনিয়র সফটওয়্যার ইঞ্জিনিয়ার')} required />
                   </div>
                   <div className="col-md-6">
-                    <label className="form-label fw-bold">{t('job.placement.designationEn', 'পদবী (ইংরেজিতে)')}</label>
+                    <label className="form-label fw-bold">{t('job.placement.designationEn', 'পদবী (ইংরেজিতে)')} <span className="text-muted" style={{ fontSize: '0.75rem' }}>English only</span></label>
                     <input className="form-control" name="designation_en" value={form.designation_en} onChange={handleChange} placeholder="e.g. Junior Software Engineer" />
                   </div>
                   <div className="col-md-4">

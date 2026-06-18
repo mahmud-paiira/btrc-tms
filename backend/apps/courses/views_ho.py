@@ -2,6 +2,10 @@ from rest_framework import viewsets, filters, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
+from django.template.loader import render_to_string
+from django.http import HttpResponse
+from weasyprint import HTML
+
 from .models import (
     Course, CourseConfiguration, CourseBill, CourseChapter, UnitOfCompetency,
 )
@@ -78,6 +82,35 @@ class HOCourseViewSet(viewsets.ModelViewSet):
         course.status = Course.Status.DRAFT
         course.save(update_fields=['status'])
         return Response({'status': course.status})
+
+    @action(detail=True, methods=['get'], permission_classes=[permissions.AllowAny])
+    def print_course(self, request, pk=None):
+        if not request.user.is_authenticated:
+            token = request.query_params.get('token')
+            if token:
+                from rest_framework_simplejwt.tokens import AccessToken
+                try:
+                    user_id = AccessToken(token).payload.get('user_id')
+                    from django.contrib.auth import get_user_model
+                    request.user = get_user_model().objects.get(id=user_id)
+                except Exception:
+                    pass
+            if not request.user.is_authenticated:
+                return Response({'detail': 'Authentication credentials were not provided.'},
+                                status=status.HTTP_401_UNAUTHORIZED)
+        course = self.get_object()
+        html = render_to_string('courses/print_course.html', {
+            'course': course,
+            'config': getattr(course, 'configuration', None),
+            'chapters': course.chapters.all(),
+            'competencies': course.competencies.all(),
+            'bills': course.bills.all(),
+        })
+        pdf = HTML(string=html).write_pdf()
+        filename = f'course_{course.code}.pdf'
+        response = HttpResponse(pdf, content_type='application/pdf')
+        response['Content-Disposition'] = f'inline; filename="{filename}"'
+        return response
 
     @action(detail=True, methods=['get', 'post', 'put'])
     def configuration(self, request, pk=None):

@@ -27,8 +27,10 @@ class CenterListSerializer(serializers.ModelSerializer):
         model = Center
         fields = (
             'id', 'code', 'name_bn', 'name_en', 'short_name_bn',
-            'phone', 'email', 'status', 'infrastructure_count',
-            'employee_count', 'created_at',
+            'phone', 'email', 'status',
+            'center_type', 'overflow_percentage', 'quality_score',
+            'latitude', 'longitude',
+            'infrastructure_count', 'employee_count', 'created_at',
         )
 
     def get_infrastructure_count(self, obj):
@@ -39,10 +41,38 @@ class CenterListSerializer(serializers.ModelSerializer):
 
 
 class CenterDetailSerializer(serializers.ModelSerializer):
-    infrastructures = InfrastructureSerializer(many=True, read_only=True)
-    employees = EmployeeSerializer(many=True, read_only=True)
+    infrastructures = InfrastructureSerializer(many=True, required=False)
+    employees = EmployeeSerializer(many=True, required=False)
 
     class Meta:
         model = Center
         fields = '__all__'
-        read_only_fields = ('created_at',)
+        read_only_fields = ('code', 'created_at')
+
+    def create(self, validated_data):
+        infra_data = validated_data.pop('infrastructures', [])
+        emp_data = validated_data.pop('employees', [])
+        center = super().create(validated_data)
+        for item in infra_data:
+            item.pop('center', None)
+            Infrastructure.objects.create(center=center, **item)
+        for item in emp_data:
+            item.pop('center', None)
+            Employee.objects.create(center=center, **item)
+        return center
+
+    def update(self, instance, validated_data):
+        infra_data = validated_data.pop('infrastructures', None)
+        emp_data = validated_data.pop('employees', None)
+        center = super().update(instance, validated_data)
+        if infra_data is not None:
+            center.infrastructures.all().delete()
+            for item in infra_data:
+                item.pop('center', None)
+                Infrastructure.objects.create(center=center, **item)
+        if emp_data is not None:
+            center.employees.all().delete()
+            for item in emp_data:
+                item.pop('center', None)
+                Employee.objects.create(center=center, **item)
+        return center

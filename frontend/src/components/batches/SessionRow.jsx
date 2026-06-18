@@ -1,4 +1,5 @@
 import React from 'react';
+import BanglaInput from '../../components/common/BanglaInput';
 
 export default function SessionRow({ index, plan, trainers, daysOfWeek, classTypes, onChange, onRemove }) {
   return (
@@ -78,7 +79,7 @@ export default function SessionRow({ index, plan, trainers, daysOfWeek, classTyp
         <span className="badge bg-info">{plan.duration_hours}</span>
       </td>
       <td>
-        <input
+        <BanglaInput
           className="form-control form-control-sm"
           style={{ width: 80 }}
           value={plan.training_room_bn}
@@ -115,7 +116,7 @@ export default function SessionRow({ index, plan, trainers, daysOfWeek, classTyp
         </select>
       </td>
       <td>
-        <input
+        <BanglaInput
           className="form-control form-control-sm"
           value={plan.topic_bn}
           onChange={(e) => onChange(index, 'topic_bn', e.target.value)}

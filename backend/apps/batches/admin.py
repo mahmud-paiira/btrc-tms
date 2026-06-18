@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Batch, BatchWeekPlan, BatchEnrollment
+from .models import Batch, BatchWeekPlan, BatchEnrollment, Shift, Holiday
 
 
 class BatchWeekPlanInline(admin.TabularInline):
@@ -45,6 +45,9 @@ class BatchAdmin(admin.ModelAdmin):
                 'circular', 'center', 'course',
             ),
         }),
+        ('শিফট', {
+            'fields': ('shift', 'batch_index'),
+        }),
         ('তারিখ ও আসন', {
             'fields': ('start_date', 'end_date', 'total_seats', 'filled_seats', 'waitlist_seats'),
         }),
@@ -52,6 +55,21 @@ class BatchAdmin(admin.ModelAdmin):
             'fields': ('created_by', 'created_at', 'updated_at'),
         }),
     )
+
+
+@admin.register(Shift)
+class ShiftAdmin(admin.ModelAdmin):
+    list_display = ('name_bn', 'name_en', 'start_time', 'end_time', 'center', 'is_active')
+    list_filter = ('is_active', 'center')
+    search_fields = ('name_bn', 'name_en', 'center__name_bn')
+
+
+@admin.register(Holiday)
+class HolidayAdmin(admin.ModelAdmin):
+    list_display = ('date', 'description_bn', 'is_government_holiday', 'center')
+    list_filter = ('is_government_holiday', 'center')
+    search_fields = ('description_bn',)
+    date_hierarchy = 'date'
 
 
 @admin.register(BatchWeekPlan)

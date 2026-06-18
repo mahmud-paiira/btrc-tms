@@ -5,7 +5,8 @@ from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from apps.batches.models import Batch
+from apps.batches.models import Batch, BatchWeekPlan
+from apps.trainers.models import Trainer
 from .models import Attendance, AttendanceSummary
 from .serializers import (
     AttendanceSerializer,
@@ -15,23 +16,37 @@ from .serializers import (
 )
 
 
-class IsCenterAdminOrHeadOffice(permissions.BasePermission):
+class IsCenterAdminOrHeadOfficeOrTrainer(permissions.BasePermission):
     def has_permission(self, request, view):
         if not request.user.is_authenticated:
             return False
         return (
-            request.user.user_type in ('center_admin', 'head_office')
+            request.user.user_type in ('center_admin', 'head_office', 'trainer')
             or request.user.is_superuser
         )
 
 
 class CenterAttendanceViewSet(viewsets.ViewSet):
-    permission_classes = [permissions.IsAuthenticated, IsCenterAdminOrHeadOffice]
+    permission_classes = [permissions.IsAuthenticated, IsCenterAdminOrHeadOfficeOrTrainer]
 
-    def get_center_filter(self, request):
+    def get_trainer_batch_ids(self, request):
+        try:
+            trainer = request.user.trainer_profile
+        except Trainer.DoesNotExist:
+            return []
+        return BatchWeekPlan.objects.filter(
+            Q(lead_trainer=trainer) | Q(associate_trainer=trainer)
+        ).values_list('batch_id', flat=True).distinct()
+
+    def assert_batch_access(self, request, batch):
         if request.user.user_type == 'center_admin' and request.user.center:
-            return {'center': request.user.center}
-        return {}
+            if batch.center_id != request.user.center_id:
+                return False
+        elif request.user.user_type == 'trainer':
+            trainer_batch_ids = self.get_trainer_batch_ids(request)
+            if batch.id not in trainer_batch_ids:
+                return False
+        return True
 
     @action(detail=False, methods=['get'], url_path='batch/(?P<batch_id>[^/.]+)')
     def batch_calendar(self, request, batch_id=None):
@@ -40,9 +55,8 @@ class CenterAttendanceViewSet(viewsets.ViewSet):
         except Batch.DoesNotExist:
             return Response({'error': 'ব্যাচ পাওয়া যায়নি'}, status=404)
 
-        center_filter = self.get_center_filter(request)
-        if center_filter and batch.center_id != request.user.center_id:
-            return Response({'error': 'আপনার কেন্দ্রের ব্যাচ নয়'}, status=403)
+        if not self.assert_batch_access(request, batch):
+            return Response({'error': 'আপনার ব্যাচ নয়'}, status=403)
 
         attendances = Attendance.objects.select_related(
             'trainee__user', 'lead_trainer__user',
@@ -93,9 +107,8 @@ class CenterAttendanceViewSet(viewsets.ViewSet):
         except Batch.DoesNotExist:
             return Response({'error': 'ব্যাচ পাওয়া যায়নি'}, status=404)
 
-        center_filter = self.get_center_filter(request)
-        if center_filter and batch.center_id != request.user.center_id:
-            return Response({'error': 'আপনার কেন্দ্রের ব্যাচ নয়'}, status=403)
+        if not self.assert_batch_access(request, batch):
+            return Response({'error': 'আপনার ব্যাচ নয়'}, status=403)
 
         summaries = AttendanceSummary.objects.select_related(
             'trainee__user',

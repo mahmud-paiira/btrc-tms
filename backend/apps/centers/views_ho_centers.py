@@ -1,10 +1,16 @@
-from django.db.models import Count, Avg, Sum, Q
-from django.db.models.functions import TruncMonth
-from django.utils import timezone
+import csv
+import io
 from datetime import date, timedelta
 
+import openpyxl
+from django.db.models import Count, Avg, Sum, Q
+from django.db.models.functions import TruncMonth
+from django.http import HttpResponse
+from django.utils import timezone
 from rest_framework import viewsets, status, permissions, filters as drf_filters
 from rest_framework.decorators import action
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -28,9 +34,17 @@ class IsHeadOffice(permissions.BasePermission):
         return request.user.user_type == 'head_office' or request.user.is_superuser
 
 
+class HOCenterPagination(PageNumberPagination):
+    page_size = 25
+    page_size_query_param = 'page_size'
+    max_page_size = 999
+
+
 class HOCenterViewSet(viewsets.ModelViewSet):
     queryset = Center.objects.prefetch_related('infrastructures', 'employees').all()
     permission_classes = [permissions.IsAuthenticated, IsHeadOffice]
+    lookup_value_regex = '\d+'
+    pagination_class = HOCenterPagination
     filter_backends = (DjangoFilterBackend, drf_filters.SearchFilter, drf_filters.OrderingFilter)
     filterset_fields = ('status',)
     search_fields = ('code', 'name_bn', 'name_en', 'phone', 'email', 'address')
@@ -65,7 +79,7 @@ class HOCenterViewSet(viewsets.ModelViewSet):
         )
 
     def perform_destroy(self, instance):
-        if instance.batch_set.exists():
+        if instance.batches.exists():
             from rest_framework.exceptions import ValidationError
             raise ValidationError('এই কেন্দ্রে ব্যাচ আছে। প্রথমে ব্যাচ স্থানান্তর বা মুছুন।')
         ActionLog.objects.create(
@@ -77,6 +91,172 @@ class HOCenterViewSet(viewsets.ModelViewSet):
             ip_address=self.request.META.get('REMOTE_ADDR', ''),
         )
         instance.delete()
+
+    @action(detail=False, methods=['get'], url_path='export-list')
+    def export(self, request):
+        qs = self.filter_queryset(self.get_queryset())
+        ids = request.query_params.get('ids', '')
+        if ids:
+            id_list = [int(x) for x in ids.split(',') if x.isdigit()]
+            if id_list:
+                qs = qs.filter(id__in=id_list)
+        fmt = request.query_params.get('file_format', 'xlsx')
+
+        headers = [
+            'কোড', 'নাম (বাংলা)', 'নাম (ইংরেজি)', 'সংক্ষিপ্ত নাম',
+            'ফোন', 'ইমেইল', 'ওয়েবসাইট', 'ঠিকানা',
+            'যোগাযোগ ব্যক্তি', 'যোগাযোগ মোবাইল', 'স্ট্যাটাস', 'তৈরির তারিখ',
+        ]
+        rows = []
+        for c in qs:
+            rows.append([
+                c.code, c.name_bn, c.name_en, c.short_name_bn,
+                c.phone, c.email, c.website_url, c.address,
+                c.contact_person_name, c.contact_person_phone,
+                'সক্রিয়' if c.status == 'active' else 'স্থগিত',
+                c.created_at.strftime('%Y-%m-%d %H:%M') if c.created_at else '',
+            ])
+        rows.sort(key=lambda r: int(r[0]) if r[0] and r[0].isdigit() else 9999)
+
+        if fmt == 'xlsx':
+            wb = openpyxl.Workbook()
+            ws = wb.active
+            ws.title = 'Centers'
+            ws.append(headers)
+            for row in rows:
+                ws.append(row)
+            output = io.BytesIO()
+            wb.save(output)
+            output.seek(0)
+            response = HttpResponse(
+                output.getvalue(),
+                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            )
+            response['Content-Disposition'] = f'attachment; filename="centers_{date.today().isoformat()}.xlsx"'
+            return response
+        else:
+            output = io.StringIO()
+            writer = csv.writer(output)
+            writer.writerow(headers)
+            for row in rows:
+                writer.writerow(row)
+            response = HttpResponse(
+                output.getvalue().encode('utf-8-sig'),
+                content_type='text/csv',
+            )
+            response['Content-Disposition'] = f'attachment; filename="centers_{date.today().isoformat()}.csv"'
+            return response
+
+    @action(detail=False, methods=['post'], parser_classes=[MultiPartParser, FormParser])
+    def import_centers(self, request):
+        file = request.FILES.get('file')
+        if not file:
+            return Response({'error': 'ফাইল নির্বাচন করুন'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            wb = openpyxl.load_workbook(file)
+            ws = wb.active
+            rows_iter = iter(ws.iter_rows(values_only=True))
+            header_row = [str(c).strip().lower() if c is not None else '' for c in next(rows_iter)]
+        except Exception:
+            file.seek(0)
+            try:
+                content = file.read().decode('utf-8-sig')
+                reader = csv.DictReader(io.StringIO(content))
+                header_row = [h.strip().lower() for h in reader.fieldnames]
+                rows_iter = reader
+            except Exception:
+                return Response({'error': 'ভুল ফাইল ফরম্যাট। Excel (.xlsx) বা CSV ফাইল আপলোড করুন।'}, status=400)
+
+        bn_required = {'নাম (বাংলা)', 'নাম (ইংরেজি)'}
+        en_required = {'name_bn', 'name_en'}
+        header_set = set(header_row)
+        if not bn_required.issubset(header_set) and not en_required.issubset(header_set):
+            return Response({
+                'error': f'প্রয়োজনীয় কলাম নেই। হেডার হতে হবে: {", ".join(sorted(bn_required))}',
+                'detected_headers': header_row,
+            }, status=400)
+
+        results = {'created': 0, 'updated': 0, 'errors': []}
+        field_map = {
+            'name_bn': 'name_bn', 'নাম (বাংলা)': 'name_bn',
+            'name_en': 'name_en', 'নাম (ইংরেজি)': 'name_en',
+            'short_name_bn': 'short_name_bn', 'সংক্ষিপ্ত নাম': 'short_name_bn',
+            'phone': 'phone', 'ফোন': 'phone',
+            'email': 'email', 'ইমেইল': 'email',
+            'website_url': 'website_url', 'ওয়েবসাইট': 'website_url',
+            'address': 'address', 'ঠিকানা': 'address',
+            'contact_person_name': 'contact_person_name', 'যোগাযোগ ব্যক্তি': 'contact_person_name',
+            'contact_person_phone': 'contact_person_phone', 'যোগাযোগ মোবাইল': 'contact_person_phone',
+            'code': 'code', 'কোড': 'code',
+            'স্ট্যাটাস': 'status', 'status': 'status',
+        }
+
+        for row_idx, row in enumerate(rows_iter, start=2):
+            try:
+                if isinstance(row, dict):
+                    raw = row
+                else:
+                    raw = dict(zip(header_row, [str(c).strip() if c is not None else '' for c in row]))
+
+                data = {}
+                for k, v in raw.items():
+                    mapped = field_map.get(k.strip().lower(), k.strip().lower())
+                    data[mapped] = v.strip() if v else ''
+
+                name_bn = data.get('name_bn', '').strip()
+                name_en = data.get('name_en', '').strip()
+                if not name_bn or not name_en:
+                    results['errors'].append(f'সারি {row_idx}: নাম (বাংলা) এবং নাম (ইংরেজি) আবশ্যক')
+                    continue
+
+                code = data.get('code', '').strip()
+                existing = None
+                if code:
+                    existing = Center.objects.filter(code=code).first()
+                if not existing:
+                    existing = Center.objects.filter(name_bn=name_bn).first()
+
+                if existing:
+                    for fld in ['name_en', 'short_name_bn', 'phone', 'email', 'website_url', 'address', 'contact_person_name', 'contact_person_phone']:
+                        if data.get(fld):
+                            setattr(existing, fld, data[fld])
+                    existing.save()
+                    results['updated'] += 1
+                else:
+                    cleaned = {}
+                    for k, v in data.items():
+                        if k in [f.name for f in Center._meta.fields if f.editable] and v:
+                            cleaned[k] = v
+                    if 'status' not in cleaned:
+                        cleaned['status'] = 'active'
+                    Center.objects.create(**cleaned)
+                    results['created'] += 1
+            except Exception as e:
+                results['errors'].append(f'সারি {row_idx}: {str(e)}')
+
+        return Response(results)
+
+    @action(detail=False, methods=['get'])
+    def download_template(self, request):
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = 'Template'
+        headers = ['কোড', 'নাম (বাংলা)', 'নাম (ইংরেজি)', 'সংক্ষিপ্ত নাম',
+                   'ফোন', 'ইমেইল', 'ওয়েবসাইট', 'ঠিকানা',
+                   'যোগাযোগ ব্যক্তি', 'যোগাযোগ মোবাইল', 'স্ট্যাটাস']
+        ws.append(headers)
+        sample = ['', 'উদাহরণ কেন্দ্র', 'Example Center', '', '০১৭XXXXXXXX', '', '', 'ঢাকা', '', '', 'active']
+        ws.append(sample)
+        for col_idx in range(1, len(headers) + 1):
+            cell = ws.cell(row=1, column=col_idx)
+            cell.font = openpyxl.styles.Font(bold=True)
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        )
+        response['Content-Disposition'] = 'attachment; filename="center_import_template.xlsx"'
+        wb.save(response)
+        return response
 
     @action(detail=True, methods=['post'])
     def toggle(self, request, pk=None):
@@ -96,43 +276,20 @@ class HOCenterViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'])
     def stats(self, request, pk=None):
         center = self.get_object()
-        today = date.today()
-        last_12mo = today - timedelta(days=365)
-
-        monthly_enrollment = (
-            Trainee.objects.filter(center=center, enrollment_date__gte=last_12mo)
-            .annotate(month=TruncMonth('enrollment_date'))
-            .values('month')
-            .annotate(count=Count('id'))
-            .order_by('month')
-        )
-
-        batch_count = Batch.objects.filter(center=center).count()
-        running_batches = Batch.objects.filter(center=center, status='running').count()
-        completed_batches = Batch.objects.filter(center=center, status='completed').count()
-
-        t_total = Trainee.objects.filter(center=center).count()
-        t_enrolled = Trainee.objects.filter(center=center, status='enrolled').count()
-        t_completed = Trainee.objects.filter(center=center, status='completed').count()
-        t_dropped = Trainee.objects.filter(center=center, status='dropped').count()
-
         return Response({
             'center_name': center.name_bn,
             'center_code': center.code,
-            'trainee_count': t_total,
-            'active_batch_count': center.get_active_batch_count(),
-            'attendance_rate': center.get_attendance_rate(),
-            'placement_rate': center.get_placement_rate(),
-            'total_batches': batch_count,
-            'running_batches': running_batches,
-            'completed_batches': completed_batches,
-            'enrolled_trainees': t_enrolled,
-            'completed_trainees': t_completed,
-            'dropped_trainees': t_dropped,
-            'monthly_enrollment': [
-                {'month': m['month'].strftime('%Y-%m'), 'count': m['count']}
-                for m in monthly_enrollment
-            ],
+            'trainee_count': center.total_trainees,
+            'active_batch_count': center.active_batches,
+            'attendance_rate': float(center.attendance_rate),
+            'placement_rate': float(center.placement_rate),
+            'total_batches': center.total_batches,
+            'running_batches': center.running_batches,
+            'completed_batches': center.completed_batches,
+            'enrolled_trainees': center.enrolled_trainees,
+            'completed_trainees': center.completed_trainees,
+            'dropped_trainees': center.dropped_trainees,
+            'monthly_enrollment': [],
         })
 
     @action(detail=True, methods=['get', 'post'])

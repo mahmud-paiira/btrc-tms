@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import hoService from '../../services/hoService';
 import { useTranslation } from '../../hooks/useTranslation';
 
-const COLORS = ['#0d6efd', '#198754', '#ffc107', '#dc3545', '#0dcaf0', '#6610f2', '#fd7e14', '#20c997'];
+const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#f43f5e', '#0ea5e9', '#8b5cf6', '#f97316', '#14b8a6'];
 
 export default function HoDashboard() {
   const { t } = useTranslation();
@@ -66,17 +66,20 @@ export default function HoDashboard() {
   const attColor = attRate >= 80 ? 'success' : attRate >= 60 ? 'warning' : 'danger';
 
   return (
-    <div style={{ fontFamily: 'NikoshBAN, sans-serif' }}>
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h4 className="mb-0">{t('hoDashboard.title', 'হেড অফিস ড্যাশবোর্ড')}</h4>
-        <button className="btn btn-outline-primary btn-sm" onClick={handleRefresh} disabled={refreshing}>
-          <i className={`bi ${refreshing ? 'bi-arrow-repeat spin' : 'bi-arrow-clockwise'} me-1`}></i>
+    <div className="px-4 py-4">
+      <div className="d-flex justify-content-between align-items-center mb-5">
+        <div>
+          <h2 className="mb-1 fw-bold text-heading">{t('hoDashboard.title', 'হেড অফিস ড্যাশবোর্ড')}</h2>
+          <p className="text-muted small mb-0">{new Date().toLocaleDateString('bn-BD', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+        </div>
+        <button className="btn btn-primary shadow-sm" onClick={handleRefresh} disabled={refreshing}>
+          <i className={`bi ${refreshing ? 'bi-arrow-repeat spin' : 'bi-arrow-clockwise'} me-2`}></i>
           {refreshing ? t('site.refreshing', 'রিফ্রেশ হচ্ছে...') : t('site.refresh', 'রিফ্রেশ')}
         </button>
       </div>
 
       {/* Summary cards */}
-      <div className="row g-3 mb-4">
+      <div className="row g-4 mb-5">
         {[
           { label: t('hoDashboard.totalCenters', 'মোট কেন্দ্র'), value: summary?.total_centers || 0, color: 'primary', icon: 'bi-building', to: '/ho/centers' },
           { label: t('hoDashboard.activeCenters', 'সক্রিয় কেন্দ্র'), value: summary?.active_centers || 0, color: 'success', icon: 'bi-building-check', to: '/ho/centers' },
@@ -86,21 +89,23 @@ export default function HoDashboard() {
           { label: t('hoDashboard.enrolled', 'নথিভুক্ত'), value: summary?.enrolled_trainees || 0, color: 'success', icon: 'bi-person-check' },
           { label: t('hoDashboard.completed', 'সমাপ্ত'), value: summary?.completed_trainees || 0, color: 'info', icon: 'bi-person-check-fill' },
           { label: t('hoDashboard.runningBatches', 'চলমান ব্যাচ'), value: summary?.running_batches || 0, color: 'warning', icon: 'bi-layers' },
-          { label: t('hoDashboard.pending', 'বিচারাধীন'), value: summary?.total_pending || 0, color: 'danger', icon: 'bi-hourglass-split', to: '/ho/approvals' },
+          { label: t('hoDashboard.pending', 'পেন্ডিং'), value: summary?.total_pending || 0, color: 'danger', icon: 'bi-hourglass-split', to: '/ho/approvals' },
         ].map((card) => {
           const inner = (
-            <div className={`card text-bg-${card.color} shadow-sm h-100${card.to ? ' cursor-pointer' : ''}`}>
-              <div className="card-body d-flex align-items-center gap-3">
-                <i className={`bi ${card.icon} fs-1`}></i>
+            <div className={`card shadow-sm border-0 h-100${card.to ? ' cursor-pointer' : ''}`} style={{ background: `var(--bs-${card.color})`, color: '#fff' }}>
+              <div className="card-body d-flex align-items-center justify-content-between p-4">
                 <div>
-                  <h3 className="mb-0">{card.value}</h3>
-                  <small>{card.label}</small>
+                  <div className="text-white-50 small mb-1">{card.label}</div>
+                  <h2 className="mb-0 fw-bold">{card.value}</h2>
+                </div>
+                <div className="bg-white bg-opacity-25 rounded-circle d-flex align-items-center justify-content-center" style={{ width: 56, height: 56 }}>
+                  <i className={`bi ${card.icon} fs-3`}></i>
                 </div>
               </div>
             </div>
           );
           return (
-            <div className="col-md-4 col-6" key={card.label}>
+            <div className="col-lg-4 col-md-6" key={card.label}>
               {card.to ? <Link to={card.to} className="text-decoration-none">{inner}</Link> : inner}
             </div>
           );
@@ -110,23 +115,23 @@ export default function HoDashboard() {
       {/* Charts row 1 */}
       <div className="row g-4 mb-4">
         {/* Center enrollment bar chart */}
-        <div className="col-md-6">
+        <div className="col-12">
           <div className="card shadow-sm h-100">
             <div className="card-header bg-light"><h6 className="mb-0"><i className="bi bi-bar-chart me-2"></i>{t('hoDashboard.chartCenterEnrollment', 'কেন্দ্রভিত্তিক নথিভুক্তি')}</h6></div>
-            <div className="card-body" style={{ maxHeight: 300, overflowY: 'auto' }}>
+            <div className="card-body" style={{ maxHeight: 400, overflowY: 'auto' }}>
               {centerChart.map((c, i) => {
                 const max = Math.max(...centerChart.map((x) => x.trainee_count), 1);
                 const pct = (c.trainee_count / max) * 100;
                 return (
-                  <div key={c.center_code} className="mb-2">
-                    <div className="d-flex justify-content-between small">
-                      <span>{c.center_name}</span>
-                      <span className="fw-bold">{c.trainee_count}</span>
+                  <div key={c.center_code} className="mb-3">
+                    <div className="d-flex justify-content-between small mb-1">
+                      <span className="fw-semibold">{c.center_name}</span>
+                      <span className="fw-bold text-primary">{c.trainee_count}</span>
                     </div>
-                    <div className="progress" style={{ height: 8 }}>
+                    <div className="progress" style={{ height: 10, borderRadius: 5 }}>
                       <div
                         className="progress-bar"
-                        style={{ width: `${pct}%`, backgroundColor: COLORS[i % COLORS.length] }}
+                        style={{ width: `${pct}%`, backgroundColor: COLORS[i % COLORS.length], borderRadius: 5 }}
                       />
                     </div>
                   </div>
@@ -137,19 +142,19 @@ export default function HoDashboard() {
         </div>
 
         {/* Monthly registrations */}
-        <div className="col-md-6">
+        <div className="col-12">
           <div className="card shadow-sm h-100">
             <div className="card-header bg-light"><h6 className="mb-0"><i className="bi bi-graph-up me-2"></i>{t('hoDashboard.chartMonthlyTrend', 'মাসিক নিবন্ধন')}</h6></div>
             <div className="card-body">
-              <div className="d-flex align-items-end gap-1" style={{ height: 200 }}>
+              <div className="d-flex align-items-end gap-2" style={{ height: 300, paddingBottom: 20 }}>
                 {monthlyReg.map((m) => {
                   const max = Math.max(...monthlyReg.map((x) => x.count), 1);
                   const pct = (m.count / max) * 100;
                   return (
                     <div key={m.month} className="d-flex flex-column align-items-center flex-fill">
-                      <small className="mb-1 fw-bold">{m.count}</small>
-                      <div className="bg-primary rounded" style={{ width: '100%', height: `${Math.max(pct, 2)}%` }} title={m.month} />
-                      <small className="mt-1" style={{ fontSize: 9 }}>{m.month.slice(5)}</small>
+                      <small className="mb-2 fw-bold text-primary">{m.count}</small>
+                      <div className="rounded-top" style={{ width: '100%', height: `${Math.max(pct, 2)}%`, background: 'linear-gradient(to top, var(--bs-primary), #818cf8)' }} title={m.month} />
+                      <small className="mt-2 text-muted" style={{ fontSize: 10, transform: 'rotate(-45deg)', whiteSpace: 'nowrap' }}>{m.month.slice(5)}</small>
                     </div>
                   );
                 })}
@@ -162,32 +167,35 @@ export default function HoDashboard() {
       {/* Charts row 2 */}
       <div className="row g-4 mb-4">
         {/* Completion rate pie */}
-        <div className="col-md-4">
+        <div className="col-lg-6">
           <div className="card shadow-sm h-100">
-            <div className="card-header bg-light"><h6 className="mb-0"><i className="bi bi-pie-chart me-2"></i>{t('hoDashboard.chartCompletionRate', 'সমাপ্তির হার')}</h6></div>
-            <div className="card-body text-center">
-              <div style={{ position: 'relative', width: 160, height: 160, margin: '0 auto' }}>
-                <svg viewBox="0 0 36 36" style={{ width: '100%', height: '100%' }}>
-                  <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#e9ecef" strokeWidth="3" />
-                  <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#198754" strokeWidth="3" strokeDasharray={`${completion?.completion_rate || 0}, 100`} />
-                </svg>
-                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
-                  <h3 className="mb-0">{completion?.completion_rate || 0}%</h3>
-                  <small className="text-muted">{t('hoDashboard.completed', 'সমাপ্ত')}</small>
+            <div className="card-header bg-light"><h6 className="mb-0 fw-bold text-heading"><i className="bi bi-pie-chart me-2 text-success"></i>{t('hoDashboard.chartCompletionRate', 'সমাপ্তির হার')}</h6></div>
+            <div className="card-body p-4">
+              <div className="row align-items-center">
+                <div className="col-md-5 text-center">
+                  <div style={{ position: 'relative', width: 150, height: 150, margin: '0 auto' }}>
+                    <svg viewBox="0 0 36 36" style={{ width: '100%', height: '100%' }}>
+                      <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#f1f5f9" strokeWidth="3" />
+                      <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="var(--bs-success)" strokeWidth="3" strokeDasharray={`${completion?.completion_rate || 0}, 100`} />
+                    </svg>
+                    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
+                      <h3 className="mb-0 fw-bold">{completion?.completion_rate || 0}%</h3>
+                      <small className="text-muted d-block" style={{ fontSize: 10 }}>{t('hoDashboard.completed', 'সমাপ্ত')}</small>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div className="mt-3">
-                <div className="d-flex justify-content-between mb-1">
-                  <span>{t('hoDashboard.completed', 'সমাপ্ত')}</span><span className="fw-bold text-success">{completion?.completed || 0}</span>
-                </div>
-                <div className="d-flex justify-content-between mb-1">
-                  <span>{t('hoDashboard.enrolled', 'নথিভুক্ত')}</span><span className="fw-bold text-primary">{completion?.enrolled || 0}</span>
-                </div>
-                <div className="d-flex justify-content-between mb-1">
-                  <span>{t('hoDashboard.failed', 'ব্যর্থ')}</span><span className="fw-bold text-danger">{completion?.failed || 0}</span>
-                </div>
-                <div className="d-flex justify-content-between">
-                  <span>{t('hoDashboard.dropped', 'ঝরে পড়া')}</span><span className="fw-bold text-warning">{completion?.dropped || 0}</span>
+                <div className="col-md-7">
+                  <div className="d-grid gap-2">
+                    <div className="d-flex justify-content-between p-2 rounded bg-light border-start border-success border-4">
+                      <span className="small">{t('hoDashboard.completed', 'সমাপ্ত')}</span><span className="fw-bold text-success">{completion?.completed || 0}</span>
+                    </div>
+                    <div className="d-flex justify-content-between p-2 rounded bg-light border-start border-primary border-4">
+                      <span className="small">{t('hoDashboard.enrolled', 'নথিভুক্ত')}</span><span className="fw-bold text-primary">{completion?.enrolled || 0}</span>
+                    </div>
+                    <div className="d-flex justify-content-between p-2 rounded bg-light border-start border-danger border-4">
+                      <span className="small">{t('hoDashboard.failed', 'ব্যর্থ')}</span><span className="fw-bold text-danger">{completion?.failed || 0}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -195,20 +203,20 @@ export default function HoDashboard() {
         </div>
 
         {/* Batch status */}
-        <div className="col-md-4">
+        <div className="col-lg-6">
           <div className="card shadow-sm h-100">
-            <div className="card-header bg-light"><h6 className="mb-0"><i className="bi bi-circle-fill me-2"></i>{t('hoDashboard.chartBatchStatus', 'ব্যাচের অবস্থা')}</h6></div>
-            <div className="card-body">
+            <div className="card-header bg-light"><h6 className="mb-0 fw-bold text-heading"><i className="bi bi-layers me-2 text-primary"></i>{t('hoDashboard.chartBatchStatus', 'ব্যাচের অবস্থা')}</h6></div>
+            <div className="card-body p-4">
               {batchStatus.map((b) => (
-                <div key={b.status} className="mb-3">
-                  <div className="d-flex justify-content-between">
-                    <span>{b.label}</span>
-                    <span className="fw-bold">{b.count}</span>
+                <div key={b.status} className="mb-3 last-child-mb-0">
+                  <div className="d-flex justify-content-between mb-1">
+                    <span className="small fw-medium">{b.label}</span>
+                    <span className="small fw-bold">{b.count}</span>
                   </div>
-                  <div className="progress" style={{ height: 8 }}>
+                  <div className="progress" style={{ height: 8, borderRadius: 4 }}>
                     <div
                       className={`progress-bar ${b.status === 'running' ? 'bg-success' : b.status === 'completed' ? 'bg-primary' : b.status === 'scheduled' ? 'bg-secondary' : 'bg-danger'}`}
-                      style={{ width: `${summary?.total_batches ? (b.count / summary.total_batches) * 100 : 0}%` }}
+                      style={{ width: `${summary?.total_batches ? (b.count / summary.total_batches) * 100 : 0}%`, borderRadius: 4 }}
                     />
                   </div>
                 </div>
@@ -216,32 +224,48 @@ export default function HoDashboard() {
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Recent activity */}
-        <div className="col-md-4">
+      <div className="row g-4 mb-4">
+        {/* Recent activity stats */}
+        <div className="col-12">
           <div className="card shadow-sm h-100">
             <div className="card-header bg-light"><h6 className="mb-0"><i className="bi bi-activity me-2"></i>{t('hoDashboard.chartRecentActivity', 'সাম্প্রতিক কার্যক্রম')}</h6></div>
             <div className="card-body">
-              {activity && (
-                <>
-                  <div className="d-flex justify-content-between mb-3 p-2 bg-light rounded">
-                    <span><i className="bi bi-file-earmark-text me-1 text-primary"></i>{t('hoDashboard.recentApplications', 'নতুন আবেদন')}</span>
-                    <span className="fw-bold">{activity.new_applications}</span>
-                  </div>
-                  <div className="d-flex justify-content-between mb-3 p-2 bg-light rounded">
-                    <span><i className="bi bi-person-plus me-1 text-success"></i>{t('hoDashboard.recentEnrollments', 'নতুন নথিভুক্তি')}</span>
-                    <span className="fw-bold">{activity.new_enrollments}</span>
-                  </div>
-                  <div className="d-flex justify-content-between mb-3 p-2 bg-light rounded">
-                    <span><i className="bi bi-award me-1 text-info"></i>{t('hoDashboard.recentCertificates', 'নতুন সার্টিফিকেট')}</span>
-                    <span className="fw-bold">{activity.new_certificates}</span>
-                  </div>
-                  <div className="d-flex justify-content-between p-2 bg-light rounded">
-                    <span><i className="bi bi-briefcase me-1 text-warning"></i>{t('hoDashboard.recentJobs', 'নতুন চাকরি')}</span>
-                    <span className="fw-bold">{activity.new_placements}</span>
-                  </div>
-                </>
-              )}
+              <div className="row g-3">
+                {activity && (
+                  <>
+                    <div className="col-md-3">
+                      <div className="p-3 bg-light rounded text-center h-100">
+                        <div className="text-primary mb-1"><i className="bi bi-file-earmark-text fs-4"></i></div>
+                        <div className="fw-bold fs-5">{activity.new_applications}</div>
+                        <small className="text-muted">{t('hoDashboard.recentApplications', 'নতুন আবেদন')}</small>
+                      </div>
+                    </div>
+                    <div className="col-md-3">
+                      <div className="p-3 bg-light rounded text-center h-100">
+                        <div className="text-success mb-1"><i className="bi bi-person-plus fs-4"></i></div>
+                        <div className="fw-bold fs-5">{activity.new_enrollments}</div>
+                        <small className="text-muted">{t('hoDashboard.recentEnrollments', 'নতুন নথিভুক্তি')}</small>
+                      </div>
+                    </div>
+                    <div className="col-md-3">
+                      <div className="p-3 bg-light rounded text-center h-100">
+                        <div className="text-info mb-1"><i className="bi bi-award fs-4"></i></div>
+                        <div className="fw-bold fs-5">{activity.new_certificates}</div>
+                        <small className="text-muted">{t('hoDashboard.recentCertificates', 'নতুন সার্টিফিকেট')}</small>
+                      </div>
+                    </div>
+                    <div className="col-md-3">
+                      <div className="p-3 bg-light rounded text-center h-100">
+                        <div className="text-warning mb-1"><i className="bi bi-briefcase fs-4"></i></div>
+                        <div className="fw-bold fs-5">{activity.new_placements}</div>
+                        <small className="text-muted">{t('hoDashboard.recentJobs', 'নতুন চাকরি')}</small>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -326,7 +350,7 @@ export default function HoDashboard() {
         <div className="col-md-6">
           <div className="card shadow-sm h-100">
             <div className="card-header bg-light d-flex justify-content-between align-items-center">
-              <h6 className="mb-0"><i className="bi bi-hourglass-split me-2"></i>{t('hoDashboard.pendingApprovals', 'বিচারাধীন অনুমোদন')}</h6>
+              <h6 className="mb-0"><i className="bi bi-hourglass-split me-2"></i>{t('hoDashboard.pendingApprovals', 'পেন্ডিং অনুমোদন')}</h6>
               <Link to="/ho/approvals" className="btn btn-sm btn-outline-primary">{t('site.viewAll', 'সব দেখুন')}</Link>
             </div>
             <div className="card-body">
@@ -414,3 +438,4 @@ export default function HoDashboard() {
     </div>
   );
 }
+

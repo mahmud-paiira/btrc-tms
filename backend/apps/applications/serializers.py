@@ -4,20 +4,29 @@ from .models import Application
 
 class ApplicationListSerializer(serializers.ModelSerializer):
     circular_title = serializers.CharField(source='circular.title_bn', read_only=True)
-    center_code = serializers.CharField(source='circular.center.code', read_only=True)
+    center_code = serializers.CharField(source='chosen_center.code', read_only=True, default=None)
+    center_name = serializers.CharField(source='chosen_center.name_bn', read_only=True, default=None)
+    routed_center_code = serializers.CharField(source='routed_center.code', read_only=True, default=None)
+    routed_center_name = serializers.CharField(source='routed_center.name_bn', read_only=True, default=None)
 
     class Meta:
         model = Application
         fields = (
             'id', 'application_no', 'name_bn', 'nid', 'phone',
-            'circular', 'circular_title', 'center_code',
-            'status', 'applied_at', 'reviewed_at',
+            'circular', 'circular_title',
+            'center_code', 'center_name',
+            'routed_center_code', 'routed_center_name',
+            'status', 'merit_score', 'waitlist_position',
+            'auto_screen_pass', 'auto_screen_score',
+            'applied_at', 'reviewed_at',
         )
 
 
 class ApplicationDetailSerializer(serializers.ModelSerializer):
     circular_title = serializers.CharField(source='circular.title_bn', read_only=True)
-    center_name = serializers.CharField(source='circular.center.name_bn', read_only=True)
+    course_name = serializers.CharField(source='circular.course.name_bn', read_only=True)
+    center_name = serializers.CharField(source='chosen_center.name_bn', read_only=True, default=None)
+    center_code = serializers.CharField(source='chosen_center.code', read_only=True, default=None)
     reviewed_by_name = serializers.CharField(source='reviewed_by.get_full_name', read_only=True, default=None)
 
     class Meta:
@@ -56,8 +65,8 @@ class ApplicationWriteSerializer(serializers.ModelSerializer):
         from datetime import date
         today = date.today()
         age = today.year - value.year - ((today.month, today.day) < (value.month, value.day))
-        if age < 18:
-            raise serializers.ValidationError('বয়স কমপক্ষে ১৮ বছর হতে হবে')
+        if age < 21:
+            raise serializers.ValidationError('বয়স কমপক্ষে ২১ বছর হতে হবে')
         return value
 
 
@@ -65,10 +74,15 @@ class ApplicationStatusUpdateSerializer(serializers.Serializer):
     status = serializers.ChoiceField(choices=Application.ApplicationStatus.choices, label='অবস্থা')
     remarks = serializers.CharField(required=False, allow_blank=True, label='মন্তব্য')
 
+    def validate(self, attrs):
+        if attrs.get('status') == 'rejected' and not attrs.get('remarks', '').strip():
+            raise serializers.ValidationError({'remarks': 'বাতিলের কারণ উল্লেখ করা আবশ্যক'})
+        return attrs
+
 
 class ApplicationExportSerializer(serializers.ModelSerializer):
     circular_title = serializers.CharField(source='circular.title_bn', read_only=True)
-    center_name = serializers.CharField(source='circular.center.name_bn', read_only=True)
+    center_name = serializers.CharField(source='chosen_center.name_bn', read_only=True, default=None)
     course_name = serializers.CharField(source='circular.course.name_bn', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
 

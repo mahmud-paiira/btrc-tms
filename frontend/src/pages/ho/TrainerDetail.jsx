@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import hoService from '../../services/hoService';
 
@@ -11,132 +12,157 @@ const DETAIL_TABS = [
   { key: 'tracking', label: 'ট্র্যাকিং' },
 ];
 
-export default function TrainerDetail({ trainerId, onClose, onRefresh }) {
+export default function TrainerDetail() {
+  const { id } = useParams();
+  const navigate = useNavigate();
   const [trainer, setTrainer] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
-    if (!trainerId) return;
+    if (!id) return;
     setLoading(true);
-    hoService.getTrainer(trainerId)
+    hoService.getTrainer(id)
       .then(r => setTrainer(r.data))
-      .catch(() => toast.error('প্রশিক্ষকের তথ্য লোড করতে ব্যর্থ'))
+      .catch(() => { toast.error('প্রশিক্ষকের তথ্য লোড করতে ব্যর্থ'); navigate('/ho/trainers'); })
       .finally(() => setLoading(false));
-  }, [trainerId]);
+  }, [id, navigate]);
 
-  if (loading) return <div className="text-center py-4"><div className="spinner-border spinner-border-sm me-2"></div>লোড হচ্ছে...</div>;
+  if (loading) {
+    return (
+      <div className="text-center py-5">
+        <div className="spinner-border text-primary" role="status" />
+        <p className="mt-2 text-muted">লোড হচ্ছে...</p>
+      </div>
+    );
+  }
   if (!trainer) return null;
 
   const user = trainer.user || {};
   const nameBn = user.full_name_bn || trainer.trainer_no;
-  const phone = user.phone || '-';
-  const email = user.email || '-';
 
   return (
-    <div className="card shadow-sm">
-      <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center py-2">
-        <span className="fw-semibold" style={{ fontSize: 14 }}>{nameBn}</span>
-        <button className="btn btn-sm btn-outline-light" onClick={onClose}><i className="bi bi-x-lg"></i></button>
+    <div className="px-4 py-4">
+      <div className="d-flex align-items-center gap-3 mb-4 bg-white p-3 rounded shadow-sm">
+        <button className="btn btn-outline-secondary btn-sm rounded-circle p-2"
+          onClick={() => navigate('/ho/trainers')} style={{ width: 36, height: 36 }}>
+          <i className="bi bi-arrow-left"></i>
+        </button>
+        <div>
+          <h4 className="mb-0 fw-bold">{nameBn}</h4>
+          <div className="text-muted small">প্রশিক্ষক নং: {trainer.trainer_no}</div>
+        </div>
+        <div className="ms-auto d-flex gap-2">
+          <span className={`badge bg-${STATUS_BG[trainer.status] || 'secondary'} fs-6 px-3 py-2`}>
+            {trainer.status_display || trainer.status}
+          </span>
+          <span className={`badge bg-${trainer.approval_status === 'approved' ? 'success' : trainer.approval_status === 'rejected' ? 'danger' : 'warning'} fs-6 px-3 py-2`}>
+            {trainer.approval_status_display || trainer.approval_status}
+          </span>
+        </div>
       </div>
-      <div className="card-body p-0">
-        <ul className="nav nav-tabs">
-          {DETAIL_TABS.map(t => (
-            <li className="nav-item" key={t.key}>
-              <button className={`nav-link py-2 ${activeTab === t.key ? 'active fw-semibold' : ''}`}
-                style={{ fontSize: 12 }} onClick={() => setActiveTab(t.key)}>{t.label}</button>
-            </li>
-          ))}
-        </ul>
-        <div className="p-3" style={{ fontSize: 13 }}>
+
+      <div className="card shadow-sm border-0">
+        <div className="card-header bg-white pt-3 border-0">
+          <ul className="nav nav-tabs card-header-tabs">
+            {DETAIL_TABS.map(t => (
+              <li className="nav-item" key={t.key}>
+                <button className={`nav-link ${activeTab === t.key ? 'active fw-bold' : ''}`}
+                  onClick={() => setActiveTab(t.key)}>{t.label}</button>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="card-body p-4">
           {activeTab === 'overview' && (
-            <div>
-              <InfoRow label="প্রশিক্ষক নং" value={trainer.trainer_no} />
-              <InfoRow label="নাম (ইংরেজি)" value={user.full_name_en || '-'} />
-              <InfoRow label="নাম (বাংলা)" value={nameBn} />
-              <InfoRow label="ইমেইল" value={email} />
-              <InfoRow label="ফোন" value={phone} />
-              <InfoRow label="এনআইডি" value={trainer.nid} />
-              <InfoRow label="জন্ম নিবন্ধন" value={trainer.birth_certificate_no || '-'} />
-              <InfoRow label="জন্ম তারিখ" value={trainer.date_of_birth || '-'} />
-              <InfoRow label="পিতার নাম" value={trainer.father_name_bn} />
-              <InfoRow label="মাতার নাম" value={trainer.mother_name_bn} />
-              <InfoRow label="শিক্ষাগত যোগ্যতা" value={trainer.education_qualification} />
-              <InfoRow label="অভিজ্ঞতা" value={`${trainer.years_of_experience} বছর`} />
-              <InfoRow label="দক্ষতার ক্ষেত্র" value={trainer.expertise_area} />
-              <InfoRow label="ব্যাংক একাউন্ট" value={trainer.bank_account_no || '-'} />
-              <InfoRow label="ব্যাংকের নাম" value={trainer.bank_name || '-'} />
-              <InfoRow label="অবস্থা" value={
-                <span className={`badge bg-${STATUS_BG[trainer.status] || 'secondary'}`}>
-                  {trainer.status_display || trainer.status}
-                </span>
-              } />
-              <InfoRow label="অনুমোদন" value={
-                <span className={`badge bg-${trainer.approval_status === 'approved' ? 'success' : trainer.approval_status === 'rejected' ? 'danger' : 'warning'}`}>
-                  {trainer.approval_status_display || trainer.approval_status}
-                </span>
-              } />
-              <InfoRow label="অনুমোদনকারী" value={trainer.approved_by_name || '-'} />
-              <InfoRow label="অনুমোদনের তারিখ" value={trainer.approved_at || '-'} />
-              <InfoRow label="নিবন্ধনের তারিখ" value={trainer.created_at || '-'} />
+            <div className="row g-4">
+              <div className="col-md-6">
+                <h6 className="fw-bold mb-3 text-muted text-uppercase small">ব্যক্তিগত তথ্য</h6>
+                <table className="table table-bordered align-middle">
+                  <tbody>
+                    <tr><th className="bg-light" style={{ width: 160 }}>প্রশিক্ষক নং</th><td>{trainer.trainer_no}</td></tr>
+                    <tr><th className="bg-light">নাম (ইংরেজি)</th><td>{user.full_name_en || '-'}</td></tr>
+                    <tr><th className="bg-light">নাম (বাংলা)</th><td>{nameBn}</td></tr>
+                    <tr><th className="bg-light">ইমেইল</th><td>{user.email || '-'}</td></tr>
+                    <tr><th className="bg-light">ফোন</th><td>{user.phone || '-'}</td></tr>
+                    <tr><th className="bg-light">এনআইডি</th><td>{trainer.nid}</td></tr>
+                    <tr><th className="bg-light">জন্ম নিবন্ধন</th><td>{trainer.birth_certificate_no || '-'}</td></tr>
+                    <tr><th className="bg-light">জন্ম তারিখ</th><td>{trainer.date_of_birth || '-'}</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div className="col-md-6">
+                <h6 className="fw-bold mb-3 text-muted text-uppercase small">পেশাগত তথ্য</h6>
+                <table className="table table-bordered align-middle">
+                  <tbody>
+                    <tr><th className="bg-light" style={{ width: 160 }}>পিতার নাম</th><td>{trainer.father_name_bn}</td></tr>
+                    <tr><th className="bg-light">মাতার নাম</th><td>{trainer.mother_name_bn}</td></tr>
+                    <tr><th className="bg-light">শিক্ষাগত যোগ্যতা</th><td>{trainer.education_qualification}</td></tr>
+                    <tr><th className="bg-light">অভিজ্ঞতা</th><td>{`${trainer.years_of_experience} বছর`}</td></tr>
+                    <tr><th className="bg-light">দক্ষতার ক্ষেত্র</th><td>{trainer.expertise_area}</td></tr>
+                    <tr><th className="bg-light">ব্যাংক একাউন্ট</th><td>{trainer.bank_account_no || '-'}</td></tr>
+                    <tr><th className="bg-light">ব্যাংকের নাম</th><td>{trainer.bank_name || '-'}</td></tr>
+                    <tr><th className="bg-light">নিবন্ধনের তারিখ</th><td>{trainer.created_at || '-'}</td></tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
           {activeTab === 'mapped_institutes' && (
-            <div>
-              <h6 className="fw-semibold mb-2">ম্যাপকৃত কেন্দ্র</h6>
-              {trainer.mappings?.length > 0 ? (
-                <table className="table table-sm table-bordered" style={{ fontSize: 12 }}>
-                  <thead><tr><th>কেন্দ্র</th><th>অবস্থা</th></tr></thead>
-                  <tbody>
-                    {trainer.mappings.map(m => (
-                      <tr key={m.id}><td>{m.center_code} - {m.center?.name_bn || ''}</td>
-                        <td><span className={`badge bg-${STATUS_BG[m.status]}`}>{m.status}</span></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              ) : <p className="text-muted">কোনো কেন্দ্র ম্যাপ করা হয়নি</p>}
+            <div className="table-responsive">
+              <table className="table table-hover table-bordered align-middle">
+                <thead className="table-light">
+                  <tr><th>কেন্দ্র</th><th>অবস্থা</th></tr>
+                </thead>
+                <tbody>
+                  {trainer.mappings?.length > 0 ? trainer.mappings.map(m => (
+                    <tr key={m.id}>
+                      <td>{m.center_code} - {m.center?.name_bn || ''}</td>
+                      <td><span className={`badge bg-${STATUS_BG[m.status]}`}>{m.status}</span></td>
+                    </tr>
+                  )) : (
+                    <tr><td colSpan={2} className="text-center text-muted py-4">কোনো কেন্দ্র ম্যাপ করা হয়নি</td></tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           )}
           {activeTab === 'mapped_courses' && (
-            <div>
-              <h6 className="fw-semibold mb-2">ম্যাপকৃত কোর্স</h6>
-              {trainer.mappings?.length > 0 ? (
-                <table className="table table-sm table-bordered" style={{ fontSize: 12 }}>
-                  <thead><tr><th>কোর্স</th><th>প্রাথমিক</th><th>অবস্থা</th></tr></thead>
-                  <tbody>
-                    {trainer.mappings.map(m => (
-                      <tr key={m.id}>
-                        <td>{m.course_code} - {m.course?.name_bn || ''}</td>
-                        <td>{m.is_primary ? <span className="badge bg-info">হ্যাঁ</span> : 'না'}</td>
-                        <td><span className={`badge bg-${STATUS_BG[m.status]}`}>{m.status}</span></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              ) : <p className="text-muted">কোনো কোর্স ম্যাপ করা হয়নি</p>}
+            <div className="table-responsive">
+              <table className="table table-hover table-bordered align-middle">
+                <thead className="table-light">
+                  <tr><th>কোর্স</th><th>প্রাথমিক</th><th>অবস্থা</th></tr>
+                </thead>
+                <tbody>
+                  {trainer.mappings?.length > 0 ? trainer.mappings.map(m => (
+                    <tr key={m.id}>
+                      <td>{m.course_code} - {m.course?.name_bn || ''}</td>
+                      <td>{m.is_primary ? <span className="badge bg-info">হ্যাঁ</span> : 'না'}</td>
+                      <td><span className={`badge bg-${STATUS_BG[m.status]}`}>{m.status}</span></td>
+                    </tr>
+                  )) : (
+                    <tr><td colSpan={3} className="text-center text-muted py-4">কোনো কোর্স ম্যাপ করা হয়নি</td></tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           )}
           {activeTab === 'tracking' && (
-            <div>
-              <h6 className="fw-semibold mb-2">ট্র্যাকিং তথ্য</h6>
-              <InfoRow label="প্রশিক্ষক নং" value={trainer.trainer_no} />
-              <InfoRow label="এনআইডি" value={trainer.nid} />
-              <InfoRow label="মোবাইল" value={phone} />
-              <InfoRow label="জন্ম নিবন্ধন" value={trainer.birth_certificate_no || '-'} />
+            <div className="row g-4">
+              <div className="col-md-6">
+                <table className="table table-bordered align-middle">
+                  <tbody>
+                    <tr><th className="bg-light" style={{ width: 160 }}>প্রশিক্ষক নং</th><td>{trainer.trainer_no}</td></tr>
+                    <tr><th className="bg-light">এনআইডি</th><td>{trainer.nid}</td></tr>
+                    <tr><th className="bg-light">মোবাইল</th><td>{user.phone || '-'}</td></tr>
+                    <tr><th className="bg-light">জন্ম নিবন্ধন</th><td>{trainer.birth_certificate_no || '-'}</td></tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </div>
       </div>
-    </div>
-  );
-}
-
-function InfoRow({ label, value }) {
-  return (
-    <div className="row mb-1">
-      <div className="col-5 text-muted">{label}</div>
-      <div className="col-7 fw-semibold">{value}</div>
     </div>
   );
 }

@@ -5,6 +5,7 @@ import api from '../../services/api';
 import batchService from '../../services/batchService';
 import WeekPlanBuilder from '../../components/batches/WeekPlanBuilder';
 import { useTranslation } from '../../hooks/useTranslation';
+import BanglaInput from '../../components/common/BanglaInput';
 
 const DAYS_OF_WEEK = [
   { value: 6, label: 'শনিবার' },
@@ -205,7 +206,7 @@ export default function BatchCreate() {
                   </div>
                   <div className="col-md-6">
                     <label className="form-label fw-bold">{t('batch.create.nameBn', 'ব্যাচের নাম (বাংলায়)')} <span className="text-danger">*</span></label>
-                    <input className="form-control" name="batch_name_bn" value={form.batch_name_bn} onChange={handleChange} placeholder={t('batch.create.nameBnPlaceholder', 'যেমন: বিআরটিসি ব্যাচ ২০২৬-০১')} required />
+                    <BanglaInput className="form-control" name="batch_name_bn" value={form.batch_name_bn} onChange={handleChange} placeholder={t('batch.create.nameBnPlaceholder', 'যেমন: বিআরটিসি ব্যাচ ২০২৬-০১')} required />
                   </div>
                   <div className="col-md-6">
                     <label className="form-label fw-bold">{t('batch.create.nameEn', 'ব্যাচের নাম (ইংরেজিতে)')}</label>

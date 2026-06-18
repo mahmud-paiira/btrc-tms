@@ -1,0 +1,89 @@
+.application-detail-page {
+  margin-left: -24px;
+  margin-right: -24px;
+  margin-top: -24px;
+  padding: 24px;
+  min-height: calc(100vh - 64px);
+  background: var(--bg-body, #f0f4f8);
+}
+
+.application-detail-page .card {
+  border-radius: 0.5rem;
+}
+
+.application-detail-page .card-header {
+  font-size: 0.95rem;
+}
+
+@media (max-width: 991.98px) {
+  .application-detail-page {
+    margin-left: -16px;
+    margin-right: -16px;
+    margin-top: -16px;
+    padding: 16px;
+  }
+  .application-detail-page .card-header {
+    font-size: 0.9rem;
+  }
+  .application-detail-page .d-flex.gap-2 {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 768px) {
+  .application-detail-page {
+    margin-left: -12px;
+    margin-right: -12px;
+    margin-top: -12px;
+    padding: 12px;
+    min-height: calc(100vh - 60px);
+  }
+  .application-detail-page .card {
+    border-radius: 8px;
+  }
+  .application-detail-page .card-body {
+    padding: 16px;
+  }
+  .application-detail-page .card-header {
+    padding: 12px 16px;
+    font-size: 0.85rem;
+  }
+  .application-detail-page .d-flex.gap-2 {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .application-detail-page .d-flex.gap-2 .btn {
+    width: 100%;
+  }
+  .application-detail-page .row.g-3 {
+    margin-left: -8px;
+    margin-right: -8px;
+  }
+  .application-detail-page .row.g-3 > div {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .application-detail-page .table-sm th,
+  .application-detail-page .table-sm td {
+    padding: 0.4rem 0.5rem;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .application-detail-page {
+    margin-left: -8px;
+    margin-right: -8px;
+    margin-top: -8px;
+    padding: 8px;
+  }
+  .application-detail-page .card-body {
+    padding: 12px;
+  }
+  .application-detail-page h4 {
+    font-size: 1rem;
+  }
+  .application-detail-page .fw-bold.fs-5 {
+    font-size: 1.1rem !important;
+  }
+}

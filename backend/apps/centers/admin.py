@@ -17,14 +17,20 @@ class EmployeeInline(admin.TabularInline):
 @admin.register(Center)
 class CenterAdmin(admin.ModelAdmin):
     inlines = (InfrastructureInline, EmployeeInline)
-    list_display = ('code', 'name_bn', 'name_en', 'phone', 'email', 'status', 'created_at')
-    list_filter = ('status',)
+    list_display = ('code', 'name_bn', 'name_en', 'center_type', 'status', 'overflow_percentage', 'quality_score', 'created_at')
+    list_filter = ('status', 'center_type')
     search_fields = ('code', 'name_bn', 'name_en', 'phone', 'email')
     readonly_fields = ('created_at',)
     fieldsets = (
         (None, {
             'fields': (
                 'code', 'name_bn', 'name_en', 'short_name_bn',
+            ),
+        }),
+        ('কেন্দ্রের ধরন ও সক্ষমতা', {
+            'fields': (
+                'center_type', 'overflow_percentage', 'quality_score',
+                'latitude', 'longitude',
             ),
         }),
         ('যোগাযোগ', {

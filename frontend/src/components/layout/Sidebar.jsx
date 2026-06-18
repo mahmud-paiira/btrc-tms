@@ -1,74 +1,155 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import { useTranslation } from '../../hooks/useTranslation';
-import { useAuth } from '../../contexts/AuthContext';
-import LanguageSwitcher from '../common/LanguageSwitcher';
+import useStore from '../../store/useStore';
 
-const centerAdminLinks = [
-  { to: '/', labelKey: 'nav.dashboard', labelBn: 'ড্যাশবোর্ড', icon: 'bi-speedometer2' },
-  { to: '/center-admin/applications', labelKey: 'nav.applications', labelBn: 'আবেদন পর্যালোচনা', icon: 'bi-file-earmark-text' },
-  { to: '/center-admin/batches', labelKey: 'nav.batches', labelBn: 'ব্যাচসমূহ', icon: 'bi-layers' },
-  { to: '/center-admin/trainees', labelKey: 'nav.trainees', labelBn: 'প্রশিক্ষণার্থী', icon: 'bi-people' },
-  { to: '/center-admin/trainers', labelKey: 'nav.trainers', labelBn: 'প্রশিক্ষক', icon: 'bi-person-badge' },
-  { to: '/center-admin/courses', labelKey: 'nav.courses', labelBn: 'কোর্সসমূহ', icon: 'bi-book' },
-  { to: '/center-admin/reports', labelKey: 'nav.reports', labelBn: 'প্রতিবেদন', icon: 'bi-file-earmark-bar-graph' },
-];
+const SECTION_LABELS = {
+  main: 'মূল',
+  management: 'ব্যবস্থাপনা',
+  portal: 'পোর্টাল',
+  system: 'সিস্টেম',
+};
 
-const trainerLinks = [
-  { to: '/', labelKey: 'nav.dashboard', labelBn: 'ড্যাশবোর্ড', icon: 'bi-speedometer2' },
-  { to: '/trainer/schedule', labelKey: 'nav.schedule', labelBn: 'সময়সূচি', icon: 'bi-calendar-week' },
-  { to: '/center-admin/batches', labelKey: 'nav.batches', labelBn: 'ব্যাচসমূহ', icon: 'bi-layers' },
-];
-
-const assessorLinks = [
-  { to: '/', labelKey: 'nav.dashboard', labelBn: 'ড্যাশবোর্ড', icon: 'bi-speedometer2' },
-  { to: '/center-admin/batches', labelKey: 'nav.batches', labelBn: 'ব্যাচসমূহ', icon: 'bi-layers' },
-  { to: '/center-admin/applications', labelKey: 'nav.applications', labelBn: 'আবেদন', icon: 'bi-file-earmark-text' },
-];
-
-export default function Sidebar() {
+export default function Sidebar({ links, brand, light }) {
   const { t } = useTranslation();
-  const { user } = useAuth();
-  const userType = user?.user_type;
+  const location = useLocation();
+  const sidebarOpen = useStore(s => s.sidebarOpen);
+  const setSidebarOpen = useStore(s => s.setSidebarOpen);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [expandedMenus, setExpandedMenus] = useState({});
 
-  const links =
-    userType === 'trainer' ? trainerLinks :
-    userType === 'assessor' ? assessorLinks :
-    centerAdminLinks;
+  useEffect(() => {
+    const fn = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (mobile) setSidebarOpen(false);
+    };
+    window.addEventListener('resize', fn);
+    return () => window.removeEventListener('resize', fn);
+  }, [setSidebarOpen]);
+
+  useEffect(() => {
+    const expanded = {};
+    links.forEach(section => {
+      section.items.forEach(item => {
+        if (item.children) {
+          const hasActive = item.children.some(child =>
+            location.pathname === child.to || location.pathname.startsWith(child.to + '/')
+          );
+          if (hasActive) expanded[item.to] = true;
+        }
+      });
+    });
+    if (Object.keys(expanded).length > 0) {
+      setExpandedMenus(prev => ({ ...prev, ...expanded }));
+    }
+  }, [links, location.pathname]);
+
+  const toggleMenu = (to) => {
+    setExpandedMenus(prev => ({ ...prev, [to]: !prev[to] }));
+  };
+
+  const collapsed = !sidebarOpen && !isMobile;
 
   return (
-    <div className="d-flex flex-column text-white" style={{ width: 250, minHeight: '100vh', background: 'linear-gradient(180deg, #1a1d23 0%, #212529 100%)' }}>
-      <div className="d-flex align-items-center gap-2 px-3 py-3 border-bottom border-secondary border-opacity-25" style={{ minHeight: 64 }}>
-        <div className="d-flex align-items-center justify-content-center rounded-circle bg-primary bg-opacity-25" style={{ width: 36, height: 36 }}>
-          <i className="bi bi-truck fs-5 text-primary"></i>
+    <>
+      {isMobile && sidebarOpen && (
+        <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />
+      )}
+      <div
+        className={`sidebar${light ? ' sidebar-light' : ''}${collapsed ? ' collapsed' : ''}${isMobile && sidebarOpen ? ' mobile-open' : ''}`}
+      >
+        {/* Brand */}
+        <div className="brand">
+          <div className="brand-logo">
+            <i className={brand?.icon || 'bi-truck'}></i>
+          </div>
+          <div className="brand-text">
+            <div className="brand-title">{t(brand?.titleKey || 'site.titleShort', brand?.titleBn || 'BRTC TMS')}</div>
+            <div className="brand-sub">{t(brand?.subKey || 'site.subtitle', brand?.subBn || 'প্রশিক্ষণ ব্যবস্থাপনা')}</div>
+          </div>
+          {isMobile && (
+            <button className="btn-close ms-auto" onClick={() => setSidebarOpen(false)} />
+          )}
         </div>
-        <div className="flex-grow-1" style={{ lineHeight: 1.2 }}>
-          <div className="fw-bold" style={{ fontSize: 14 }}>{t('site.titleShort', 'BRTC TMS')}</div>
-          <div className="text-white-50" style={{ fontSize: 11 }}>{t('site.subtitle', 'প্রশিক্ষণ ব্যবস্থাপনা')}</div>
+
+        {/* Navigation */}
+        <div className="nav-wrap">
+          {links.map((section, si) => (
+            <div key={section.section || si}>
+              {section.section && (
+                <div className="nav-section-label">{t(section.section, SECTION_LABELS[section.section] || section.section)}</div>
+              )}
+              {section.items.map((item, ii) => (
+                <div key={item.to || item.href || ii}>
+                  {item.external ? (
+                    <a
+                      href={item.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="sidebar-nav-item"
+                      onClick={() => { if (isMobile) setSidebarOpen(false); }}
+                    >
+                      <i className={`bi ${item.icon} nav-icon`}></i>
+                      <span className="nav-label">{t(item.labelKey, item.labelBn)}</span>
+                      <i className="bi bi-box-arrow-up-right ms-auto" style={{ fontSize: 10, opacity: 0.5 }}></i>
+                    </a>
+                  ) : (
+                  <NavLink
+                    to={item.to}
+                    end={item.end !== false}
+                    onClick={() => {
+                      if (isMobile) setSidebarOpen(false);
+                      if (item.children) toggleMenu(item.to);
+                    }}
+                    className={({ isActive }) =>
+                      `sidebar-nav-item${isActive ? ' active' : ''}`
+                    }
+                  >
+                    <i className={`bi ${item.icon} nav-icon`}></i>
+                    <span className="nav-label">{t(item.labelKey, item.labelBn)}</span>
+                    {item.badge != null && item.badge > 0 && (
+                      <span className={`badge ${item.badgeColor || 'bg-danger'} rounded-pill nav-badge`}>{item.badge}</span>
+                    )}
+                    {item.children && (
+                      <i className={`bi bi-chevron-down ms-auto${expandedMenus[item.to] ? ' rotate' : ''}`} style={{ fontSize: 10, opacity: 0.6 }}></i>
+                    )}
+                  </NavLink>
+                  )}
+                  {item.children && (
+                    <div className="sidebar-sub" style={{ display: expandedMenus[item.to] ? '' : 'none' }}>
+                      {item.children.map(child => (
+                        <NavLink
+                          key={child.to}
+                          to={child.to}
+                          end
+                          onClick={() => { if (isMobile) setSidebarOpen(false); }}
+                          className={({ isActive }) =>
+                            `sidebar-sub-item${isActive ? ' active' : ''}`
+                          }
+                        >
+                          <i className="bi bi-dot" style={{ fontSize: 14 }}></i>
+                          <span>{t(child.labelKey, child.labelBn)}</span>
+                        </NavLink>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ))}
         </div>
-        <LanguageSwitcher />
+
+        {/* Footer toggle */}
+        <div className="sidebar-footer">
+          {!isMobile && (
+            <button className="sidebar-toggle" onClick={() => setSidebarOpen(!sidebarOpen)}
+              title={collapsed ? 'বিস্তারিত' : 'সংকুচিত'}>
+              <i className={`bi bi-chevron-${collapsed ? 'right' : 'left'}`}></i>
+            </button>
+          )}
+        </div>
       </div>
-      <nav className="nav flex-column pt-2 px-2">
-        {links.map(({ to, labelKey, labelBn, icon }) => (
-          <NavLink
-            key={to}
-            to={to}
-            end={to === '/'}
-            className={({ isActive }) =>
-              `sidebar-nav-link d-flex align-items-center gap-3 px-3 py-2 mb-1 text-decoration-none rounded-3 ${isActive ? 'text-white' : 'text-white-50'}`
-            }
-            style={({ isActive }) => ({
-              background: isActive ? 'linear-gradient(135deg, #0d6efd, #0a58ca)' : 'transparent',
-            })}
-          >
-            <i className={`bi ${icon} fs-6`} style={{ width: 20 }}></i>
-            <span style={{ fontSize: 14 }}>{t(labelKey, labelBn)}</span>
-          </NavLink>
-        ))}
-      </nav>
-      <div className="mt-auto px-3 py-3 border-top border-secondary border-opacity-25">
-        <LanguageSwitcher dropdown />
-      </div>
-    </div>
+    </>
   );
 }

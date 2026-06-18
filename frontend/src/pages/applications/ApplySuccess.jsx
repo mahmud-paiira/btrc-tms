@@ -1,7 +1,18 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import publicService from '../../services/publicService';
 
 export default function ApplySuccess({ data }) {
+  const handlePrint = async () => {
+    try {
+      const response = await publicService.printApplication(data.application_no);
+      const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+      window.open(url, '_blank');
+    } catch {
+      alert('PDF ডাউনলোড ব্যর্থ হয়েছে');
+    }
+  };
+
   return (
     <div className="registration-page">
       <div className="container py-5">
@@ -53,14 +64,19 @@ export default function ApplySuccess({ data }) {
                   </div>
                 </div>
 
+                <div className="d-flex gap-2 justify-content-center mb-3">
+                  <button className="btn btn-success" onClick={handlePrint}>
+                    <i className="bi bi-printer me-1"></i>পিডিএফ প্রিন্ট
+                  </button>
+                  <Link to="/" className="btn btn-outline-primary">
+                    <i className="bi bi-house me-1"></i>হোম পেজে ফিরুন
+                  </Link>
+                </div>
+
                 <div className="alert alert-info small" role="alert">
                   <i className="bi bi-info-circle me-1"></i>
                   আপনার আবেদনটি পর্যালোচনার পর অবহিত করা হবে। নিশ্চিতকরণ এসএমএস/ইমেইল পাঠানো হবে।
                 </div>
-
-                <Link to="/" className="btn btn-outline-primary">
-                  <i className="bi bi-house me-1"></i>হোম পেজে ফিরুন
-                </Link>
               </div>
             </div>
           </div>

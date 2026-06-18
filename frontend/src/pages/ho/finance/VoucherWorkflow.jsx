@@ -366,7 +366,7 @@ export default function VoucherWorkflow() {
         </div>
       </div>
 
-      <div className="card shadow-sm" style={{ borderRadius: 12, border: 'none' }}>
+      <div className="card shadow-sm table-card">
         <div className="table-responsive">
           <table className="table table-hover mb-0">
             <thead className="table-light">

@@ -1,18 +1,25 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import hoService from '../../services/hoService';
+import BanglaInput from '../../components/common/BanglaInput';
 
 const TYPE_MAP = { driver: 'ড্রাইভার', mechanic: 'মেকানিক', supervisor: 'সুপারভাইজার' };
 const STATUS_MAP = { draft: 'খসড়া', active: 'সক্রিয়', completed: 'সমাপ্ত' };
 const STATUS_BG = { draft: 'secondary', active: 'success', completed: 'info' };
-const TERM_MAP = { foundation: 'ফাউন্ডেশন', advanced: 'এডভান্সড' };
-const SESSION_MAP = { morning: 'সকাল', day: 'দিন', evening: 'সন্ধ্যা' };
 
-const STEP_LABELS = ['বেসিক তথ্য', 'কনফিগারেশন', 'বিল আইটেম', 'অধ্যায়', 'কম্পিটেন্সি'];
+const STEP_LABELS = ['বেসিক তথ্য', 'কনফিগারেশন', 'বিল আইটেম', 'অধ্যায়', 'পূর্বশর্ত'];
+
+const DURATION_UNITS = [
+  { value: 'days', label: 'দিন' },
+  { value: 'weeks', label: 'সপ্তাহ' },
+  { value: 'months', label: 'মাস' },
+];
 
 const EMPTY_COURSE = {
-  code: '', name_bn: '', name_en: '', course_type: 'driver', term: 'foundation',
-  session: 'morning', duration_months: 3, duration_hours: 0, total_training_days: 0,
+  code: '', name_bn: '', name_en: '',
+  description: '', project_name: '', project_sponsor: '',
+  duration_value: 3, duration_unit: 'months',
   fee: 0, stipend_eligible: false, employment_eligible: false, status: 'draft',
 };
 
@@ -31,23 +38,31 @@ function CourseFormWizard({ show, course, onClose, onSaved }) {
   useEffect(() => {
     if (course) {
       setForm({
-        code: course.code || '', name_bn: course.name_bn || '', name_en: course.name_en || '',
-        course_type: course.course_type || 'driver', term: course.term || 'foundation',
-        session: course.session || 'morning', duration_months: course.duration_months || 3,
-        duration_hours: course.duration_hours || 0, total_training_days: course.total_training_days || 0,
+        code: course.code || `${new Date().getFullYear()}-0001`,
+        name_bn: course.name_bn || '', name_en: course.name_en || '',
+        description: course.description || '', project_name: course.project_name || '',
+        project_sponsor: course.project_sponsor || '',
+        duration_value: course.duration_value || 3,
+        duration_unit: course.duration_unit || 'months',
         fee: course.fee || 0, stipend_eligible: course.stipend_eligible || false,
         employment_eligible: course.employment_eligible || false, status: course.status || 'draft',
       });
       setConfig(course.configuration || {
         eligibility_criteria: '', training_methodology: '', assessment_criteria: '',
         passing_marks: 80, attendance_requirement: 80, certificate_template: '',
+        fee: course.fee || 0, stipend_eligible: course.stipend_eligible || false,
+        employment_eligible: course.employment_eligible || false,
       });
       setBills(course.bills || []);
       setChapters(course.chapters || []);
       setCompetencies(course.competencies || []);
     } else {
       setForm(EMPTY_COURSE);
-      setConfig({ eligibility_criteria: '', training_methodology: '', assessment_criteria: '', passing_marks: 80, attendance_requirement: 80, certificate_template: '' });
+      setConfig({
+        eligibility_criteria: '', training_methodology: '', assessment_criteria: '',
+        passing_marks: 80, attendance_requirement: 80, certificate_template: '',
+        fee: 0, stipend_eligible: false, employment_eligible: false,
+      });
       setBills([]);
       setChapters([]);
       setCompetencies([]);
@@ -60,20 +75,42 @@ function CourseFormWizard({ show, course, onClose, onSaved }) {
     setForm((p) => ({ ...p, [name]: type === 'checkbox' ? checked : value }));
   };
 
-  const buildPayload = () => ({
-    ...form,
-    configuration: config,
-    bills: bills.filter((b) => b.bill_item_bn),
-    chapters: chapters.filter((c) => c.title_bn),
-    competencies: competencies.filter((c) => c.code),
-  });
+  const buildPayload = () => {
+    const { fee: cFee, stipend_eligible: cStipend, employment_eligible: cEmployment, ...restConfig } = config;
+    const durationValue = form.duration_value || 3;
+    const durationUnit = form.duration_unit || 'months';
+    let durationMonths = 0, durationHours = 0, totalTrainingDays = 0;
+    if (durationUnit === 'months') durationMonths = durationValue;
+    else if (durationUnit === 'weeks') durationMonths = Math.ceil(durationValue / 4);
+    else if (durationUnit === 'days') {
+      totalTrainingDays = durationValue;
+      durationHours = durationValue * 8;
+    }
+    const { code, ...formWithoutCode } = form;
+    return {
+      ...formWithoutCode,
+      course_type: 'driver',
+      duration_months: durationMonths,
+      duration_hours: durationHours,
+      total_training_days: totalTrainingDays,
+      configuration: {
+        ...restConfig,
+        fee: cFee,
+        stipend_eligible: cStipend,
+        employment_eligible: cEmployment,
+      },
+      bills: bills.filter((b) => b.bill_item_bn),
+      chapters: chapters.filter((c) => c.title_bn),
+      competencies: competencies.filter((c) => c.code),
+    };
+  };
 
   const handleSubmit = async () => {
-    if (!form.code || !form.name_bn) { toast.error('কোড ও নাম আবশ্যক'); return; }
-    if (chapters.filter((c) => c.title_bn).length === 0) { toast.error('অন্তত একটি অধ্যায় দিন'); return; }
+    if (!form.name_bn) { toast.error('নাম আবশ্যক'); return; }
     setSaving(true);
     try {
       const payload = buildPayload();
+      console.log('Submitting course payload:', JSON.stringify(payload, null, 2));
       if (course) {
         await hoService.updateCourse(course.id, payload);
         toast.success('কোর্স আপডেট হয়েছে');
@@ -83,7 +120,8 @@ function CourseFormWizard({ show, course, onClose, onSaved }) {
       }
       onSaved();
     } catch (err) {
-      toast.error(err.response?.data?.detail?.[0] || 'সংরক্ষণ ব্যর্থ');
+      console.error('Course save error:', err.response?.data || err);
+      toast.error(err.response?.data?.detail?.[0] || JSON.stringify(err.response?.data) || 'সংরক্ষণ ব্যর্থ');
     } finally {
       setSaving(false);
     }
@@ -95,30 +133,88 @@ function CourseFormWizard({ show, course, onClose, onSaved }) {
     switch (step) {
       case 0: return (
         <div className="row g-3">
-          <div className="col-4"><label className="form-label">কোড <span className="text-danger">*</span></label><input name="code" className="form-control" value={form.code} onChange={handleForm} required /></div>
-          <div className="col-4"><label className="form-label">নাম (বাংলা) <span className="text-danger">*</span></label><input name="name_bn" className="form-control" value={form.name_bn} onChange={handleForm} required /></div>
-          <div className="col-4"><label className="form-label">নাম (ইংরেজি)</label><input name="name_en" className="form-control" value={form.name_en} onChange={handleForm} /></div>
-          <div className="col-3"><label className="form-label">ধরন</label><select name="course_type" className="form-select" value={form.course_type} onChange={handleForm}>{Object.entries(TYPE_MAP).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></div>
-          <div className="col-3"><label className="form-label">টার্ম</label><select name="term" className="form-select" value={form.term} onChange={handleForm}>{Object.entries(TERM_MAP).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></div>
-          <div className="col-3"><label className="form-label">সেশন</label><select name="session" className="form-select" value={form.session} onChange={handleForm}>{Object.entries(SESSION_MAP).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></div>
-          <div className="col-3"><label className="form-label">মেয়াদ (মাস)</label><input name="duration_months" type="number" min="1" className="form-control" value={form.duration_months} onChange={handleForm} /></div>
-          <div className="col-3"><label className="form-label">মোট ঘন্টা</label><input name="duration_hours" type="number" className="form-control" value={form.duration_hours} onChange={handleForm} /></div>
-          <div className="col-3"><label className="form-label">প্রশিক্ষণ দিন</label><input name="total_training_days" type="number" className="form-control" value={form.total_training_days} onChange={handleForm} /></div>
-          <div className="col-3"><label className="form-label">ফি (৳)</label><input name="fee" type="number" className="form-control" value={form.fee} onChange={handleForm} /></div>
-          <div className="col-6 d-flex gap-4 align-items-center pt-4">
-            <div className="form-check"><input className="form-check-input" type="checkbox" name="stipend_eligible" checked={form.stipend_eligible} onChange={handleForm} /><label className="form-check-label">স্টাইপেন্ড উপযোগী</label></div>
-            <div className="form-check"><input className="form-check-input" type="checkbox" name="employment_eligible" checked={form.employment_eligible} onChange={handleForm} /><label className="form-check-label">চাকরির উপযোগী</label></div>
+          <div className="col-12 mb-1">
+            <h6 className="fw-bold" style={{ color: '#6366f1', fontSize: '0.9rem' }}>
+              <i className="bi bi-info-circle me-1"></i>বেসিক তথ্য
+            </h6>
+            <hr className="mt-1 mb-3" style={{ borderColor: '#e2e8f0' }} />
+          </div>
+          <div className="col-4">
+            <label className="form-label">কোড</label>
+            <input name="code" className="form-control bg-light" value={form.code || (course ? course.code : 'স্বয়ংক্রিয়ভাবে জেনারেট হবে')} readOnly />
+            <small className="text-muted" style={{ fontSize: '0.75rem' }}>{form.code ? '' : 'নতুন কোর্সের জন্য স্বয়ংক্রিয়ভাবে জেনারেট হবে'}</small>
+          </div>
+          <div className="col-4">
+            <label className="form-label">নাম (বাংলা) <span className="text-danger">*</span></label>
+            <BanglaInput name="name_bn" className="form-control" value={form.name_bn} onChange={handleForm} required />
+          </div>
+          <div className="col-4">
+            <label className="form-label">নাম (ইংরেজি) <span className="text-muted" style={{ fontSize: '0.75rem' }}>English only</span></label>
+            <input name="name_en" className="form-control" value={form.name_en} onChange={handleForm} />
+          </div>
+          <div className="col-4">
+            <label className="form-label">কোর্সের মেয়াদ</label>
+            <div className="input-group">
+              <input name="duration_value" type="number" min="1" className="form-control"
+                value={form.duration_value} onChange={handleForm} />
+              <select name="duration_unit" className="form-select" style={{ flex: '0 0 120px' }}
+                value={form.duration_unit} onChange={handleForm}>
+                {DURATION_UNITS.map((u) => <option key={u.value} value={u.value}>{u.label}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="col-8">
+            <label className="form-label">কোর্স বিবরণ</label>
+            <BanglaInput as="textarea" name="description" className="form-control" rows="2"
+              value={form.description} onChange={handleForm}
+              placeholder="কোর্স সম্পর্কে সংক্ষিপ্ত বিবরণ..." />
+          </div>
+          <div className="col-6">
+            <label className="form-label">প্রকল্পের নাম</label>
+            <input name="project_name" className="form-control" value={form.project_name} onChange={handleForm}
+              placeholder="প্রকল্পের নাম লিখুন" />
+          </div>
+          <div className="col-6">
+            <label className="form-label">প্রকল্পের স্পনসর</label>
+            <input name="project_sponsor" className="form-control" value={form.project_sponsor} onChange={handleForm}
+              placeholder="স্পনসরের নাম লিখুন" />
           </div>
         </div>
       );
       case 1: return (
         <div className="row g-3">
-          <div className="col-12"><label className="form-label">যোগ্যতার মানদণ্ড</label><textarea name="eligibility_criteria" className="form-control" rows="3" value={config.eligibility_criteria} onChange={(e) => setConfig((p) => ({ ...p, eligibility_criteria: e.target.value }))} /></div>
-          <div className="col-12"><label className="form-label">প্রশিক্ষণ পদ্ধতি</label><textarea name="training_methodology" className="form-control" rows="3" value={config.training_methodology} onChange={(e) => setConfig((p) => ({ ...p, training_methodology: e.target.value }))} /></div>
-          <div className="col-12"><label className="form-label">মূল্যায়নের মানদণ্ড</label><textarea name="assessment_criteria" className="form-control" rows="3" value={config.assessment_criteria} onChange={(e) => setConfig((p) => ({ ...p, assessment_criteria: e.target.value }))} /></div>
+          <div className="col-12 mb-1">
+            <h6 className="fw-bold" style={{ color: '#10b981', fontSize: '0.9rem' }}>
+              <i className="bi bi-gear me-1"></i>কনফিগারেশন
+            </h6>
+            <hr className="mt-1 mb-3" style={{ borderColor: '#e2e8f0' }} />
+          </div>
+          <div className="col-12"><label className="form-label">যোগ্যতার মানদণ্ড</label><textarea className="form-control" rows="2" value={config.eligibility_criteria} onChange={(e) => setConfig((p) => ({ ...p, eligibility_criteria: e.target.value }))} /></div>
+          <div className="col-12"><label className="form-label">প্রশিক্ষণ পদ্ধতি</label><textarea className="form-control" rows="2" value={config.training_methodology} onChange={(e) => setConfig((p) => ({ ...p, training_methodology: e.target.value }))} /></div>
+          <div className="col-12"><label className="form-label">মূল্যায়নের মানদণ্ড</label><textarea className="form-control" rows="2" value={config.assessment_criteria} onChange={(e) => setConfig((p) => ({ ...p, assessment_criteria: e.target.value }))} /></div>
           <div className="col-4"><label className="form-label">পাস মার্কস (%)</label><input type="number" className="form-control" value={config.passing_marks} onChange={(e) => setConfig((p) => ({ ...p, passing_marks: +e.target.value }))} /></div>
           <div className="col-4"><label className="form-label">উপস্থিতি (%)</label><input type="number" className="form-control" value={config.attendance_requirement} onChange={(e) => setConfig((p) => ({ ...p, attendance_requirement: +e.target.value }))} /></div>
           <div className="col-4"><label className="form-label">সার্টিফিকেট টেমপ্লেট</label><input className="form-control" value={config.certificate_template} onChange={(e) => setConfig((p) => ({ ...p, certificate_template: e.target.value }))} /></div>
+          <div className="col-12">
+            <hr className="my-2" style={{ borderColor: '#e2e8f0' }} />
+          </div>
+          <div className="col-4">
+            <label className="form-label">ফি (৳)</label>
+            <input type="number" className="form-control" value={config.fee}
+              onChange={(e) => setConfig((p) => ({ ...p, fee: +e.target.value }))} />
+          </div>
+          <div className="col-8 d-flex gap-4 align-items-center pt-4">
+            <div className="form-check">
+              <input className="form-check-input" type="checkbox" checked={config.stipend_eligible}
+                onChange={(e) => setConfig((p) => ({ ...p, stipend_eligible: e.target.checked }))} />
+              <label className="form-check-label">স্টাইপেন্ড উপযোগী</label>
+            </div>
+            <div className="form-check">
+              <input className="form-check-input" type="checkbox" checked={config.employment_eligible}
+                onChange={(e) => setConfig((p) => ({ ...p, employment_eligible: e.target.checked }))} />
+              <label className="form-check-label">চাকরির উপযোগী</label>
+            </div>
+          </div>
         </div>
       );
       case 2: return (
@@ -160,7 +256,7 @@ function CourseFormWizard({ show, course, onClose, onSaved }) {
               <div className="col-1"><button className="btn btn-sm btn-outline-danger" onClick={() => setCompetencies(competencies.filter((_, j) => j !== i))}><i className="bi bi-x"></i></button></div>
             </div>
           ))}
-          <button className="btn btn-sm btn-outline-primary mt-2" onClick={() => setCompetencies([...competencies, { code: '', name_bn: '', name_en: '', assessment_method: '' }])}><i className="bi bi-plus me-1"></i>কম্পিটেন্সি যোগ</button>
+          <button className="btn btn-sm btn-outline-primary mt-2" onClick={() => setCompetencies([...competencies, { code: '', name_bn: '', name_en: '', assessment_method: '' }])}><i className="bi bi-plus me-1"></i>পূর্বশর্ত যোগ</button>
         </div>
       );
       default: return null;
@@ -200,145 +296,8 @@ function CourseFormWizard({ show, course, onClose, onSaved }) {
   );
 }
 
-function CourseDetailPanel({ course, onClose }) {
-  const [tab, setTab] = useState('overview');
-  const [chapters, setChapters] = useState([]);
-  const [competencies, setCompetencies] = useState([]);
-  const [bills, setBills] = useState([]);
-
-  useEffect(() => {
-    if (course.id) {
-      hoService.getCourseChapters(course.id).then((r) => setChapters(r.data || [])).catch(() => {});
-      hoService.getCourseCompetencies(course.id).then((r) => setCompetencies(r.data || [])).catch(() => {});
-      hoService.getCourseBills(course.id).then((r) => setBills(r.data || [])).catch(() => {});
-    }
-  }, [course.id]);
-
-  return (
-    <div className="card shadow-sm">
-      <div className="card-header bg-white d-flex justify-content-between align-items-center">
-        <h5 className="mb-0"><i className="bi bi-book me-2"></i>{course.name_bn} ({course.code})</h5>
-        <button className="btn btn-sm btn-outline-secondary" onClick={onClose}><i className="bi bi-x-lg"></i></button>
-      </div>
-      <div className="card-body">
-        <div className="d-flex gap-2 mb-3 flex-wrap">
-          <span className={`badge bg-${STATUS_BG[course.status]} fs-6`}>{STATUS_MAP[course.status]}</span>
-          <span className="badge bg-info fs-6">{TYPE_MAP[course.course_type]}</span>
-          <span className="badge bg-secondary fs-6">{TERM_MAP[course.term]} - {SESSION_MAP[course.session]}</span>
-        </div>
-
-        <ul className="nav nav-tabs mb-3">
-          <li className="nav-item"><button className={`nav-link ${tab === 'overview' ? 'active' : ''}`} onClick={() => setTab('overview')}>সারাংশ</button></li>
-          <li className="nav-item"><button className={`nav-link ${tab === 'config' ? 'active' : ''}`} onClick={() => setTab('config')}>কনফিগারেশন</button></li>
-          <li className="nav-item"><button className={`nav-link ${tab === 'chapters' ? 'active' : ''}`} onClick={() => setTab('chapters')}>অধ্যায় ({chapters.length})</button></li>
-          <li className="nav-item"><button className={`nav-link ${tab === 'competency' ? 'active' : ''}`} onClick={() => setTab('competency')}>কম্পিটেন্সি ({competencies.length})</button></li>
-          <li className="nav-item"><button className={`nav-link ${tab === 'bills' ? 'active' : ''}`} onClick={() => setTab('bills')}>বিল ({bills.length})</button></li>
-        </ul>
-
-        {tab === 'overview' && (
-          <div className="row">
-            <div className="col-6">
-              <table className="table table-bordered">
-                <tbody>
-                  <tr><th style={{ width: 130 }}>কোড</th><td>{course.code}</td></tr>
-                  <tr><th>নাম (বাংলা)</th><td>{course.name_bn}</td></tr>
-                  <tr><th>নাম (ইংরেজি)</th><td>{course.name_en || '—'}</td></tr>
-                  <tr><th>ধরন</th><td>{TYPE_MAP[course.course_type]}</td></tr>
-                  <tr><th>টার্ম</th><td>{TERM_MAP[course.term]}</td></tr>
-                  <tr><th>সেশন</th><td>{SESSION_MAP[course.session]}</td></tr>
-                </tbody>
-              </table>
-            </div>
-            <div className="col-6">
-              <table className="table table-bordered">
-                <tbody>
-                  <tr><th style={{ width: 130 }}>মেয়াদ</th><td>{course.duration_months} মাস</td></tr>
-                  <tr><th>ঘন্টা</th><td>{course.duration_hours}</td></tr>
-                  <tr><th>প্রশিক্ষণ দিন</th><td>{course.total_training_days}</td></tr>
-                  <tr><th>ফি</th><td>৳{course.fee}</td></tr>
-                  <tr><th>স্টাইপেন্ড</th><td>{course.stipend_eligible ? 'হ্যাঁ' : 'না'}</td></tr>
-                  <tr><th>চাকরির উপযোগী</th><td>{course.employment_eligible ? 'হ্যাঁ' : 'না'}</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {tab === 'config' && (
-          <div className="row">
-            <div className="col-6">
-              <table className="table table-bordered">
-                <tbody>
-                  <tr><th style={{ width: 140 }}>পাস মার্কস</th><td>{course.configuration?.passing_marks || 80}%</td></tr>
-                  <tr><th>উপস্থিতি</th><td>{course.configuration?.attendance_requirement || 80}%</td></tr>
-                  <tr><th>সার্টিফিকেট</th><td>{course.configuration?.certificate_template || '—'}</td></tr>
-                </tbody>
-              </table>
-            </div>
-            <div className="col-6">
-              <h6>যোগ্যতার মানদণ্ড</h6>
-              <p className="text-muted small">{course.configuration?.eligibility_criteria || '—'}</p>
-              <h6>মূল্যায়ন</h6>
-              <p className="text-muted small">{course.configuration?.assessment_criteria || '—'}</p>
-            </div>
-          </div>
-        )}
-
-        {tab === 'chapters' && (
-          <table className="table table-sm table-bordered">
-            <thead className="table-light"><tr><th>নং</th><th>শিরোনাম (বাংলা)</th><th>শিরোনাম (ইংরেজি)</th><th>সময় (ঘন্টা)</th></tr></thead>
-            <tbody>
-              {chapters.length === 0 ? <tr><td colSpan={4} className="text-center text-muted">কোন অধ্যায় নেই</td></tr>
-              : chapters.map((c) => (
-                <tr key={c.id || c.chapter_no}>
-                  <td>{c.chapter_no}</td>
-                  <td>{c.title_bn}</td>
-                  <td>{c.title_en || '—'}</td>
-                  <td>{c.duration_hours}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-
-        {tab === 'competency' && (
-          <table className="table table-sm table-bordered">
-            <thead className="table-light"><tr><th>কোড</th><th>নাম (বাংলা)</th><th>নাম (ইংরেজি)</th><th>মূল্যায়ন</th></tr></thead>
-            <tbody>
-              {competencies.length === 0 ? <tr><td colSpan={4} className="text-center text-muted">কোন কম্পিটেন্সি নেই</td></tr>
-              : competencies.map((c) => (
-                <tr key={c.id || c.code}>
-                  <td>{c.code}</td>
-                  <td>{c.name_bn}</td>
-                  <td>{c.name_en || '—'}</td>
-                  <td>{c.assessment_method || '—'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-
-        {tab === 'bills' && (
-          <table className="table table-sm table-bordered">
-            <thead className="table-light"><tr><th>বিল আইটেম</th><th>পরিমাণ</th><th>বাধ্যতামূলক</th></tr></thead>
-            <tbody>
-              {bills.length === 0 ? <tr><td colSpan={3} className="text-center text-muted">কোন বিল আইটেম নেই</td></tr>
-              : bills.map((b) => (
-                <tr key={b.id}>
-                  <td>{b.bill_item_bn} <small className="text-muted">({b.bill_item_en})</small></td>
-                  <td>৳{b.amount}</td>
-                  <td>{b.is_mandatory ? <span className="badge bg-success">হ্যাঁ</span> : <span className="badge bg-secondary">না</span>}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-    </div>
-  );
-}
-
 export default function HoCourseManagement() {
+  const navigate = useNavigate();
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -346,7 +305,8 @@ export default function HoCourseManagement() {
   const [filterStatus, setFilterStatus] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editCourse, setEditCourse] = useState(null);
-  const [detailCourse, setDetailCourse] = useState(null);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [selectAll, setSelectAll] = useState(false);
 
   const fetchCourses = useCallback(async () => {
     setLoading(true);
@@ -362,6 +322,17 @@ export default function HoCourseManagement() {
   }, [search, filterType, filterStatus]);
 
   useEffect(() => { fetchCourses(); }, [fetchCourses]);
+  useEffect(() => { setSelectAll(false); setSelectedIds([]); }, [courses]);
+
+  const handleSelectAll = () => {
+    const newSelectAll = !selectAll;
+    setSelectAll(newSelectAll);
+    setSelectedIds(newSelectAll ? courses.map(c => c.id) : []);
+  };
+
+  const handleSelectOne = (id) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  };
 
   const handleToggle = async (c) => {
     try {
@@ -381,13 +352,12 @@ export default function HoCourseManagement() {
     try {
       await hoService.deleteCourse(c.id);
       toast.success('কোর্স মুছে ফেলা হয়েছে');
-      if (detailCourse?.id === c.id) setDetailCourse(null);
       fetchCourses();
     } catch (err) { toast.error(err.response?.data?.detail?.[0] || 'মুছতে ব্যর্থ'); }
   };
 
   return (
-    <div style={{ fontFamily: 'NikoshBAN, sans-serif' }}>
+    <div className="px-4 py-4">
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h4 className="mb-0"><i className="bi bi-book me-2"></i>কোর্স ব্যবস্থাপনা</h4>
         <button className="btn btn-primary" onClick={() => { setEditCourse(null); setShowForm(true); }}>
@@ -405,29 +375,65 @@ export default function HoCourseManagement() {
         </select></div>
       </div>
 
+      {selectedIds.length > 0 && (
+        <div className="d-flex align-items-center justify-content-between bg-light rounded-3 px-3 py-2 mb-3 border">
+          <span className="fw-medium">
+            <i className="bi bi-check-square me-1"></i>
+            <strong>{selectedIds.length}</strong> টি কোর্স নির্বাচিত
+          </span>
+          <div className="d-flex gap-1">
+            <button className="btn btn-outline-danger btn-sm" onClick={() => { setSelectedIds([]); setSelectAll(false); }}>
+              <i className="bi bi-slash-circle me-1"></i>মুক্ত করুন
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="row g-3">
-        <div className={detailCourse ? 'col-7' : 'col-12'}>
-          <div className="card shadow-sm">
+        <div className="col-12">
+          <div className="card shadow-sm table-card">
             <div className={loading ? 'card-body text-center py-5' : 'card-body p-0'}>
               {loading ? <div className="spinner-border text-primary" /> : (
                 <div className="table-responsive">
                   <table className="table table-hover align-middle mb-0">
                     <thead className="table-dark">
-                      <tr><th>কোড</th><th>নাম (বাংলা)</th><th>ধরন</th><th>মেয়াদ</th><th>ফি</th><th>স্ট্যাটাস</th><th className="text-center">কার্যক্রম</th></tr>
+                      <tr>
+                        <th style={{ width: 36 }}>
+                          <input type="checkbox" className="form-check-input" checked={selectAll} onChange={handleSelectAll} />
+                        </th>
+                        <th>কোড</th><th>নাম (বাংলা)</th><th>মেয়াদ</th><th>প্রকল্প</th><th>স্পনসর</th><th>বিবরণ</th><th>স্ট্যাটাস</th><th className="text-center">কার্যক্রম</th>
+                      </tr>
                     </thead>
                     <tbody>
-                      {courses.length === 0 ? <tr><td colSpan={7} className="text-center text-muted py-4">কোন কোর্স পাওয়া যায়নি</td></tr>
+                      {courses.length === 0 ? <tr><td colSpan={9} className="text-center text-muted py-4">কোন কোর্স পাওয়া যায়নি</td></tr>
                       : courses.map((c) => (
-                        <tr key={c.id}>
+                        <tr key={c.id} className={selectedIds.includes(c.id) ? 'table-active' : ''}>
+                          <td>
+                            <input type="checkbox" className="form-check-input"
+                              checked={selectedIds.includes(c.id)} onChange={() => handleSelectOne(c.id)} />
+                          </td>
                           <td><strong>{c.code}</strong></td>
-                          <td><button className="btn btn-link btn-sm p-0 text-decoration-none fw-semibold" onClick={() => setDetailCourse(c)}>{c.name_bn}</button></td>
-                          <td>{c.course_type_display || TYPE_MAP[c.course_type]}</td>
-                          <td>{c.duration_months} মাস</td>
-                          <td>৳{c.fee}</td>
+                          <td><button className="btn btn-link btn-sm p-0 text-decoration-none fw-semibold" onClick={() => navigate('/ho/courses/' + c.id)}>{c.name_bn}</button></td>
+                          <td>
+                            {c.duration_value ? (
+                              <>{c.duration_value} {c.duration_unit === 'days' ? 'দিন' : c.duration_unit === 'weeks' ? 'সপ্তাহ' : 'মাস'}</>
+                            ) : (
+                              c.duration_months ? <>{c.duration_months} মাস</> : <span className="text-muted">—</span>
+                            )}
+                          </td>
+                          <td>{c.project_name || '—'}</td>
+                          <td>{c.project_sponsor || '—'}</td>
+                          <td>{c.description ? c.description.slice(0, 60) + (c.description.length > 60 ? '…' : '') : '—'}</td>
                           <td><span className={`badge bg-${STATUS_BG[c.status]}`}>{c.status_display || STATUS_MAP[c.status]}</span></td>
                           <td><div className="d-flex gap-1 justify-content-center">
-                            <button className="btn btn-sm btn-outline-info" onClick={() => setDetailCourse(c)} title="বিস্তারিত"><i className="bi bi-eye"></i></button>
-                            <button className="btn btn-sm btn-outline-primary" onClick={() => { setEditCourse(c); setShowForm(true); }} title="সম্পাদনা"><i className="bi bi-pencil"></i></button>
+                            <button className="btn btn-sm btn-outline-info" onClick={() => navigate('/ho/courses/' + c.id)} title="বিস্তারিত"><i className="bi bi-eye"></i></button>
+                            <button className="btn btn-sm btn-outline-primary" onClick={async () => {
+                              try {
+                                const { data } = await hoService.getCourse(c.id);
+                                setEditCourse(data);
+                                setShowForm(true);
+                              } catch { toast.error('কোর্স ডেটা লোড করতে ব্যর্থ'); }
+                            }} title="সম্পাদনা"><i className="bi bi-pencil"></i></button>
                             <button className={`btn btn-sm ${c.status === 'active' ? 'btn-outline-warning' : 'btn-outline-success'}`} onClick={() => handleToggle(c)} title={c.status === 'active' ? 'নিষ্ক্রিয় করুন' : 'সক্রিয় করুন'}><i className={`bi ${c.status === 'active' ? 'bi-pause-circle' : 'bi-play-circle'}`}></i></button>
                             <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(c)} title="মুছুন"><i className="bi bi-trash"></i></button>
                           </div></td>
@@ -441,7 +447,6 @@ export default function HoCourseManagement() {
             <div className="card-footer text-muted small">মোট {courses.length} টি কোর্স</div>
           </div>
         </div>
-        {detailCourse && <div className="col-5"><CourseDetailPanel course={detailCourse} onClose={() => setDetailCourse(null)} /></div>}
       </div>
 
       <CourseFormWizard show={showForm} course={editCourse} onClose={() => setShowForm(false)} onSaved={() => { setShowForm(false); fetchCourses(); }} />

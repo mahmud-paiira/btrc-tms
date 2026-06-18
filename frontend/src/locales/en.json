@@ -6,7 +6,7 @@
   "site": {
     "title": "BRTC Training Management System",
     "titleShort": "BRTC TMS",
-    "subtitle": "Bangladesh Road Transport Authority (BRTC)",
+    "subtitle": "Bangladesh Road Transport Corporation (BRTC)",
     "hoTitle": "BRTC Head Office",
     "traineeTitle": "BRTC Trainee Portal",
     "backToMain": "Main Site",
@@ -53,7 +53,8 @@
     "certificate": "Certificate",
     "profile": "Profile",
     "finance": "Finance",
-    "system": "System"
+    "system": "System",
+    "masterData": "Master Data"
   },
   "navSub": {
     "financeDashboard": "Dashboard",

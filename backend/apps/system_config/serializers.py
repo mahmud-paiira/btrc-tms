@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import SystemSetting, EmailTemplate, SmsTemplate, IntegrationConfig, BackupConfig
+from .models import SystemSetting, EmailTemplate, SmsTemplate, IntegrationConfig, BackupConfig, Gender, Education, Demography
 
 
 class SystemSettingSerializer(serializers.ModelSerializer):
@@ -50,3 +50,24 @@ class BackupConfigSerializer(serializers.ModelSerializer):
         model = BackupConfig
         fields = '__all__'
         read_only_fields = ('last_backup_at',)
+
+
+class GenderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Gender
+        fields = '__all__'
+
+
+class EducationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Education
+        fields = '__all__'
+
+
+class DemographySerializer(serializers.ModelSerializer):
+    # Readable parent name for display
+    parent_name = serializers.CharField(source='parent.name_bn', read_only=True)
+
+    class Meta:
+        model = Demography
+        fields = '__all__'

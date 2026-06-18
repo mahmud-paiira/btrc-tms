@@ -1,12 +1,13 @@
-from django.db import models
+﻿from django.db import models
 from apps.accounts.models import User
 from apps.centers.models import Center
 from apps.courses.models import Course
+from apps.system_config.models import Education
 
 
 class Trainer(models.Model):
     class Status(models.TextChoices):
-        PENDING = 'pending', 'বিচারাধীন'
+        PENDING = 'pending', 'পেন্ডিং'
         ACTIVE = 'active', 'সক্রিয়'
         SUSPENDED = 'suspended', 'স্থগিত'
 
@@ -29,11 +30,15 @@ class Trainer(models.Model):
         max_length=17, blank=True, null=True, verbose_name='জন্ম নিবন্ধন নং',
     )
     date_of_birth = models.DateField(verbose_name='জন্ম তারিখ')
-    father_name_bn = models.CharField(max_length=255, verbose_name='পিতার নাম (বাংলায়)')
-    mother_name_bn = models.CharField(max_length=255, verbose_name='মাতার নাম (বাংলায়)')
-    education_qualification = models.TextField(verbose_name='শিক্ষাগত যোগ্যতা')
+    father_name_bn = models.CharField(max_length=255, blank=True, verbose_name='পিতার নাম (বাংলায়)')
+    mother_name_bn = models.CharField(max_length=255, blank=True, verbose_name='মাতার নাম (বাংলায়)')
+    education = models.ForeignKey(Education, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='শিক্ষাগত যোগ্যতা')
+    education_qualification = models.TextField(blank=True, verbose_name='শিক্ষাগত যোগ্যতা (বিস্তারিত)')
     years_of_experience = models.PositiveIntegerField(default=0, verbose_name='অভিজ্ঞতা (বছর)')
-    expertise_area = models.CharField(max_length=255, verbose_name='দক্ষতার ক্ষেত্র')
+    expertise_area = models.CharField(max_length=255, blank=True, verbose_name='দক্ষতার ক্ষেত্র')
+    certificate_document = models.FileField(upload_to='trainers/certificates/', blank=True, null=True, verbose_name='সার্টিফিকেট ডকুমেন্ট')
+    driving_license_no = models.CharField(max_length=50, default='', verbose_name='ড্রাইভিং লাইসেন্স নং')
+    driving_license_document = models.FileField(upload_to='trainers/driving_licenses/', blank=True, null=True, verbose_name='ড্রাইভিং লাইসেন্স ডকুমেন্ট')
     bank_account_no = models.CharField(max_length=30, blank=True, verbose_name='ব্যাংক একাউন্ট নং')
     bank_name = models.CharField(max_length=255, blank=True, verbose_name='ব্যাংকের নাম')
     status = models.CharField(
@@ -63,7 +68,7 @@ class Trainer(models.Model):
 
 class TrainerMapping(models.Model):
     class Status(models.TextChoices):
-        PENDING = 'pending', 'বিচারাধীন'
+        PENDING = 'pending', 'পেন্ডিং'
         ACTIVE = 'active', 'সক্রিয়'
         SUSPENDED = 'suspended', 'স্থগিত'
 
@@ -80,6 +85,7 @@ class TrainerMapping(models.Model):
         related_name='trainer_mappings', verbose_name='কোর্স',
     )
     is_primary = models.BooleanField(default=False, verbose_name='প্রাথমিক')
+    designation = models.CharField(max_length=255, default='', verbose_name='পদবী')
     status = models.CharField(
         max_length=15, choices=Status.choices,
         default=Status.PENDING, verbose_name='অবস্থা',
@@ -99,3 +105,4 @@ class TrainerMapping(models.Model):
 
     def __str__(self):
         return f'{self.trainer.trainer_no} → {self.center.code} / {self.course.code}'
+

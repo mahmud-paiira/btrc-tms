@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -87,17 +87,28 @@ export default function Dashboard() {
   const { center_name, center_code } = summary;
 
   return (
-    <div>
+    <div className="container-xl py-4">
       {/* Header */}
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <h4 className="mb-1">{center_name}</h4>
-          <p className="text-muted mb-0">{t('dashboard.centerCode', 'কেন্দ্র কোড:')} {center_code}</p>
+      <div className="bg-white p-4 rounded-4 shadow-sm mb-5 border-start border-primary border-5">
+        <div className="d-flex justify-content-between align-items-start">
+          <div>
+            <h2 className="mb-1 fw-bold text-heading">{center_name}</h2>
+            <div className="d-flex align-items-center gap-2 text-muted">
+              <i className="bi bi-geo-alt"></i>
+              <span>{t('dashboard.centerCode', 'কেন্দ্র কোড:')} <strong>{center_code}</strong></span>
+            </div>
+          </div>
+          <div className="d-none d-md-block">
+            <div className="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill fw-bold">
+              <i className="bi bi-calendar3 me-2"></i>
+              {new Date().toLocaleDateString('bn-BD', { month: 'long', year: 'numeric' })}
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Summary cards */}
-      <div className="row g-3 mb-4">
+      <div className="row g-4 mb-5">
         {[
           { label: t('dashboard.stats.activeBatches', 'চলমান ব্যাচ'), value: formatNumber(summary.active_batches, 'bn'), color: 'primary', icon: 'bi-layers' },
           { label: t('dashboard.stats.totalTrainees', 'মোট প্রশিক্ষণার্থী'), value: formatNumber(summary.total_trainees, 'bn'), color: 'success', icon: 'bi-people' },
@@ -105,16 +116,18 @@ export default function Dashboard() {
           { label: t('dashboard.stats.todayAttendance', 'আজকের উপস্থিতি'), value: formatNumber(summary.today_attendance?.total || 0, 'bn'), color: 'warning', icon: 'bi-calendar-check',
             extra: summary.today_attendance?.total > 0 ? formatPercentage(summary.today_attendance.percentage, 'bn') : t('dashboard.stats.notMarked', 'চিহ্নিত হয়নি') },
           { label: t('dashboard.stats.placementRate', 'চাকরি স্থাপনের হার'), value: formatPercentage(summary.placement_rate, 'bn'), color: summary.placement_rate >= 60 ? 'success' : 'warning', icon: 'bi-briefcase' },
-          { label: t('dashboard.stats.pendingApplications', 'বিচারাধীন আবেদন'), value: formatNumber(summary.applications?.pending || 0, 'bn'), color: 'danger', icon: 'bi-file-earmark-text' },
+          { label: t('dashboard.stats.pendingApplications', 'পেন্ডিং আবেদন'), value: formatNumber(summary.applications?.pending || 0, 'bn'), color: 'danger', icon: 'bi-file-earmark-text' },
         ].map((card) => (
-          <div className="col-md-4 col-6" key={card.label}>
-            <div className={`card text-bg-${card.color} shadow-sm h-100`}>
-              <div className="card-body d-flex align-items-center gap-3">
-                <i className={`bi ${card.icon} fs-1`}></i>
+          <div className="col-lg-4 col-md-6" key={card.label}>
+            <div className={`card shadow-sm border-0 h-100 position-relative overflow-hidden`} style={{ background: `var(--bs-${card.color})`, color: '#fff', borderRadius: 16 }}>
+              <div className="card-body d-flex align-items-center justify-content-between p-4 z-index-1">
                 <div>
-                  <h3 className="mb-0">{card.value}</h3>
-                  <small>{card.label}</small>
-                  {card.extra && <div className="small opacity-75">{card.extra}</div>}
+                  <div className="text-white-50 small mb-1">{card.label}</div>
+                  <h2 className="mb-0 fw-bold">{card.value}</h2>
+                  {card.extra && <div className="mt-1 badge bg-white bg-opacity-20 text-white rounded-pill small" style={{ fontSize: 10 }}>{card.extra}</div>}
+                </div>
+                <div className="bg-white bg-opacity-20 rounded-circle d-flex align-items-center justify-content-center" style={{ width: 60, height: 60 }}>
+                  <i className={`bi ${card.icon} fs-2`}></i>
                 </div>
               </div>
             </div>
@@ -123,8 +136,8 @@ export default function Dashboard() {
       </div>
 
       <div className="row g-4">
-        {/* Charts column */}
-        <div className="col-lg-8">
+        {/* Main Single Column */}
+        <div className="col-12">
           {/* Attendance trend */}
           <div className="card shadow-sm mb-4">
             <div className="card-header bg-light"><h6 className="mb-0"><i className="bi bi-graph-up me-2"></i>{t('dashboard.charts.attendanceTrend', 'ব্যাচভিত্তিক উপস্থিতির প্রবণতা')}</h6></div>
@@ -203,136 +216,76 @@ export default function Dashboard() {
 
           {/* Monthly enrollment bar */}
           <div className="card shadow-sm mb-4">
-            <div className="card-header bg-light"><h6 className="mb-0"><i className="bi bi-person-plus me-2"></i>{t('dashboard.charts.monthlyEnrollment', 'মাসিক নথিভুক্তি')}</h6></div>
-            <div className="card-body">
+            <div className="card-header bg-light"><h6 className="mb-0 fw-bold text-heading"><i className="bi bi-person-plus me-2 text-primary"></i>{t('dashboard.charts.monthlyEnrollment', 'মাসিক নথিভুক্তি')}</h6></div>
+            <div className="card-body p-4">
               {charts?.monthly_enrollment?.length > 0 ? (
-                <div className="d-flex align-items-end gap-2" style={{ height: 150 }}>
+                <div className="d-flex align-items-end gap-3" style={{ height: 250, paddingBottom: 30 }}>
                   {charts.monthly_enrollment.map((m) => {
                     const max = Math.max(...charts.monthly_enrollment.map((x) => x.count), 1);
                     const pct = (m.count / max) * 100;
                     return (
                       <div key={m.month} className="d-flex flex-column align-items-center flex-fill">
-                        <small className="fw-bold mb-1">{m.count}</small>
-                        <div className="bg-primary rounded" style={{ width: '100%', height: `${Math.max(pct, 3)}%` }} title={m.month} />
-                        <small className="mt-1" style={{ fontSize: 9 }}>{m.month.slice(5)}</small>
+                        <small className="fw-bold mb-2 text-primary">{m.count}</small>
+                        <div className="rounded-top" style={{ width: '100%', height: `${Math.max(pct, 3)}%`, background: 'linear-gradient(to top, var(--bs-primary), #818cf8)' }} title={m.month} />
+                        <small className="mt-2 text-muted" style={{ fontSize: 10, transform: 'rotate(-45deg)', whiteSpace: 'nowrap' }}>{m.month.slice(5)}</small>
                       </div>
                     );
                   })}
                 </div>
               ) : (
-                <div className="text-center text-muted py-3"><i className="bi bi-inbox"></i><p className="mb-0 mt-1">{t('dashboard.charts.noEnrollmentData', 'কোন নথিভুক্তি ডাটা নেই')}</p></div>
+                <div className="text-center text-muted py-5"><i className="bi bi-inbox fs-2"></i><p className="mb-0 mt-2">{t('dashboard.charts.noEnrollmentData', 'কোন নথিভুক্তি ডাটা নেই')}</p></div>
               )}
             </div>
           </div>
-        </div>
 
-        {/* Sidebar column */}
-        <div className="col-lg-4">
-          {/* Quick actions */}
-          <div className="card shadow-sm mb-4">
-            <div className="card-header bg-primary text-white"><h6 className="mb-0"><i className="bi bi-lightning-charge me-2"></i>{t('dashboard.quickActions.title', 'দ্রুত কর্ম')}</h6></div>
-            <div className="card-body p-0">
-              <div className="list-group list-group-flush">
-                <Link to="/center-admin/batches/create" className="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                  <span><i className="bi bi-megaphone me-2 text-primary"></i>{t('dashboard.quickActions.newCircular', 'নতুন সার্কুলার')}</span>
-                  {actions?.can_publish_circular && <span className="badge bg-primary rounded-pill">{t('dashboard.quickActions.hasDraft', 'খসড়া আছে')}</span>}
-                </Link>
-                <Link to="/center-admin/applications" className="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                  <span><i className="bi bi-file-earmark-text me-2 text-warning"></i>{t('dashboard.quickActions.reviewApplications', 'আবেদন পর্যালোচনা')}</span>
-                  {actions?.pending_applications > 0 && (
-                    <span className="badge bg-danger rounded-pill">{actions.pending_applications}</span>
-                  )}
-                </Link>
-                <Link
-                  to={actions?.running_batches > 0 ? `/center-admin/attendance/batch/${summary.active_batches > 0 ? charts?.attendance_trend?.[0]?.batch_id || '' : ''}` : '#'}
-                  className={`list-group-item list-group-item-action d-flex justify-content-between align-items-center ${actions?.needs_attendance_today ? 'list-group-item-warning' : ''}`}
-                >
-                  <span><i className="bi bi-calendar-check me-2 text-success"></i>{t('dashboard.quickActions.todayAttendance', 'আজকের উপস্থিতি')}</span>
-                  {actions?.needs_attendance_today && <span className="badge bg-warning rounded-pill">{t('dashboard.quickActions.markNow', 'চিহ্নিত করুন')}</span>}
-                </Link>
-                <Link to="/center-admin/certificates/issue" className="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                  <span><i className="bi bi-award me-2 text-info"></i>{t('dashboard.quickActions.issueCertificate', 'সার্টিফিকেট ইস্যু')}</span>
-                  {actions?.eligible_certificates > 0 && <span className="badge bg-success rounded-pill">{actions.eligible_certificates}</span>}
-                </Link>
-                <Link to="/center-admin/batches" className="list-group-item list-group-item-action">
-                  <i className="bi bi-layers me-2 text-secondary"></i>{t('dashboard.quickActions.batchList', 'ব্যাচ তালিকা')}
-                </Link>
+          {/* Quick actions & Widgets in Single Column */}
+          <div className="row g-4">
+            {/* Quick actions */}
+            <div className="col-md-6">
+              <div className="card shadow-sm h-100 border-0 overflow-hidden" style={{ borderRadius: 20 }}>
+                <div className="card-header bg-primary text-white py-3 border-0"><h6 className="mb-0 fw-bold"><i className="bi bi-lightning-charge me-2"></i>{t('dashboard.quickActions.title', 'দ্রুত কর্ম')}</h6></div>
+                <div className="card-body p-0">
+                  <div className="list-group list-group-flush">
+                    <Link to="/center-admin/batches/create" className="list-group-item list-group-item-action py-3 d-flex justify-content-between align-items-center">
+                      <span><i className="bi bi-plus-circle me-2 text-primary"></i>{t('dashboard.quickActions.newBatch', 'নতুন ব্যাচ তৈরি')}</span>
+                      <i className="bi bi-chevron-right text-muted small"></i>
+                    </Link>
+                    <Link to="/center-admin/applications" className="list-group-item list-group-item-action py-3 d-flex justify-content-between align-items-center">
+                      <span><i className="bi bi-file-earmark-text me-2 text-warning"></i>{t('dashboard.quickActions.reviewApplications', 'আবেদন পর্যালোচনা')}</span>
+                      {actions?.pending_applications > 0 && (
+                        <span className="badge bg-danger rounded-pill">{actions.pending_applications}</span>
+                      )}
+                    </Link>
+                    <Link to="/center-admin/certificates/issue" className="list-group-item list-group-item-action py-3 d-flex justify-content-between align-items-center">
+                      <span><i className="bi bi-award me-2 text-info"></i>{t('dashboard.quickActions.issueCertificate', 'সার্টিফিকেট ইস্যু')}</span>
+                      {actions?.eligible_certificates > 0 && <span className="badge bg-success rounded-pill">{actions.eligible_certificates}</span>}
+                    </Link>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Alerts */}
-          <div className="card shadow-sm mb-4">
-            <div className="card-header bg-danger text-white"><h6 className="mb-0"><i className="bi bi-exclamation-triangle me-2"></i>{t('dashboard.alerts.title', 'সতর্কতা ও বিজ্ঞপ্তি')}</h6></div>
-            <div className="card-body p-0">
-              {alerts.length === 0 ? (
-                <div className="text-center text-muted py-4"><i className="bi bi-check-circle fs-3 text-success"></i><p className="mt-2 mb-0">{t('dashboard.alerts.none', 'কোন সতর্কতা নেই')}</p></div>
-              ) : (
-                <div className="list-group list-group-flush">
-                  {alerts.map((alert, i) => (
-                    <div key={i} className={`list-group-item list-group-item-${SEVERITY_BADGE[alert.severity] || 'light'} border-start border-${SEVERITY_BADGE[alert.severity] || 'secondary'} border-start-4`}>
-                      <div className="d-flex w-100 justify-content-between">
-                        <h6 className="mb-1">{alert.title}</h6>
-                        <small>{alert.data?.length || alert.data?.count || ''}</small>
+            {/* Recent activity summary */}
+            <div className="col-md-6">
+              <div className="card shadow-sm h-100 border-0 overflow-hidden" style={{ borderRadius: 20 }}>
+                <div className="card-header bg-dark text-white py-3 border-0"><h6 className="mb-0 fw-bold"><i className="bi bi-activity me-2"></i>{t('dashboard.activity.title', 'সাম্প্রতিক কার্যক্রম')}</h6></div>
+                <div className="card-body p-4">
+                  {activity ? (
+                    <div className="d-grid gap-3">
+                      <div className="d-flex justify-content-between align-items-center p-2 rounded bg-light">
+                        <span className="small"><i className="bi bi-person-badge me-2 text-primary"></i>{t('dashboard.activity.pendingTrainers', 'পেন্ডিং প্রশিক্ষক')}</span>
+                        <span className="badge bg-primary rounded-pill">{activity.pending_trainers}</span>
                       </div>
-                      <p className="mb-1 small">{alert.message}</p>
-                      {alert.type === 'low_attendance' && alert.data?.length > 0 && (
-                        <div className="mt-1">
-                          {alert.data.map((b) => (
-                            <Link key={b.batch_id} to={`/center-admin/attendance/batch/${b.batch_id}`}
-                              className="badge bg-danger text-decoration-none me-1">
-                              {b.batch_name}: {b.low_attendance_count}/{b.total_trainees}
-                            </Link>
-                          ))}
-                        </div>
-                      )}
-                      {alert.type === 'upcoming_batches' && alert.data?.length > 0 && (
-                        <div className="mt-1">
-                          {alert.data.map((b) => (
-                            <span key={b.batch_id} className="badge bg-primary me-1">{b.batch_name}: {b.start_date}</span>
-                          ))}
-                        </div>
-                      )}
+                      <div className="d-flex justify-content-between align-items-center p-2 rounded bg-light">
+                        <span className="small"><i className="bi bi-person-check me-2 text-success"></i>{t('dashboard.activity.pendingAssessors', 'পেন্ডিং মূল্যায়নকারী')}</span>
+                        <span className="badge bg-success rounded-pill">{activity.pending_assessors}</span>
+                      </div>
                     </div>
-                  ))}
+                  ) : (
+                    <div className="text-center text-muted py-3"><i className="bi bi-inbox"></i><p className="mt-2 mb-0">{t('dashboard.activity.noActivity', 'কোন কার্যক্রম নেই')}</p></div>
+                  )}
                 </div>
-              )}
-            </div>
-          </div>
-
-          {/* Recent activity */}
-          <div className="card shadow-sm mb-4">
-            <div className="card-header bg-info text-white"><h6 className="mb-0"><i className="bi bi-activity me-2"></i>{t('dashboard.activity.title', 'সাম্প্রতিক কার্যক্রম')}</h6></div>
-            <div className="card-body p-0">
-              {activity ? (
-                <div className="list-group list-group-flush">
-                  <div className="list-group-item d-flex justify-content-between align-items-center">
-                    <span><i className="bi bi-person-badge me-2 text-warning"></i>{t('dashboard.activity.pendingTrainers', 'বিচারাধীন প্রশিক্ষক')}</span>
-                    <span className="badge bg-warning rounded-pill">{activity.pending_trainers}</span>
-                  </div>
-                  <div className="list-group-item d-flex justify-content-between align-items-center">
-                    <span><i className="bi bi-person-check me-2 text-warning"></i>{t('dashboard.activity.pendingAssessors', 'বিচারাধীন মূল্যায়নকারী')}</span>
-                    <span className="badge bg-warning rounded-pill">{activity.pending_assessors}</span>
-                  </div>
-                  <div className="list-group-item">
-                    <h6 className="mb-2"><i className="bi bi-file-earmark-text me-2"></i>{t('dashboard.activity.recentApplications', 'সাম্প্রতিক আবেদন')}</h6>
-                    {activity.recent_applications?.length > 0 ? (
-                      activity.recent_applications.slice(0, 3).map((a) => (
-                        <div key={a.id} className="d-flex justify-content-between align-items-start mb-1 small">
-                          <span>{a.name}</span>
-                          <span className="text-muted" style={{ fontSize: 10 }}>
-                            {formatDate(a.applied_at, 'bn')}
-                          </span>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="text-muted small">{t('dashboard.activity.noApplications', 'কোন আবেদন নেই')}</div>
-                    )}
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center text-muted py-4"><i className="bi bi-inbox"></i><p className="mt-2 mb-0">{t('dashboard.activity.noActivity', 'কোন কার্যক্রম নেই')}</p></div>
-              )}
+              </div>
             </div>
           </div>
         </div>
@@ -340,3 +293,4 @@ export default function Dashboard() {
     </div>
   );
 }
+

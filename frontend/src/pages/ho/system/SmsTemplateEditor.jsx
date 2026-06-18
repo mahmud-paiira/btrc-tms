@@ -68,7 +68,7 @@ export default function SmsTemplateEditor() {
   if (loading) return <div className="text-center py-5"><div className="spinner-border" /></div>;
 
   return (
-    <div>
+    <div className="px-4 py-4">
       <h5 className="fw-bold mb-3"><i className="bi bi-chat-dots me-2"></i>এসএমএস টেমপ্লেট</h5>
       <div className="row g-3">
         <div className="col-md-4">

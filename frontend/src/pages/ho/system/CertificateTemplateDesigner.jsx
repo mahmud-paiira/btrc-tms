@@ -74,7 +74,7 @@ export default function CertificateTemplateDesigner() {
   };
 
   return (
-    <div>
+    <div className="px-4 py-4">
       <h5 className="fw-bold mb-3"><i className="bi bi-file-earmark-image me-2"></i>সার্টিফিকেট টেমপ্লেট ডিজাইনার</h5>
       <div className="row g-3">
         <div className="col-md-9">

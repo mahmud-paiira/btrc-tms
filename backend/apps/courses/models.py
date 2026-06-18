@@ -1,6 +1,7 @@
 from django.db import models
 from ckeditor.fields import RichTextField
 from apps.accounts.models import User
+from django.utils import timezone
 
 
 class Course(models.Model):
@@ -39,16 +40,24 @@ class Course(models.Model):
     term = models.CharField(
         max_length=20,
         choices=Term.choices,
+        blank=True,
+        null=True,
         verbose_name='টার্ম',
     )
     session = models.CharField(
         max_length=20,
         choices=Session.choices,
+        blank=True,
+        null=True,
         verbose_name='সেশন',
     )
     duration_months = models.PositiveIntegerField(verbose_name='মেয়াদ (মাস)')
     duration_hours = models.PositiveIntegerField(verbose_name='মোট ঘন্টা')
     total_training_days = models.PositiveIntegerField(verbose_name='মোট প্রশিক্ষণ দিন')
+    duration_value = models.PositiveIntegerField(default=3, verbose_name='মেয়াদ মান')
+    duration_unit = models.CharField(max_length=10, choices=[('days', 'দিন'), ('weeks', 'সপ্তাহ'), ('months', 'মাস')], default='months', verbose_name='মেয়াদ একক')
+    project_name = models.CharField(max_length=255, blank=True, verbose_name='প্রকল্পের নাম')
+    project_sponsor = models.CharField(max_length=255, blank=True, verbose_name='প্রকল্পের স্পনসর')
     fee = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='কোর্স ফি')
     stipend_eligible = models.BooleanField(default=False, verbose_name='স্টাইপেন্ড উপযোগী')
     employment_eligible = models.BooleanField(default=False, verbose_name='চাকরির উপযোগী')
@@ -82,6 +91,22 @@ class Course(models.Model):
 
     def __str__(self):
         return f'{self.name_bn} ({self.code})'
+
+    def save(self, *args, **kwargs):
+        if not self.code:
+            from django.db.models import Max
+            year = self.created_at.year if self.created_at else timezone.now().year
+            prefix = str(year)
+            last = Course.objects.filter(code__startswith=prefix).aggregate(Max('code'))['code__max']
+            if last and '-' in last:
+                try:
+                    seq = int(last.split('-')[-1]) + 1
+                except ValueError:
+                    seq = 1
+            else:
+                seq = 1
+            self.code = f'{prefix}-{seq:04d}'
+        super().save(*args, **kwargs)
 
 
 class CourseConfiguration(models.Model):

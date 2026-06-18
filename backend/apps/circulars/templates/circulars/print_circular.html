@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="utf-8">
+    <title>{{ circular.title_bn }}</title>
+    <style>
+        @page { size: A4; margin: 1.5cm; }
+        body { font-family: 'NikoshBAN', 'Siyam Rupali', 'SolaimanLipi', 'Arial', sans-serif; font-size: 13px; line-height: 1.8; color: #222; }
+
+        .header { text-align: center; border-bottom: 3px solid #1a5276; padding-bottom: 12px; margin-bottom: 20px; }
+        .header .govt-name { font-size: 16px; font-weight: bold; color: #1a5276; letter-spacing: 1px; }
+        .header .org-name { font-size: 20px; font-weight: bold; color: #000; margin: 2px 0; }
+        .header .org-sub { font-size: 13px; color: #555; margin: 2px 0; }
+        .header .ref-line { font-size: 11px; color: #777; margin-top: 6px; border-top: 1px dashed #ccc; padding-top: 6px; }
+
+        .circular-title { text-align: center; font-size: 17px; font-weight: bold; margin: 18px 0; padding: 10px 14px; border: 2px solid #1a5276; background: #f0f4f8; }
+        .circular-title-en { text-align: center; font-size: 13px; font-style: italic; margin: 10px 0 18px; padding: 8px 14px; border: 1px solid #bbb; color: #444; }
+
+        table.info { width: 100%; border-collapse: collapse; margin: 14px 0; }
+        table.info td { border: 1px solid #ccc; padding: 6px 10px; font-size: 13px; }
+        table.info .label { background: #e8edf2; font-weight: 600; width: 22%; }
+        table.info .value { width: 28%; }
+
+        .section-title { font-size: 14px; font-weight: bold; color: #1a5276; margin: 20px 0 8px; padding-bottom: 4px; border-bottom: 2px solid #1a5276; }
+
+        .desc-box { margin: 12px 0; padding: 12px 16px; background: #fafafa; border-left: 4px solid #1a5276; font-size: 13px; line-height: 1.9; }
+        .desc-box p { margin: 6px 0; }
+
+        .checklist { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        .checklist th { background: #1a5276; color: #fff; padding: 7px 8px; font-size: 12px; text-align: left; }
+        .checklist td { border: 1px solid #ccc; padding: 6px 8px; font-size: 12px; }
+        .checklist tr:nth-child(even) { background: #f8f9fa; }
+
+        .center-list { margin: 8px 0; padding: 0; }
+        .center-list li { display: inline; margin-right: 6px; }
+
+        .footer { text-align: center; margin-top: 35px; font-size: 10px; color: #999; border-top: 1px solid #ddd; padding-top: 8px; }
+
+        .signature-area { margin-top: 40px; display: flex; justify-content: space-between; }
+        .signature-box { text-align: center; width: 40%; }
+        .signature-line { margin-top: 55px; border-top: 1px solid #333; padding-top: 5px; font-size: 12px; font-weight: 600; }
+
+        .footer-note { text-align: center; font-size: 11px; color: #666; margin-top: 20px; font-style: italic; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="govt-name">গণপ্রজাতন্ত্রী বাংলাদেশ সরকার</div>
+        <div class="org-name">বাংলাদেশ সড়ক পরিবহন কর্পোরেশন</div>
+        <div class="org-sub">প্রশিক্ষণ ব্যবস্থাপনা সিস্টেম</div>
+        <div class="ref-line">
+            সার্কুলার নং: {{ circular.circular_no|default:"-" }}
+            {% if circular.public_url %} &mdash; পাবলিক ইউআরএল: {{ circular.public_url }}{% endif %}
+            &mdash; সংস্করণ: {{ circular.edition }}
+        </div>
+    </div>
+
+    <div class="circular-title">{{ circular.title_bn }}</div>
+    {% if circular.title_en %}
+    <div class="circular-title-en">{{ circular.title_en }}</div>
+    {% endif %}
+
+    <div class="section-title">সার্কুলার সংক্রান্ত তথ্য</div>
+    <table class="info">
+        <tr>
+            <td class="label">সার্কুলার নম্বর</td>
+            <td class="value">{{ circular.circular_no|default:"-" }}</td>
+            <td class="label">সংস্করণ</td>
+            <td class="value">{{ circular.edition }}</td>
+        </tr>
+        <tr>
+            <td class="label">কোর্স</td>
+            <td class="value">{{ course.code }} - {{ course.name_bn }}</td>
+            <td class="label">কোর্স কোড</td>
+            <td class="value">{{ course.code }}</td>
+        </tr>
+        <tr>
+            <td class="label">মোট আসন</td>
+            <td class="value">{{ circular.total_seats }}</td>
+            <td class="label">অবশিষ্ট আসন</td>
+            <td class="value">{{ circular.remaining_seats }}</td>
+        </tr>
+        <tr>
+            <td class="label">কোর্স ফি</td>
+            <td class="value">{% if circular.fee %}৳{{ circular.fee }}{% else %}ডিফল্ট (কোর্স অনুযায়ী){% endif %}</td>
+            <td class="label">প্রকাশের তারিখ</td>
+            <td class="value">{{ circular.published_at|date:"d/m/Y"|default:"-" }}</td>
+        </tr>
+    </table>
+
+    <div class="section-title">সময়সীমা</div>
+    <table class="info">
+        <tr>
+            <td class="label">আবেদন শুরুর তারিখ</td>
+            <td class="value">{{ circular.application_start_date|date:"d/m/Y" }}</td>
+            <td class="label">আবেদনের শেষ তারিখ</td>
+            <td class="value">{{ circular.application_end_date|date:"d/m/Y" }}</td>
+        </tr>
+        <tr>
+            <td class="label">প্রশিক্ষণ শুরুর তারিখ</td>
+            <td class="value">{{ circular.training_start_date|date:"d/m/Y" }}</td>
+            <td class="label">প্রশিক্ষণ শেষের তারিখ</td>
+            <td class="value">{{ circular.training_end_date|date:"d/m/Y" }}</td>
+        </tr>
+        <tr>
+            <td class="label">কোর্সের মেয়াদ</td>
+            <td class="value" colspan="3">
+                {% if course.duration_months %}{{ course.duration_months }} মাস{% elif course.duration_value %}{{ course.duration_value }} {{ course.duration_unit }}{% else %}-{% endif %}
+            </td>
+        </tr>
+    </table>
+
+    <div class="section-title">উপযুক্ত কেন্দ্র</div>
+    <table class="info">
+        <tr>
+            <td class="label">কেন্দ্র</td>
+            <td colspan="3">
+                {% if circular.all_centers %}
+                    <strong>সকল কেন্দ্রের জন্য প্রযোজ্য</strong>
+                {% elif centers %}
+                    {% for c in centers %}{{ c.code }} - {{ c.name_bn }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                {% else %}
+                    কোন কেন্দ্র নির্ধারণ করা হয়নি
+                {% endif %}
+            </td>
+        </tr>
+    </table>
+
+    {% if circular.description %}
+    <div class="section-title">বিবরণ / শর্তাবলী</div>
+    <div class="desc-box">
+        {{ circular.description|safe }}
+    </div>
+    {% endif %}
+
+    {% if circular.auto_screen_total_score > 0 %}
+    <div class="section-title">অটো-স্ক্রিনিং</div>
+    <table class="info">
+        <tr>
+            <td class="label">সর্বোচ্চ স্কোর</td>
+            <td class="value">{{ circular.auto_screen_total_score }}</td>
+            <td class="label">পাসের ন্যূনতম স্কোর</td>
+            <td class="value">{{ circular.auto_screen_min_score }}</td>
+        </tr>
+    </table>
+    {% endif %}
+
+    {% with items=circular.checklist_items.all %}
+    {% if items %}
+    <div class="section-title">চেকলিস্ট আইটেম</div>
+    <table class="checklist">
+        <thead>
+            <tr>
+                <th style="width:40px">ক্রমিক</th>
+                <th>নির্ধারক</th>
+                <th>লেবেল</th>
+                <th>অপারেটর</th>
+                <th>প্রত্যাশিত মান</th>
+                <th>স্কোর</th>
+                <th style="width:60px">বাধ্যতামূলক</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td style="text-align:center">{{ forloop.counter }}</td>
+                <td>{{ item.get_criteria_type_display }}</td>
+                <td>{{ item.label_bn }}</td>
+                <td>{{ item.operator }}</td>
+                <td>{{ item.expected_value }}</td>
+                <td style="text-align:center">{{ item.score }}</td>
+                <td style="text-align:center">{% if item.required %}হ্যাঁ{% else %}না{% endif %}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+    {% endwith %}
+
+    <div class="signature-area">
+        <div class="signature-box">
+            <div class="signature-line">প্রস্তুতকারকের স্বাক্ষর</div>
+        </div>
+        <div class="signature-box">
+            <div class="signature-line">কর্তৃপক্ষের স্বাক্ষর</div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>বাংলাদেশ সড়ক পরিবহন কর্পোরেশন (বিআরটিসি) | প্রশিক্ষণ ব্যবস্থাপনা সিস্টেম</p>
+        <p>সিস্টেম দ্বারা জেনারেট করা হয়েছে - {% now "d/m/Y H:i" %}</p>
+    </div>
+
+</body>
+</html>

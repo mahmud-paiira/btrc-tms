@@ -67,7 +67,7 @@ export default function PublicVerify() {
               </div>
               <h3 className="fw-bold">সার্টিফিকেট যাচাই</h3>
               <p className="text-muted">
-                বাংলাদেশ সড়ক পরিবহন কর্তৃপক্ষ (BRTC) - প্রশিক্ষণ বিভাগ
+                বাংলাদেশ সড়ক পরিবহন কর্পোরেশন (BRTC) - প্রশিক্ষণ বিভাগ
               </p>
               <p className="text-muted small">
                 Certificate Verification &mdash; Bangladesh Road Transport Corporation

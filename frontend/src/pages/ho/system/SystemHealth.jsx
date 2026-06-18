@@ -48,7 +48,7 @@ export default function SystemHealth() {
   const overallColor = health.status === 'ok' ? 'success' : 'warning';
 
   return (
-    <div>
+    <div className="px-4 py-4">
       <h5 className="fw-bold mb-3"><i className="bi bi-heart-pulse me-2"></i>সিস্টেম হেলথ</h5>
 
       <div className={`alert alert-${overallColor} d-flex align-items-center gap-2`}>

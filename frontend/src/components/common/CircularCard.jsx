@@ -3,10 +3,12 @@ import { useNavigate } from 'react-router-dom';
 
 export default function CircularCard({ circular, lang, isRtl }) {
   const navigate = useNavigate();
+  const isLoggedIn = !!localStorage.getItem('access_token');
 
   const isExpired = new Date(circular.application_end_date) < new Date();
   const seatsLeft = circular.remaining_seats;
   const isFull = seatsLeft <= 0;
+  const centers = circular.eligible_centers || [];
 
   const texts = {
     bn: {
@@ -20,6 +22,7 @@ export default function CircularCard({ circular, lang, isRtl }) {
       full: 'আসন পূর্ণ',
       apply: 'এখনই আবেদন করুন',
       daysLeft: 'দিন বাকি',
+      centers: 'উপযুক্ত কেন্দ্র',
     },
     en: {
       courseType: 'Course Type',
@@ -32,6 +35,7 @@ export default function CircularCard({ circular, lang, isRtl }) {
       full: 'Seats Full',
       apply: 'Apply Now',
       daysLeft: 'days left',
+      centers: 'Eligible Centers',
     },
   };
 
@@ -69,6 +73,13 @@ export default function CircularCard({ circular, lang, isRtl }) {
             <i className="bi bi-calendar me-1"></i>
             <span>{t.deadline}: {circular.application_end_date}</span>
           </div>
+          <div className="meta-item">
+            <i className="bi bi-geo-alt me-1"></i>
+            <span>{t.centers}: {circular.all_centers
+              ? (lang === 'bn' ? 'সব কেন্দ্র' : 'All Centers')
+              : centers.map(c => lang === 'bn' ? c.name_bn : c.name_en).join(', ')}
+            </span>
+          </div>
           <div className="d-flex gap-3 mt-1">
             <span className="text-muted small">
               <i className="bi bi-people me-1"></i>
@@ -90,10 +101,10 @@ export default function CircularCard({ circular, lang, isRtl }) {
             </div>
             <button
               className="btn btn-success w-100 apply-btn"
-              onClick={() => navigate(`/apply/${circular.public_url}`)}
+              onClick={() => navigate(`/register-and-apply?circular=${circular.public_url}`)}
             >
               <i className="bi bi-send me-2"></i>
-              {t.apply}
+              রেজিস্ট্রেশন ও আবেদন
             </button>
           </div>
         )}

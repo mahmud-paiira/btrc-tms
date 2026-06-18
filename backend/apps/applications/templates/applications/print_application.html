@@ -1,0 +1,120 @@
+﻿<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="utf-8">
+    <title>আবেদন ফর্ম - {{ app.application_no }}</title>
+    <style>
+        @page { size: A4; margin: 1.5cm; }
+        body { font-family: 'Arial', 'Nikosh', sans-serif; font-size: 14px; line-height: 1.6; color: #333; }
+        .header { text-align: center; border-bottom: 2px solid #1a5276; padding-bottom: 15px; margin-bottom: 20px; }
+        .header h1 { font-size: 20px; color: #1a5276; margin: 5px 0; }
+        .header h2 { font-size: 16px; color: #2e86c1; margin: 5px 0; }
+        .header p { font-size: 12px; color: #666; margin: 2px 0; }
+        .app-no { text-align: center; font-size: 16px; font-weight: bold; color: #1a5276; margin: 15px 0; padding: 8px; border: 1px dashed #1a5276; }
+        .section { margin: 15px 0; }
+        .section-title { font-size: 15px; font-weight: bold; color: #1a5276; border-bottom: 1px solid #ddd; padding-bottom: 5px; margin-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; }
+        table td, table th { padding: 5px 8px; border: 1px solid #ddd; font-size: 13px; }
+        table th { background: #f8f9fa; text-align: left; width: 35%; font-weight: 600; }
+        .photo-cell { text-align: center; width: 120px; }
+        .photo-cell img { width: 100px; height: 120px; object-fit: cover; border: 1px solid #ddd; }
+        .status-badge { display: inline-block; padding: 2px 10px; border-radius: 3px; font-size: 12px; font-weight: bold; }
+        .status-pending { background: #ffeaa7; color: #856404; }
+        .status-selected { background: #d4edda; color: #155724; }
+        .status-rejected { background: #f8d7da; color: #721c24; }
+        .footer { text-align: center; margin-top: 30px; font-size: 11px; color: #999; border-top: 1px solid #ddd; padding-top: 10px; }
+        .signature-area { margin-top: 30px; display: flex; justify-content: space-between; }
+        .signature-box { text-align: center; width: 40%; }
+        .signature-line { margin-top: 40px; border-top: 1px solid #333; padding-top: 5px; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>বাংলাদেশ সড়ক পরিবহন কর্পোরেশন</h1>
+        <h2>প্রশিক্ষণ ব্যবস্থাপনা সিস্টেম</h2>
+        <p>আবেদন ফর্ম</p>
+    </div>
+
+    <div class="app-no">
+        আবেদন নম্বর: {{ app.application_no }}
+        {% if app.status == 'pending' %}
+            <span class="status-badge status-pending">পেন্ডিং</span>
+        {% elif app.status == 'selected' %}
+            <span class="status-badge status-selected">নির্বাচিত</span>
+        {% elif app.status == 'rejected' %}
+            <span class="status-badge status-rejected">বাতিল</span>
+        {% endif %}
+    </div>
+
+    <div class="section">
+        <div class="section-title">সার্কুলার ও কেন্দ্রের তথ্য</div>
+        <table>
+            <tr><th>সার্কুলার</th><td>{{ circular.title_bn }}</td></tr>
+            <tr><th>কোর্স</th><td>{{ course.name_bn }} ({{ course.code }})</td></tr>
+            <tr><th>আবেদনের কেন্দ্র</th><td>{{ center.name_bn }} ({{ center.code }})</td></tr>
+            <tr><th>আবেদনের তারিখ</th><td>{{ app.applied_at|date:"d/m/Y" }}</td></tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <div class="section-title">ব্যক্তিগত তথ্য</div>
+        <table>
+            {% if app.profile_image %}
+            <tr>
+                <th>ছবি</th>
+                <td class="photo-cell"><img src="{{ app.profile_image.url }}" alt="Profile"></td>
+            </tr>
+            {% endif %}
+            <tr><th>নাম (বাংলায়)</th><td>{{ app.name_bn }}</td></tr>
+            {% if app.name_en %}<tr><th>নাম (ইংরেজিতে)</th><td>{{ app.name_en }}</td></tr>{% endif %}
+            <tr><th>পিতার নাম</th><td>{{ app.father_name_bn }}</td></tr>
+            <tr><th>মাতার নাম</th><td>{{ app.mother_name_bn }}</td></tr>
+            {% if app.spouse_name_bn %}<tr><th>স্বামী/স্ত্রীর নাম</th><td>{{ app.spouse_name_bn }}</td></tr>{% endif %}
+            <tr><th>জন্ম তারিখ</th><td>{{ app.date_of_birth|date:"d/m/Y" }}</td></tr>
+            <tr><th>জাতীয় পরিচয়পত্র নং</th><td>{{ app.nid }}</td></tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <div class="section-title">যোগাযোগের তথ্য</div>
+        <table>
+            <tr><th>মোবাইল নম্বর</th><td>{{ app.phone }}</td></tr>
+            {% if app.alternate_phone %}<tr><th>বিকল্প মোবাইল</th><td>{{ app.alternate_phone }}</td></tr>{% endif %}
+            {% if app.email %}<tr><th>ইমেইল</th><td>{{ app.email }}</td></tr>{% endif %}
+            <tr><th>বর্তমান ঠিকানা</th><td>{{ app.present_address }}</td></tr>
+            {% if app.permanent_address %}<tr><th>স্থায়ী ঠিকানা</th><td>{{ app.permanent_address }}</td></tr>{% endif %}
+        </table>
+    </div>
+
+    <div class="section">
+        <div class="section-title">শিক্ষা ও অন্যান্য</div>
+        <table>
+            <tr><th>শিক্ষাগত যোগ্যতা</th><td>{{ app.education_level.name_bn|default:app.education_qualification }}</td></tr>
+            {% if app.profession %}<tr><th>পেশা</th><td>{{ app.profession }}</td></tr>{% endif %}
+        </table>
+    </div>
+
+    {% if app.status == 'selected' and app.user %}
+    <div class="section" style="background: #d4edda; padding: 10px; border-radius: 5px;">
+        <strong>লগইন তথ্য:</strong><br>
+        ব্যবহারকারীর নাম: {{ app.user.username }}<br>
+        ডিফল্ট পাসওয়ার্ড: changeme
+    </div>
+    {% endif %}
+
+    <div class="signature-area">
+        <div class="signature-box">
+            <div class="signature-line">আবেদনকারীর স্বাক্ষর</div>
+        </div>
+        <div class="signature-box">
+            <div class="signature-line">কেন্দ্র প্রধান/পর্যালোচকের স্বাক্ষর</div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>বাংলাদেশ সড়ক পরিবহন কর্পোরেশন (বিআরটিসি) | প্রশিক্ষণ ব্যবস্থাপনা সিস্টেম</p>
+        <p>এই ফর্মটি সিস্টেম দ্বারা জেনারেট করা হয়েছে - {{ app.applied_at|date:"d/m/Y H:i" }}</p>
+    </div>
+</body>
+</html>
+

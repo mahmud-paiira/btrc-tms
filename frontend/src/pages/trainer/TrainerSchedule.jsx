@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import batchService from '../../services/batchService';
 import { formatDate } from '../../utils/dateFormatter';
 
 export default function TrainerSchedule() {
@@ -6,11 +8,10 @@ export default function TrainerSchedule() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    import('../../services/hoService').then(({ default: hoService }) => {
-      hoService.listBatches({ page_size: 50 }).then(res => {
-        setBatches(res.data.results || res.data || []);
-      }).catch(() => {}).finally(() => setLoading(false));
-    });
+    batchService.myBatches({ page_size: 50 })
+      .then(res => setBatches(res.data.results || res.data || []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
   return (
@@ -27,22 +28,24 @@ export default function TrainerSchedule() {
             <div className="row g-3">
               {batches.map(b => (
                 <div key={b.id} className="col-md-6">
-                  <div className="border rounded-3 p-3 h-100">
+                    <div className="border rounded-3 p-3 h-100">
                     <div className="d-flex justify-content-between align-items-start mb-2">
-                      <h6 className="fw-bold mb-0">{b.name || b.batch_name || `ব্যাচ #${b.id}`}</h6>
-                      <span className={`badge ${b.status === 'running' ? 'bg-success' : b.status === 'completed' ? 'bg-secondary' : 'bg-warning'}`}>
+                      <h6 className="fw-bold mb-0">{b.batch_name_bn || b.batch_name_en || `ব্যাচ #${b.batch_no}`}</h6>
+                      <span className={`badge ${b.status === 'running' ? 'bg-success' : b.status === 'completed' ? 'bg-secondary' : 'bg-warning'} ms-2 flex-shrink-0`}>
                         {b.status === 'running' ? 'চলমান' : b.status === 'completed' ? 'সমাপ্ত' : 'নির্ধারিত'}
                       </span>
                     </div>
-                    <table className="table table-sm table-bordered mb-0" style={{ fontSize: 12 }}>
+                    <table className="table table-sm table-bordered mb-2" style={{ fontSize: 12 }}>
                       <tbody>
                         <tr><td className="fw-semibold" style={{ width: 100 }}>কোর্স</td><td>{b.course_name || '-'}</td></tr>
                         <tr><td className="fw-semibold">কেন্দ্র</td><td>{b.center_name || '-'}</td></tr>
                         <tr><td className="fw-semibold">শুরুর তারিখ</td><td>{b.start_date ? formatDate(b.start_date) : '-'}</td></tr>
                         <tr><td className="fw-semibold">শেষ তারিখ</td><td>{b.end_date ? formatDate(b.end_date) : '-'}</td></tr>
-                        <tr><td className="fw-semibold">ঠিকানা</td><td>{b.center_address || b.venue || '-'}</td></tr>
                       </tbody>
                     </table>
+                    <Link to={`/center-admin/batches/${b.id}`} className="btn btn-sm btn-outline-primary w-100">
+                      <i className="bi bi-eye me-1"></i>বিবরণ
+                    </Link>
                   </div>
                 </div>
               ))}

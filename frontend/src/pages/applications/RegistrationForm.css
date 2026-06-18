@@ -1,12 +1,114 @@
 .registration-page {
   min-height: 100vh;
-  background: #f0f4f8;
+  background: linear-gradient(135deg, #f0f4f8 0%, #e8eef5 100%);
   font-family: 'NikoshBAN', system-ui, -apple-system, sans-serif;
 }
 
 .registration-page .card {
-  border-radius: 12px;
+  border-radius: 16px;
   border: none;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+}
+
+/* ── Verified Badge ──────────────────────────────── */
+.verified-badge {
+  background: #e8f5e9;
+  border: 1px solid #c8e6c9;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-size: 0.9rem;
+  color: #2e7d32;
+}
+
+/* ── Form Section Card ───────────────────────────── */
+.form-section-card {
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: box-shadow 0.2s;
+}
+
+.form-section-card:hover {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+.form-section-header {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #212529;
+}
+
+.form-section-header i {
+  font-size: 1.1rem;
+  color: #0d6efd;
+}
+
+.form-section-body {
+  padding: 20px;
+}
+
+/* ── Upload Box ──────────────────────────────────── */
+.upload-box {
+  background: #fafbfc;
+  transition: border-color 0.2s, background 0.2s;
+  min-height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.upload-box:hover {
+  background: #f0f4ff;
+  border-color: #0d6efd !important;
+}
+
+.border-dashed {
+  border-style: dashed !important;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+/* ── Form Floating Fix ───────────────────────────── */
+.form-floating > .form-control::placeholder {
+  color: transparent;
+}
+
+.form-floating > label {
+  padding-left: 12px;
+}
+
+/* ── Review Card ─────────────────────────────────── */
+.review-card {
+  border-color: #dee2e6 !important;
+}
+
+.review-card-header h5 {
+  font-size: 1rem;
+}
+
+.review-table th {
+  font-weight: 500;
+  font-size: 0.88rem;
+  color: #495057;
+  border-bottom: 1px solid #f0f0f0 !important;
+}
+
+.review-table td {
+  font-size: 0.9rem;
+  border-bottom: 1px solid #f0f0f0 !important;
+}
+
+.review-table tr:last-child th,
+.review-table tr:last-child td {
+  border-bottom: none !important;
 }
 
 /* ── Steps Indicator ─────────────────────────────── */
@@ -100,36 +202,6 @@
 .preview-wrapper img {
   max-height: 250px;
   object-fit: contain;
-}
-
-/* ── Section Title ───────────────────────────────── */
-.section-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #212529;
-  margin: 0;
-}
-
-/* ── Review Table ────────────────────────────────── */
-.review-table th {
-  background: #f8f9fa;
-  font-weight: 500;
-  font-size: 0.9rem;
-}
-
-.review-table td {
-  font-size: 0.9rem;
-}
-
-/* ── Upload Box ──────────────────────────────────── */
-.upload-box {
-  background: #fff;
-  transition: border-color 0.2s;
-}
-
-.upload-box h6 {
-  font-size: 0.95rem;
-  font-weight: 600;
 }
 
 /* ── Responsive ──────────────────────────────────── */

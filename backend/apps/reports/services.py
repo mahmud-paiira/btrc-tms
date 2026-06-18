@@ -466,7 +466,7 @@ class ReportGenerator:
     def application_funnel(self):
         q = Q()
         if self.center_ids:
-            q &= Q(circular__center_id__in=self.center_ids)
+            q &= Q(circular__eligible_centers__id__in=self.center_ids)
         apps = Application.objects.filter(q)
         total = apps.count()
         pending = apps.filter(status='pending').count()

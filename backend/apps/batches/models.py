@@ -28,7 +28,57 @@ def generate_batch_no():
     return f'{prefix}{new_num:05d}'
 
 
+class Shift(models.Model):
+    name_bn = models.CharField(max_length=100, verbose_name='নাম (বাংলায়)')
+    name_en = models.CharField(max_length=100, verbose_name='নাম (ইংরেজিতে)')
+    start_time = models.TimeField(verbose_name='শুরুর সময়')
+    end_time = models.TimeField(verbose_name='শেষের সময়')
+    center = models.ForeignKey(
+        Center, on_delete=models.CASCADE,
+        null=True, blank=True, related_name='shifts',
+        verbose_name='কেন্দ্র',
+        help_text='খালি রাখলে সকল কেন্দ্রের জন্য প্রযোজ্য (হেড অফিস)',
+    )
+    is_active = models.BooleanField(default=True, verbose_name='সক্রিয়')
+
+    class Meta:
+        verbose_name = 'শিফট'
+        verbose_name_plural = 'শিফট'
+        ordering = ('center', 'start_time')
+
+    def __str__(self):
+        center_name = self.center.name_bn if self.center else 'সকল কেন্দ্র'
+        return f'{self.name_bn} ({center_name})'
+
+
+class Holiday(models.Model):
+    date = models.DateField(verbose_name='তারিখ')
+    description_bn = models.CharField(max_length=255, verbose_name='বিবরণ (বাংলায়)')
+    description_en = models.CharField(max_length=255, blank=True, verbose_name='বিবরণ (ইংরেজিতে)')
+    is_government_holiday = models.BooleanField(default=True, verbose_name='সরকারি ছুটি')
+    center = models.ForeignKey(
+        Center, on_delete=models.CASCADE,
+        null=True, blank=True, related_name='holidays',
+        verbose_name='কেন্দ্র (ঐচ্ছিক)',
+        help_text='খালি রাখলে সকল কেন্দ্রের জন্য প্রযোজ্য',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'ছুটির দিন'
+        verbose_name_plural = 'ছুটির দিন'
+        unique_together = ('date', 'center')
+        ordering = ('-date',)
+
+    def __str__(self):
+        return f'{self.date} - {self.description_bn}'
+
+
 class Batch(models.Model):
+    class ShiftChoice(models.TextChoices):
+        SHIFT_1 = 'shift_1', 'শিফট-১'
+        SHIFT_2 = 'shift_2', 'শিফট-২'
+
     class BatchStatus(models.TextChoices):
         SCHEDULED = 'scheduled', 'নির্ধারিত'
         RUNNING = 'running', 'চলমান'
@@ -57,9 +107,17 @@ class Batch(models.Model):
     )
     batch_name_bn = models.CharField(max_length=255, verbose_name='ব্যাচের নাম (বাংলায়)')
     batch_name_en = models.CharField(max_length=255, verbose_name='ব্যাচের নাম (ইংরেজিতে)')
+    shift = models.CharField(
+        max_length=10, choices=ShiftChoice.choices,
+        null=True, blank=True, verbose_name='শিফট',
+    )
+    batch_index = models.PositiveIntegerField(
+        null=True, blank=True, verbose_name='ব্যাচ ক্রম',
+        help_text='কেন্দ্রের মধ্যে ব্যাচের ক্রমিক নম্বর (১ থেকে শুরু)',
+    )
     start_date = models.DateField(verbose_name='শুরুর তারিখ')
     end_date = models.DateField(verbose_name='শেষের তারিখ')
-    total_seats = models.PositiveIntegerField(verbose_name='মোট আসন')
+    total_seats = models.PositiveIntegerField(default=25, verbose_name='মোট আসন')
     filled_seats = models.PositiveIntegerField(default=0, verbose_name='পূরণকৃত আসন')
     waitlist_seats = models.PositiveIntegerField(default=0, verbose_name='অপেক্ষমাণ আসন')
     status = models.CharField(
@@ -151,7 +209,7 @@ class BatchWeekPlan(models.Model):
         max_length=255, verbose_name='কক্ষ (বাংলায়)',
     )
     training_room_en = models.CharField(
-        max_length=255, verbose_name='কক্ষ (ইংরেজিতে)',
+        max_length=255, blank=True, default='', verbose_name='কক্ষ (ইংরেজিতে)',
     )
     lead_trainer = models.ForeignKey(
         Trainer, on_delete=models.CASCADE,

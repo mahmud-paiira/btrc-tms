@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import SystemSetting, EmailTemplate, SmsTemplate, IntegrationConfig, BackupConfig
+from .models import SystemSetting, EmailTemplate, SmsTemplate, IntegrationConfig, BackupConfig, Gender, Education, Demography
 
 
 @admin.register(SystemSetting)
@@ -32,3 +32,22 @@ class IntegrationConfigAdmin(admin.ModelAdmin):
 @admin.register(BackupConfig)
 class BackupConfigAdmin(admin.ModelAdmin):
     list_display = ('schedule', 'retention_days', 'is_active', 'last_backup_at')
+
+
+@admin.register(Gender)
+class GenderAdmin(admin.ModelAdmin):
+    list_display = ('name_bn', 'name_en', 'order')
+    search_fields = ('name_bn', 'name_en')
+
+
+@admin.register(Education)
+class EducationAdmin(admin.ModelAdmin):
+    list_display = ('name_bn', 'name_en', 'rank', 'order')
+    search_fields = ('name_bn', 'name_en')
+
+
+@admin.register(Demography)
+class DemographyAdmin(admin.ModelAdmin):
+    list_display = ('name_bn', 'name_en', 'type', 'parent', 'bbs_code')
+    list_filter = ('type',)
+    search_fields = ('name_bn', 'name_en')

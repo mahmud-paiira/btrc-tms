@@ -44,7 +44,8 @@ class CourseListSerializer(serializers.ModelSerializer):
         model = Course
         fields = (
             'id', 'code', 'name_bn', 'name_en', 'course_type', 'course_type_display',
-            'term', 'term_display', 'duration_months', 'fee',
+            'term', 'term_display', 'duration_months', 'duration_value', 'duration_unit',
+            'fee', 'project_name', 'project_sponsor', 'description',
             'status', 'status_display', 'created_by_name', 'created_at',
         )
 
@@ -68,11 +69,13 @@ class CourseWriteSerializer(serializers.ModelSerializer):
     bills = CourseBillSerializer(many=True, required=False)
     chapters = CourseChapterSerializer(many=True, required=False)
     competencies = UnitOfCompetencySerializer(many=True, required=False)
+    term = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    session = serializers.CharField(required=False, allow_blank=True, allow_null=True)
 
     class Meta:
         model = Course
         fields = '__all__'
-        read_only_fields = ('created_at', 'updated_at', 'created_by')
+        read_only_fields = ('created_at', 'updated_at', 'created_by', 'code')
 
     def create(self, validated_data):
         config_data = validated_data.pop('configuration', None)

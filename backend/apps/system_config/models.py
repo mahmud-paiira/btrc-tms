@@ -4,6 +4,57 @@ from ckeditor.fields import RichTextField
 from apps.accounts.models import User
 
 
+class Gender(models.Model):
+    name_bn = models.CharField(max_length=50, unique=True, verbose_name='নাম (বাংলায়)')
+    name_en = models.CharField(max_length=50, unique=True, verbose_name='নাম (ইংরেজিতে)')
+    order = models.IntegerField(default=0, verbose_name='ক্রম')
+
+    class Meta:
+        verbose_name = 'লিঙ্গ'
+        verbose_name_plural = 'লিঙ্গ'
+        ordering = ('order',)
+
+    def __str__(self):
+        return self.name_bn
+
+
+class Education(models.Model):
+    name_bn = models.CharField(max_length=100, unique=True, verbose_name='নাম (বাংলায়)')
+    name_en = models.CharField(max_length=100, unique=True, verbose_name='নাম (ইংরেজিতে)')
+    rank = models.IntegerField(default=0, verbose_name='ক্রম/স্তর', help_text='শিক্ষাগত স্তর নির্ধারণের জন্য সংখ্যা')
+    order = models.IntegerField(default=0, verbose_name='সজ্জা ক্রম')
+
+    class Meta:
+        verbose_name = 'শিক্ষাগত যোগ্যতা'
+        verbose_name_plural = 'শিক্ষাগত যোগ্যতা'
+        ordering = ('order',)
+
+    def __str__(self):
+        return self.name_bn
+
+
+class Demography(models.Model):
+    TYPES = (
+        ('division', 'বিভাগ'),
+        ('district', 'জেলা'),
+        ('upazila', 'উপজেলা'),
+    )
+    name_bn = models.CharField(max_length=100, verbose_name='নাম (বাংলায়)')
+    name_en = models.CharField(max_length=100, verbose_name='নাম (ইংরেজিতে)')
+    type = models.CharField(max_length=20, choices=TYPES, verbose_name='ধরন')
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children', verbose_name='প্যারেন্ট')
+    bbs_code = models.CharField(max_length=10, blank=True, verbose_name='BBS কোড')
+
+    class Meta:
+        verbose_name = 'জনসংখ্যা তথ্য'
+        verbose_name_plural = 'জনসংখ্যা তথ্য'
+        ordering = ('type', 'name_bn')
+        unique_together = ('name_bn', 'type')
+
+    def __str__(self):
+        return f'{self.name_bn} ({self.get_type_display()})'
+
+
 class SystemSetting(models.Model):
     DATA_TYPES = (
         ('string', 'String'),

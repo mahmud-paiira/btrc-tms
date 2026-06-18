@@ -13,8 +13,9 @@ class Center(models.Model):
     code = models.CharField(
         max_length=20,
         unique=True,
+        blank=True,
         verbose_name='কেন্দ্র কোড',
-        help_text='যেমন: DHAKA_TCU, CHITT_TCU',
+        help_text='স্বয়ংক্রিয় জেনারেট হবে (যেমন: 0001, 0002)',
     )
     name_bn = models.CharField(max_length=255, verbose_name='কেন্দ্রের নাম (বাংলায়)')
     name_en = models.CharField(max_length=255, verbose_name='কেন্দ্রের নাম (ইংরেজিতে)')
@@ -33,18 +34,71 @@ class Center(models.Model):
         blank=True,
         verbose_name='যোগাযোগ ব্যক্তির মোবাইল',
     )
+    center_type = models.CharField(
+        max_length=20,
+        choices=[
+            ('metro', 'মহানগর'),
+            ('urban', 'শহর'),
+            ('semi_urban', 'আধা-শহর'),
+            ('rural', 'গ্রামীণ'),
+            ('remote', 'দুর্গম'),
+        ],
+        default='urban',
+        verbose_name='কেন্দ্রের ধরন',
+    )
+    overflow_percentage = models.DecimalField(
+        max_digits=5, decimal_places=2, default=20.00,
+        verbose_name='অতিরিক্ত আবেদনের হার (%)',
+        help_text='প্রতি কেন্দ্রের জন্য বেস সিটের অতিরিক্ত আবেদনের শতকরা হার',
+    )
+    quality_score = models.DecimalField(
+        max_digits=5, decimal_places=2, default=70.00,
+        verbose_name='মান স্কোর (0-100)',
+        help_text='কেন্দ্রের গুণগত মান স্কোর, রুটিং প্রাধান্যে ব্যবহৃত',
+    )
+    latitude = models.DecimalField(
+        max_digits=9, decimal_places=6,
+        null=True, blank=True,
+        verbose_name='অক্ষাংশ',
+    )
+    longitude = models.DecimalField(
+        max_digits=9, decimal_places=6,
+        null=True, blank=True,
+        verbose_name='দ্রাঘিমাংশ',
+    )
     status = models.CharField(
         max_length=10,
         choices=Status.choices,
         default=Status.ACTIVE,
         verbose_name='অবস্থা',
     )
+    total_trainees = models.PositiveIntegerField(default=0, verbose_name='মোট প্রশিক্ষণার্থী')
+    active_batches = models.PositiveIntegerField(default=0, verbose_name='সক্রিয় ব্যাচ')
+    attendance_rate = models.DecimalField(max_digits=5, decimal_places=1, default=0, verbose_name='উপস্থিতির হার (%)')
+    placement_rate = models.DecimalField(max_digits=5, decimal_places=1, default=0, verbose_name='চাকরি স্থাপনের হার (%)')
+    total_batches = models.PositiveIntegerField(default=0, verbose_name='মোট ব্যাচ')
+    running_batches = models.PositiveIntegerField(default=0, verbose_name='চলমান ব্যাচ')
+    completed_batches = models.PositiveIntegerField(default=0, verbose_name='সমাপ্ত ব্যাচ')
+    enrolled_trainees = models.PositiveIntegerField(default=0, verbose_name='নথিভুক্ত')
+    completed_trainees = models.PositiveIntegerField(default=0, verbose_name='সফল সমাপ্তি')
+    dropped_trainees = models.PositiveIntegerField(default=0, verbose_name='ঝরে পড়া')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='তৈরির তারিখ')
 
     class Meta:
         verbose_name = 'প্রশিক্ষণ কেন্দ্র'
         verbose_name_plural = 'প্রশিক্ষণ কেন্দ্রসমূহ'
         ordering = ('name_en',)
+
+    def save(self, *args, **kwargs):
+        if not self.code:
+            from django.db.models import Max, IntegerField
+            from django.db.models.functions import Cast
+            last = Center.objects.annotate(
+                code_int=Cast('code', IntegerField())
+            ).filter(code__regex=r'^\d+$').aggregate(Max('code_int'))['code_int__max']
+            seq = (last or 0) + 1
+            self.code = f'{seq:04d}'
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f'{self.name_bn} ({self.code})'

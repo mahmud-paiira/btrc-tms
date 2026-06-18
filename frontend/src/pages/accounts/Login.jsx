@@ -8,6 +8,7 @@ import LanguageSwitcher from '../../components/common/LanguageSwitcher';
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [remember, setRemember] = useState(false);
   const { login, loading } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -29,38 +30,81 @@ export default function Login() {
   };
 
   return (
-    <div className="d-flex justify-content-center align-items-center vh-100 bg-light">
-      <div className="card shadow p-4" style={{ width: 400 }}>
-        <div className="d-flex justify-content-between align-items-center mb-3">
-          <h4 className="mb-0">{t('auth.loginTitle', 'BRTC TMS – লগইন')}</h4>
-          <LanguageSwitcher />
+    <div className="login-page">
+      <div className="login-grid" />
+      <div className="login-card">
+        <div className="login-decoration login-decoration-1" />
+        <div className="login-decoration login-decoration-2" />
+
+        <div className="text-center">
+          <div className="login-logo">
+            <i className="bi bi-shield-lock" />
+          </div>
+          <h1 className="login-title">BRTC TMS</h1>
+          <p className="login-subtitle">
+            {t('auth.loginSubtitle', 'লগইন করে আপনার ড্যাশবোর্ডে প্রবেশ করুন')}
+          </p>
         </div>
+
         <form onSubmit={handleSubmit}>
-          <div className="mb-3">
-            <label className="form-label">{t('auth.email', 'ইমেইল')}</label>
+          <div className="login-input-group">
+            <i className="bi bi-envelope login-input-icon" />
             <input
               type="email"
               className="form-control"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="example@brtc.gov.bd"
+              placeholder={t('auth.emailPlaceholder', 'ইমেইল ঠিকানা')}
               required
             />
           </div>
-          <div className="mb-3">
-            <label className="form-label">{t('auth.password', 'পাসওয়ার্ড')}</label>
+
+          <div className="login-input-group">
+            <i className="bi bi-lock login-input-icon" />
             <input
               type="password"
               className="form-control"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              placeholder={t('auth.passwordPlaceholder', 'পাসওয়ার্ড')}
               required
             />
           </div>
-          <button className="btn btn-primary w-100" disabled={loading}>
-            {loading ? t('auth.loggingIn', 'অপেক্ষা করুন...') : t('auth.login', 'লগইন')}
+
+          <div className="login-remember">
+            <label>
+              <input
+                type="checkbox"
+                className="form-check-input"
+                checked={remember}
+                onChange={(e) => setRemember(e.target.checked)}
+              />
+              {t('auth.rememberMe', 'মনে রাখুন')}
+            </label>
+            <button type="button" className="login-link-btn">
+              {t('auth.forgotPassword', 'পাসওয়ার্ড ভুলে গেছেন?')}
+            </button>
+          </div>
+
+          <button className="login-btn" disabled={loading}>
+            {loading ? (
+              <span className="d-flex align-items-center justify-content-center gap-2">
+                <span className="login-spinner" />
+                {t('auth.loggingIn', 'লগইন হচ্ছে...')}
+              </span>
+            ) : (
+              t('auth.login', 'লগইন')
+            )}
           </button>
         </form>
+
+        <div className="login-divider">
+          <LanguageSwitcher />
+        </div>
+
+        <div className="login-footer">
+          <small>&copy; {new Date().getFullYear()} BRTC TMS. All rights reserved.</small>
+        </div>
       </div>
     </div>
   );

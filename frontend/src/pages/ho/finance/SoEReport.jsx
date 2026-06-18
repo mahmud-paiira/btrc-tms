@@ -57,7 +57,7 @@ export default function SoEReport() {
   };
 
   return (
-    <div>
+    <div className="px-4 py-4">
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h5 className="fw-bold mb-0">{t('soe.title', 'ব্যয় বিবরণী (Statement of Expenditure)')}</h5>
         <button className="btn btn-outline-primary btn-sm" onClick={exportPdf}>
@@ -94,7 +94,7 @@ export default function SoEReport() {
         </div>
       </div>
 
-      <div className="card shadow-sm" style={{ borderRadius: 12, border: 'none' }}>
+      <div className="card shadow-sm table-card">
         <div className="table-responsive">
           <table className="table table-hover mb-0">
             <thead className="table-light">

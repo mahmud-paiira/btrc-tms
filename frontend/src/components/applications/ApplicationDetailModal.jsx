@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import { formatDate } from '../../utils/dateFormatter';
 
@@ -196,7 +196,7 @@ export default function ApplicationDetailModal({ application, onClose, onReviewe
                   application.status === 'waitlisted' ? 'bg-warning text-dark' :
                   'bg-secondary'
                 }`}>
-                  {application.status === 'pending' ? 'বিচারাধীন' :
+                  {application.status === 'pending' ? 'পেন্ডিং' :
                    application.status === 'selected' ? 'নির্বাচিত' :
                    application.status === 'rejected' ? 'বাতিল' :
                    application.status === 'waitlisted' ? 'অপেক্ষমাণ' : application.status}
@@ -236,3 +236,4 @@ export default function ApplicationDetailModal({ application, onClose, onReviewe
     </div>
   );
 }
+

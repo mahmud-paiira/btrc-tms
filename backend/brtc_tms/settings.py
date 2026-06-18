@@ -8,6 +8,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ── Security ──────────────────────────────────────────────────────────────
 SECRET_KEY = config('DJANGO_SECRET_KEY', default='django-insecure-change-me-in-production')
 DEBUG = config('DJANGO_DEBUG', default=True, cast=bool)
+TEST_OTP = config('TEST_OTP', default='123456', cast=str)
 ALLOWED_HOSTS = config('DJANGO_ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
 
 # ── Custom User Model ─────────────────────────────────────────────────────
@@ -52,6 +53,7 @@ LOCAL_APPS = [
     'apps.notifications',
     'apps.trainees',
     'apps.finance',
+    'apps.allowance',
     'apps.system_config',
 ]
 
@@ -154,6 +156,8 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 25,
+    'PAGE_SIZE_QUERY_PARAM': 'page_size',
+    'MAX_PAGE_SIZE': 999,
     'DEFAULT_THROTTLE_CLASSES': [
         'rest_framework.throttling.AnonRateThrottle',
         'rest_framework.throttling.UserRateThrottle',
@@ -227,19 +231,21 @@ SWAGGER_SETTINGS = {
 }
 
 # ── Email (SMTP) ──────────────────────────────────────────────────────────
-EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
-EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
-EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
-EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@brtc.gov.bd')
+#EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
+#EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+#EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+#EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+#EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+#EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+# DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@brtc.gov.bd')
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
 
 # ── SMS (Twilio / Custom Gateway) ─────────────────────────────────────────
-SMS_BACKEND = config('SMS_BACKEND', default='apps.notifications.backends.console')
-TWILIO_ACCOUNT_SID = config('TWILIO_ACCOUNT_SID', default='')
-TWILIO_AUTH_TOKEN = config('TWILIO_AUTH_TOKEN', default='')
-TWILIO_PHONE_NUMBER = config('TWILIO_PHONE_NUMBER', default='')
+#SMS_BACKEND = config('SMS_BACKEND', default='apps.notifications.backends.console')
+#TWILIO_ACCOUNT_SID = config('TWILIO_ACCOUNT_SID', default='')
+#TWILIO_AUTH_TOKEN = config('TWILIO_AUTH_TOKEN', default='')
+#TWILIO_PHONE_NUMBER = config('TWILIO_PHONE_NUMBER', default='')
 
 # ── Tesseract OCR ─────────────────────────────────────────────────────────
 import os

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.core.exceptions import ValidationError as DjangoValidationError
-from .models import Batch, BatchWeekPlan, BatchEnrollment
+from .models import Batch, BatchWeekPlan, BatchEnrollment, Shift, Holiday
 from .validators import validate_no_trainer_overlap
 
 
@@ -76,7 +76,7 @@ class BatchWriteSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError({
                     'end_date': 'শেষের তারিখ শুরুর তারিখের পরে হতে হবে।'
                 })
-        if attrs.get('filled_seeds', 0) > attrs.get('total_seats', 0):
+        if attrs.get('filled_seats', 0) > attrs.get('total_seats', 0):
             raise serializers.ValidationError({
                 'filled_seats': 'পূরণকৃত আসন মোট আসনের বেশি হতে পারবে না।'
             })
@@ -109,10 +109,15 @@ class BatchWeekPlanListSerializer(serializers.ModelSerializer):
 
 
 class BatchWeekPlanWriteSerializer(serializers.ModelSerializer):
+    start_date = serializers.DateField(required=False, allow_null=True)
+    end_date = serializers.DateField(required=False, allow_null=True)
+    training_room_en = serializers.CharField(required=False, allow_blank=True, default='')
+    topic_en = serializers.CharField(required=False, allow_blank=True, default='')
+
     class Meta:
         model = BatchWeekPlan
         fields = '__all__'
-        read_only_fields = ('created_at', 'updated_at')
+        read_only_fields = ('created_at', 'updated_at', 'batch')
 
     def validate(self, attrs):
         if attrs.get('start_date') and attrs.get('end_date'):
@@ -165,13 +170,15 @@ class BatchWeekPlanBulkSerializer(serializers.Serializer):
 class BatchEnrollmentSerializer(serializers.ModelSerializer):
     trainee_name = serializers.CharField(source='trainee.user.full_name_bn', read_only=True)
     trainee_reg_no = serializers.CharField(source='trainee.registration_no', read_only=True)
+    trainee_phone = serializers.CharField(source='trainee.user.phone', read_only=True)
     batch_name = serializers.CharField(source='batch.batch_name_bn', read_only=True)
+    batch_shift = serializers.CharField(source='batch.get_shift_display', read_only=True)
 
     class Meta:
         model = BatchEnrollment
         fields = (
-            'id', 'trainee', 'trainee_name', 'trainee_reg_no',
-            'batch', 'batch_name',
+            'id', 'trainee', 'trainee_name', 'trainee_reg_no', 'trainee_phone',
+            'batch', 'batch_name', 'batch_shift',
             'enrollment_date', 'status',
             'dropped_date', 'drop_reason',
         )
@@ -182,6 +189,31 @@ class BatchEnrollmentSerializer(serializers.ModelSerializer):
             from django.utils import timezone
             attrs['dropped_date'] = attrs.get('dropped_date') or timezone.now().date()
         return attrs
+
+
+class ShiftSerializer(serializers.ModelSerializer):
+    center_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Shift
+        fields = '__all__'
+        extra_kwargs = {
+            'center': {'required': False, 'allow_null': True},
+        }
+
+    def get_center_name(self, obj):
+        if hasattr(obj, 'center'):
+            return obj.center.name_bn if obj.center else None
+        return None
+
+
+class HolidaySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Holiday
+        fields = '__all__'
+        extra_kwargs = {
+            'center': {'required': False, 'allow_null': True},
+        }
 
 
 class BatchEnrollmentBulkSerializer(serializers.Serializer):

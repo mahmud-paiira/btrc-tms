@@ -1,10 +1,17 @@
-from datetime import timedelta
+import io
+import logging
+import csv
+import openpyxl
+
+from datetime import date, timedelta
 from django.db.models import Count, Q, Avg, F
 from django.utils import timezone
 from rest_framework import viewsets, status, permissions, filters as drf_filters
 from rest_framework.decorators import action
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
+from django.utils.dateparse import parse_date
 
 from .models import Circular
 from .serializers import (
@@ -13,6 +20,12 @@ from .serializers import (
 from apps.applications.models import Application
 from apps.applications.serializers import ApplicationDetailSerializer as ApplicationSerializer
 from apps.centers.models import ActionLog
+from django.conf import settings
+from django.template.loader import render_to_string
+from django.http import HttpResponse
+from weasyprint import HTML
+
+logger = logging.getLogger(__name__)
 
 
 class IsHeadOffice(permissions.BasePermission):
@@ -23,12 +36,12 @@ class IsHeadOffice(permissions.BasePermission):
 
 
 class HOCircularViewSet(viewsets.ModelViewSet):
-    queryset = Circular.objects.select_related(
-        'center', 'course', 'created_by',
-    ).prefetch_related('applications').all()
+    queryset = Circular.objects.prefetch_related(
+        'eligible_centers', 'checklist_items', 'applications',
+    ).select_related('course', 'created_by').all()
     permission_classes = [permissions.IsAuthenticated, IsHeadOffice]
     filter_backends = (DjangoFilterBackend, drf_filters.SearchFilter, drf_filters.OrderingFilter)
-    filterset_fields = ('center', 'course', 'status')
+    filterset_fields = ('eligible_centers', 'course', 'status')
     search_fields = ('title_bn', 'title_en')
     ordering_fields = ('created_at', 'application_start_date', 'total_seats', 'status')
     ordering = ('-created_at',)
@@ -67,12 +80,16 @@ class HOCircularViewSet(viewsets.ModelViewSet):
         circular = self.get_object()
         if circular.status != Circular.Status.DRAFT:
             return Response({'error': 'শুধুমাত্র খসড়া অবস্থায় প্রকাশ করা যাবে'}, status=400)
+        from django.utils import timezone as tz
+        today = tz.localdate()
+        if circular.application_start_date and circular.application_start_date > today:
+            circular.application_start_date = today
         circular.status = Circular.Status.PUBLISHED
-        circular.published_at = timezone.now()
+        circular.published_at = tz.now()
         if not circular.public_url:
             import uuid
             circular.public_url = uuid.uuid4().hex[:12]
-        circular.save(update_fields=['status', 'published_at', 'public_url'])
+        circular.save(update_fields=['status', 'published_at', 'public_url', 'application_start_date'])
         self._log(request, f'Published circular {circular.title_bn}', circular.id)
         return Response(CircularDetailSerializer(circular).data)
 
@@ -207,10 +224,40 @@ class HOCircularViewSet(viewsets.ModelViewSet):
         app.status = Application.ApplicationStatus.SELECTED
         app.reviewed_by = request.user
         app.reviewed_at = timezone.now()
-        app.save(update_fields=['status', 'reviewed_by', 'reviewed_at'])
+        app.committee_decision_by = request.user
+        app.committee_decision_at = timezone.now()
+        app.save(update_fields=['status', 'reviewed_by', 'reviewed_at', 'committee_decision_by', 'committee_decision_at'])
         if circular.remaining_seats > 0:
             circular.remaining_seats -= 1
             circular.save(update_fields=['remaining_seats'])
+
+        # Create user account for selected applicant
+        try:
+            from apps.accounts.models import User
+            email = app.email or f'trainee{app.application_no.lower().replace("-", "")}@brtc.gov.bd'
+            username = email.split('@')[0][:30]
+            user, created = User.objects.get_or_create(
+                nid=app.nid,
+                defaults={
+                    'email': email,
+                    'username': username,
+                    'full_name_bn': app.name_bn,
+                    'full_name_en': app.name_en or app.name_bn,
+                    'phone': app.phone,
+                    'user_type': User.UserType.TRAINEE,
+                    'center': app.chosen_center,
+                    'is_active': True,
+                },
+            )
+            if created:
+                user.set_password('changeme')
+                user.save(update_fields=['password'])
+                logger.info(f'Created user account for {app.application_no} (nid={app.nid})')
+            app.user = user
+            app.save(update_fields=['user'])
+        except Exception as e:
+            logger.error(f'Failed to create user for {app.application_no}: {e}')
+
         self._log(request, f'Approved application {app.application_no}', app.id)
         return Response(ApplicationSerializer(app).data)
 
@@ -228,8 +275,38 @@ class HOCircularViewSet(viewsets.ModelViewSet):
         app.reviewed_by = request.user
         app.reviewed_at = timezone.now()
         app.remarks = remarks
-        app.save(update_fields=['status', 'reviewed_by', 'reviewed_at', 'remarks'])
+        app.committee_decision_by = request.user
+        app.committee_decision_at = timezone.now()
+        app.save(update_fields=['status', 'reviewed_by', 'reviewed_at', 'remarks', 'committee_decision_by', 'committee_decision_at'])
         self._log(request, f'Rejected application {app.application_no}', app.id)
+        return Response(ApplicationSerializer(app).data)
+
+    @action(detail=True, methods=['post'])
+    def enroll_application(self, request, pk=None):
+        circular = self.get_object()
+        app_id = request.data.get('application_id')
+        if not app_id:
+            return Response({'error': 'application_id required'}, status=400)
+        try:
+            app = Application.objects.get(id=app_id, circular=circular)
+        except Application.DoesNotExist:
+            return Response({'error': 'আবেদন পাওয়া যায়নি'}, status=404)
+        if app.status != Application.ApplicationStatus.SELECTED:
+            return Response({'error': 'শুধুমাত্র নির্বাচিত আবেদন নথিভুক্ত করা যাবে'}, status=400)
+        app.status = Application.ApplicationStatus.ENROLLED
+        app.save(update_fields=['status'])
+        from apps.trainees.models import Trainee
+        Trainee.objects.get_or_create(
+            user=app.user,
+            defaults={
+                'name_bn': app.name_bn, 'name_en': app.name_en or app.name_bn,
+                'nid': app.nid, 'phone': app.phone, 'email': app.email or '',
+                'date_of_birth': app.date_of_birth,
+                'center': app.chosen_center or app.routed_center,
+                'gender': app.gender, 'education_qualification': app.education_qualification,
+            },
+        )
+        self._log(request, f'Enrolled application {app.application_no}', app.id)
         return Response(ApplicationSerializer(app).data)
 
     @action(detail=False, methods=['get'])
@@ -250,3 +327,271 @@ class HOCircularViewSet(viewsets.ModelViewSet):
             'active_applications': active_apps,
             'total_seats': total_seats,
         })
+
+    @action(detail=True, methods=['get'])
+    def print_application(self, request, pk=None):
+        circular = self.get_object()
+        app_id = request.query_params.get('application_id')
+        if not app_id:
+            return Response({'error': 'application_id required'}, status=400)
+        try:
+            app = Application.objects.select_related(
+                'chosen_center', 'circular__course', 'user',
+            ).get(id=app_id, circular=circular)
+        except Application.DoesNotExist:
+            return Response({'error': 'আবেদন পাওয়া যায়নি'}, status=404)
+
+        html = render_to_string('applications/print_application.html', {
+            'app': app,
+            'circular': circular,
+            'center': app.chosen_center,
+            'course': circular.course,
+        })
+        pdf = HTML(string=html).write_pdf()
+        filename = f'application_{app.application_no}.pdf'
+        response = HttpResponse(pdf, content_type='application/pdf')
+        response['Content-Disposition'] = f'inline; filename="{filename}"'
+        return response
+
+    @action(detail=True, methods=['get'])
+    def print_selected_list(self, request, pk=None):
+        circular = self.get_object()
+        selected = Application.objects.filter(
+            circular=circular,
+            status=Application.ApplicationStatus.SELECTED,
+        ).select_related('chosen_center').order_by('name_bn')
+
+        html = render_to_string('applications/print_selected_list.html', {
+            'circular': circular,
+            'applications': selected,
+            'course': circular.course,
+        })
+        pdf = HTML(string=html).write_pdf()
+        filename = f'selected_list_{circular.public_url}.pdf'
+        response = HttpResponse(pdf, content_type='application/pdf')
+        response['Content-Disposition'] = f'inline; filename="{filename}"'
+        return response
+
+    @action(detail=False, methods=['get'], url_path='export-list')
+    def export_list(self, request):
+        qs = self.filter_queryset(self.get_queryset())
+        ids = request.query_params.get('ids', '')
+        if ids:
+            id_list = [int(x) for x in ids.split(',') if x.isdigit()]
+            if id_list:
+                qs = qs.filter(id__in=id_list)
+        fmt = request.query_params.get('file_format', 'xlsx')
+
+        headers = [
+            'শিরোনাম (বাংলা)', 'শিরোনাম (ইংরেজি)', 'সার্কুলার নম্বর',
+            'কোর্স', 'মোট আসন', 'অবশিষ্ট আসন', 'ফি',
+            'আবেদন শুরুর তারিখ', 'আবেদনের শেষ তারিখ',
+            'প্রশিক্ষণ শুরুর তারিখ', 'প্রশিক্ষণ শেষের তারিখ',
+            'অবস্থা',
+        ]
+        rows = []
+        for c in qs:
+            rows.append([
+                c.title_bn, c.title_en, c.circular_no or '',
+                c.course.code if c.course else '', c.total_seats, c.remaining_seats,
+                str(c.fee) if c.fee else '',
+                c.application_start_date.isoformat() if c.application_start_date else '',
+                c.application_end_date.isoformat() if c.application_end_date else '',
+                c.training_start_date.isoformat() if c.training_start_date else '',
+                c.training_end_date.isoformat() if c.training_end_date else '',
+                c.status,
+            ])
+
+        if fmt == 'xlsx':
+            wb = openpyxl.Workbook()
+            ws = wb.active
+            ws.title = 'Circulars'
+            ws.append(headers)
+            for row in rows:
+                ws.append(row)
+            output = io.BytesIO()
+            wb.save(output)
+            output.seek(0)
+            response = HttpResponse(
+                output.getvalue(),
+                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            )
+            response['Content-Disposition'] = f'attachment; filename="circulars_{date.today().isoformat()}.xlsx"'
+            return response
+        else:
+            output = io.StringIO()
+            writer = csv.writer(output)
+            writer.writerow(headers)
+            for row in rows:
+                writer.writerow(row)
+            response = HttpResponse(
+                output.getvalue().encode('utf-8-sig'),
+                content_type='text/csv',
+            )
+            response['Content-Disposition'] = f'attachment; filename="circulars_{date.today().isoformat()}.csv"'
+            return response
+
+    @action(detail=False, methods=['get'], url_path='download-template')
+    def download_template(self, request):
+        headers = [
+            'শিরোনাম (বাংলা)', 'শিরোনাম (ইংরেজি)', 'সার্কুলার নম্বর',
+            'কোর্স', 'মোট আসন', 'অবশিষ্ট আসন', 'ফি',
+            'আবেদন শুরুর তারিখ', 'আবেদনের শেষ তারিখ',
+            'প্রশিক্ষণ শুরুর তারিখ', 'প্রশিক্ষণ শেষের তারিখ',
+            'অবস্থা',
+        ]
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = 'Circulars'
+        ws.append(headers)
+        ws.append(['উদাহরণ শিরোনাম বাংলা', 'উদাহরণ শিরোনাম English', 'BRTC/সার্কুলার/২০২৬/০১',
+                    'C001', 50, 50, '5000.00',
+                    '2026-01-01', '2026-01-31',
+                    '2026-02-01', '2026-05-31',
+                    'draft'])
+        output = io.BytesIO()
+        wb.save(output)
+        output.seek(0)
+        response = HttpResponse(
+            output.getvalue(),
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        )
+        response['Content-Disposition'] = 'attachment; filename="circular_import_template.xlsx"'
+        return response
+
+    @action(detail=False, methods=['post'], parser_classes=[MultiPartParser, FormParser])
+    def import_list(self, request):
+        file = request.FILES.get('file')
+        if not file:
+            return Response({'error': 'ফাইল নির্বাচন করুন'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            wb = openpyxl.load_workbook(file)
+            ws = wb.active
+            rows_iter = iter(ws.iter_rows(values_only=True))
+            header_row = [str(c).strip().lower() if c is not None else '' for c in next(rows_iter)]
+        except Exception:
+            file.seek(0)
+            try:
+                content = file.read().decode('utf-8-sig')
+                reader = csv.DictReader(io.StringIO(content))
+                header_row = [h.strip().lower() for h in reader.fieldnames]
+                rows_iter = reader
+            except Exception:
+                return Response({'error': 'ভুল ফাইল ফরম্যাট। Excel (.xlsx) বা CSV ফাইল আপলোড করুন।'}, status=400)
+
+        bn_required = {'শিরোনাম (বাংলা)'}
+        header_set = set(header_row)
+        if not bn_required.issubset(header_set):
+            return Response({
+                'error': 'প্রয়োজনীয় কলাম নেই। হেডারে "শিরোনাম (বাংলা)" থাকা আবশ্যক।',
+                'detected_headers': header_row,
+            }, status=400)
+
+        field_map = {
+            'শিরোনাম (বাংলา)': 'title_bn', 'title_bn': 'title_bn',
+            'শিরোনাম (ইংরেজি)': 'title_en', 'title_en': 'title_en',
+            'সার্কুলার নম্বর': 'circular_no', 'circular_no': 'circular_no',
+            'কোর্স': 'course_code',
+            'মোট আসন': 'total_seats', 'total_seats': 'total_seats',
+            'অবশিষ্ট আসন': 'remaining_seats', 'remaining_seats': 'remaining_seats',
+            'ফি': 'fee', 'fee': 'fee',
+            'আবেদন শুরুর তারিখ': 'application_start_date',
+            'আবেদনের শেষ তারিখ': 'application_end_date',
+            'প্রশিক্ষণ শুরুর তারিখ': 'training_start_date',
+            'প্রশিক্ষণ শেষের তারিখ': 'training_end_date',
+            'অবস্থা': 'status', 'status': 'status',
+        }
+
+        results = {'updated': 0, 'errors': []}
+        for row_idx, row in enumerate(rows_iter, start=2):
+            try:
+                if isinstance(row, dict):
+                    raw = row
+                else:
+                    raw = dict(zip(header_row, [str(c).strip() if c is not None else '' for c in row]))
+
+                data = {}
+                for k, v in raw.items():
+                    mapped = field_map.get(k.strip().lower(), k.strip().lower())
+                    data[mapped] = v.strip() if v else ''
+
+                title_bn = data.get('title_bn', '').strip()
+                if not title_bn:
+                    results['errors'].append(f'সারি {row_idx}: শিরোনাম (বাংলা) খালি')
+                    continue
+
+                try:
+                    circular = Circular.objects.get(title_bn=title_bn)
+                except Circular.DoesNotExist:
+                    results['errors'].append(f'সারি {row_idx}: "{title_bn}" পাওয়া যায়নি')
+                    continue
+                except Circular.MultipleObjectsReturned:
+                    results['errors'].append(f'সারি {row_idx}: "{title_bn}" একাধিক সার্কুলার আছে')
+                    continue
+
+                if data.get('title_en'):
+                    circular.title_en = data['title_en']
+                if data.get('circular_no'):
+                    circular.circular_no = data['circular_no']
+                if data.get('total_seats'):
+                    try:
+                        circular.total_seats = int(data['total_seats'])
+                    except ValueError:
+                        pass
+                if data.get('remaining_seats'):
+                    try:
+                        circular.remaining_seats = int(data['remaining_seats'])
+                    except ValueError:
+                        pass
+                if data.get('fee'):
+                    try:
+                        circular.fee = float(data['fee'])
+                    except ValueError:
+                        pass
+                for date_field in ('application_start_date', 'application_end_date',
+                                    'training_start_date', 'training_end_date'):
+                    if data.get(date_field):
+                        parsed = parse_date(data[date_field])
+                        if parsed:
+                            setattr(circular, date_field, parsed)
+                if data.get('status') in dict(Circular.Status.choices):
+                    circular.status = data['status']
+
+                circular.save()
+                results['updated'] += 1
+
+            except Exception as e:
+                results['errors'].append(f'সারি {row_idx}: {str(e)}')
+
+        return Response(results)
+
+    @action(detail=True, methods=['get'], permission_classes=[permissions.AllowAny])
+    def print_circular(self, request, pk=None):
+        if not request.user.is_authenticated:
+            token = request.query_params.get('token')
+            if token:
+                from rest_framework_simplejwt.tokens import AccessToken
+                try:
+                    user_id = AccessToken(token).payload.get('user_id')
+                    from django.contrib.auth import get_user_model
+                    request.user = get_user_model().objects.get(id=user_id)
+                except Exception:
+                    pass
+            if not request.user.is_authenticated:
+                return Response({'detail': 'Authentication credentials were not provided.'},
+                                status=status.HTTP_401_UNAUTHORIZED)
+        circular = self.get_object()
+        centers = []
+        if not circular.all_centers:
+            centers = circular.eligible_centers.all()
+        html = render_to_string('circulars/print_circular.html', {
+            'circular': circular,
+            'centers': centers,
+            'course': circular.course,
+        })
+        pdf = HTML(string=html).write_pdf()
+        filename = f'circular_{circular.public_url or circular.id}.pdf'
+        response = HttpResponse(pdf, content_type='application/pdf')
+        response['Content-Disposition'] = f'inline; filename="{filename}"'
+        return response

@@ -5,7 +5,7 @@ const applicationService = {
     return api.get('/center/applications/', { params });
   },
 
-  detail(id) {
+  get(id) {
     return api.get(`/center/applications/${id}/`);
   },
 
@@ -36,6 +36,16 @@ const applicationService = {
     return api.get('/center/applications/export_pdf/', {
       params,
       responseType: 'blob',
+    });
+  },
+
+  delete(id) {
+    return api.delete(`/center/applications/${id}/`);
+  },
+
+  importCsv(formData) {
+    return api.post('/center/applications/import_csv/', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
     });
   },
 };

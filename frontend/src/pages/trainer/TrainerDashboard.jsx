@@ -25,20 +25,20 @@ export default function TrainerDashboard() {
 
       <div className="row g-3 mb-4">
         <div className="col-md-4 col-6">
-          <Link to="/center-admin/batches" className="card shadow-sm text-decoration-none text-dark h-100">
+          <Link to="/trainer/batches" className="card shadow-sm text-decoration-none text-dark h-100">
             <div className="card-body text-center py-4">
               <i className="bi bi-layers fs-1 text-primary"></i>
               <h6 className="mt-2 mb-0">{t('trainer.dashboard.myBatches', 'আমার ব্যাচ')}</h6>
-              <small className="text-muted">{t('trainer.dashboard.myBatchesDesc', 'ব্যাচ তালিকা দেখুন')}</small>
+              <small className="text-muted">{t('trainer.dashboard.myBatchesDesc', 'শুধু আমার ব্যাচ')}</small>
             </div>
           </Link>
         </div>
         <div className="col-md-4 col-6">
-          <Link to="/center-admin/batches" className="card shadow-sm text-decoration-none text-dark h-100">
+          <Link to="/trainer/batches" className="card shadow-sm text-decoration-none text-dark h-100">
             <div className="card-body text-center py-4">
               <i className="bi bi-calendar-check fs-1 text-success"></i>
               <h6 className="mt-2 mb-0">{t('trainer.dashboard.attendance', 'উপস্থিতি')}</h6>
-              <small className="text-muted">{t('trainer.dashboard.attendanceDesc', 'উপস্থিতি চিহ্নিত করুন')}</small>
+              <small className="text-muted">{t('trainer.dashboard.attendanceDesc', 'ব্যাচ নির্বাচন করে উপস্থিতি দিন')}</small>
             </div>
           </Link>
         </div>
@@ -55,7 +55,7 @@ export default function TrainerDashboard() {
 
       <div className="alert alert-info">
         <i className="bi bi-info-circle me-2"></i>
-        {t('trainer.dashboard.info', 'একটি ব্যাচ নির্বাচন করতে "আমার ব্যাচ" এ ক্লিক করুন, তারপর উপস্থিতি বা মূল্যায়ন অপশন ব্যবহার করুন।')}
+        {t('trainer.dashboard.info', '"আমার ব্যাচ" থেকে একটি ব্যাচ নির্বাচন করুন, তারপর উপস্থিতি দেখুন ও চিহ্নিত করুন।')}
       </div>
     </div>
   );

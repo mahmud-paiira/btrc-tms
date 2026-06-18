@@ -14,11 +14,15 @@ const batchService = {
   },
 
   update(id, data) {
-    return api.put(`/batches/batches/${id}/`, data);
+    return api.patch(`/batches/batches/${id}/`, data);
   },
 
   delete(id) {
     return api.delete(`/batches/batches/${id}/`);
+  },
+
+  myBatches(params) {
+    return api.get('/batches/batches/my_batches/', { params });
   },
 
   getWeekPlans(id) {
@@ -55,6 +59,10 @@ const batchService = {
 
   cancel(id) {
     return api.post(`/batches/batches/${id}/cancel/`);
+  },
+
+  generate(data) {
+    return api.post('/batches/batches/generate/', data);
   },
 };
 

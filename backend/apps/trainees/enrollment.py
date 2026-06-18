@@ -64,7 +64,7 @@ def create_trainee_from_application(application):
             'full_name_en': application.name_en or application.name_bn,
             'phone': application.phone,
             'user_type': User.UserType.TRAINEE,
-            'center': application.circular.center,
+            'center': application.chosen_center,
             'is_active': True,
         },
     )
@@ -88,7 +88,7 @@ def create_trainee_from_application(application):
         user=user,
         defaults={
             'application': application,
-            'center': application.circular.center,
+            'center': application.chosen_center,
             'bank_account_no': '',
             'bank_name': '',
             'bank_branch': '',

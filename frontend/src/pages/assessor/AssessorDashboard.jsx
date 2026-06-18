@@ -25,7 +25,7 @@ export default function AssessorDashboard() {
 
       <div className="row g-3 mb-4">
         <div className="col-md-4 col-6">
-          <Link to="/center-admin/batches" className="card shadow-sm text-decoration-none text-dark h-100">
+          <Link to="/assessor/batches" className="card shadow-sm text-decoration-none text-dark h-100">
             <div className="card-body text-center py-4">
               <i className="bi bi-layers fs-1 text-primary"></i>
               <h6 className="mt-2 mb-0">{t('assessor.dashboard.batches', 'ব্যাচ')}</h6>
@@ -34,7 +34,7 @@ export default function AssessorDashboard() {
           </Link>
         </div>
         <div className="col-md-4 col-6">
-          <Link to="/center-admin/batches" className="card shadow-sm text-decoration-none text-dark h-100">
+          <Link to="/assessor/batches" className="card shadow-sm text-decoration-none text-dark h-100">
             <div className="card-body text-center py-4">
               <i className="bi bi-clipboard-data fs-1 text-warning"></i>
               <h6 className="mt-2 mb-0">{t('assessor.dashboard.assessment', 'মূল্যায়ন')}</h6>

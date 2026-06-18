@@ -3,13 +3,16 @@ import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from '../../services/api';
 import { useTranslation } from '../../hooks/useTranslation';
+import { useAuth } from '../../contexts/AuthContext';
 import LanguageSwitcher from '../../components/common/LanguageSwitcher';
 
 export default function TraineeLogin() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { refreshUser } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showForgot, setShowForgot] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
@@ -35,6 +38,7 @@ export default function TraineeLogin() {
       }
 
       localStorage.setItem('user', JSON.stringify(user));
+      refreshUser();
       toast.success(t('auth.loginSuccess', 'সফলভাবে লগইন হয়েছে'));
       navigate('/trainee/dashboard');
     } catch {
@@ -59,71 +63,133 @@ export default function TraineeLogin() {
   };
 
   return (
-    <div className="min-vh-100 d-flex align-items-center justify-content-center bg-light">
-      <div className="card shadow" style={{ maxWidth: 420, width: '100%' }}>
-        <div className="card-body p-4">
-          <div className="text-center mb-4">
-            <h4 className="fw-bold" style={{ fontFamily: 'NikoshBAN, sans-serif' }}>{t('auth.traineePortal', 'প্রশিক্ষণার্থী পোর্টাল')}</h4>
-            <p className="text-muted">{t('auth.traineeLoginSubtitle', 'BRTC ট্রেনিং ম্যানেজমেন্ট সিস্টেম')}</p>
-            <LanguageSwitcher />
+    <div className="login-page login-page-trainee">
+      <div className="login-grid" />
+      <div className="login-card login-card-trainee">
+        <div className="text-center">
+          <div className="login-logo login-logo-trainee">
+            <i className="bi bi-people-fill" />
           </div>
+          <h1 className="login-title">
+            {t('auth.traineePortal', 'প্রশিক্ষণার্থী পোর্টাল')}
+          </h1>
+          <p className="login-subtitle">
+            {t('auth.traineeLoginSubtitle', 'BRTC ট্রেনিং ম্যানেজমেন্ট সিস্টেম')}
+          </p>
+        </div>
 
-          {!showForgot ? (
-            <form onSubmit={handleLogin}>
-              <div className="mb-3">
-                <label className="form-label">{t('auth.email', 'ইমেইল')}</label>
+        {!showForgot ? (
+          <form onSubmit={handleLogin}>
+            <div className="login-input-group">
+              <i className="bi bi-envelope login-input-icon" />
+              <input
+                type="email"
+                className="form-control"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder={t('auth.emailPlaceholder', 'ইমেইল ঠিকানা')}
+                required
+              />
+            </div>
+
+            <div className="login-input-group">
+              <i className="bi bi-lock login-input-icon" />
+              <input
+                type="password"
+                className="form-control"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={t('auth.passwordPlaceholder', 'পাসওয়ার্ড')}
+                required
+              />
+            </div>
+
+            <div className="login-remember">
+              <label>
                 <input
-                  type="email"
-                  className="form-control"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  placeholder="your@email.com"
+                  type="checkbox"
+                  className="form-check-input"
+                  checked={remember}
+                  onChange={(e) => setRemember(e.target.checked)}
                 />
-              </div>
-              <div className="mb-3">
-                <label className="form-label">{t('auth.password', 'পাসওয়ার্ড')}</label>
-                <input
-                  type="password"
-                  className="form-control"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-              </div>
-              <button type="submit" className="btn btn-primary w-100 mb-2" disabled={loading}>
-                {loading ? <span className="spinner-border spinner-border-sm me-1" /> : null}
-                {t('auth.login', 'লগইন')}
+                {t('auth.rememberMe', 'মনে রাখুন')}
+              </label>
+              <button
+                type="button"
+                className="login-link-btn login-link-btn-trainee"
+                onClick={() => setShowForgot(true)}
+              >
+                {t('auth.forgotPassword', 'পাসওয়ার্ড ভুলে গেছেন?')}
               </button>
-              <div className="text-center">
-                <button type="button" className="btn btn-link btn-sm" onClick={() => setShowForgot(true)}>
-                  {t('auth.forgotPassword', 'পাসওয়ার্ড ভুলে গেছেন?')}
-                </button>
-              </div>
-            </form>
-          ) : (
-            <form onSubmit={handleForgotPassword}>
-              <div className="mb-3">
-                <label className="form-label">{t('auth.enterEmail', 'আপনার ইমেইল ঠিকানা দিন')}</label>
-                <input
-                  type="email"
-                  className="form-control"
-                  value={resetEmail}
-                  onChange={(e) => setResetEmail(e.target.value)}
-                  required
-                />
-              </div>
-              <button type="submit" className="btn btn-warning w-100 mb-2" disabled={resetting}>
-                {resetting ? <span className="spinner-border spinner-border-sm me-1" /> : null}
-                {t('auth.sendResetLink', 'রিসেট লিংক পাঠান')}
+            </div>
+
+            <button className="login-btn login-btn-trainee" disabled={loading}>
+              {loading ? (
+                <span className="d-flex align-items-center justify-content-center gap-2">
+                  <span className="login-spinner" />
+                  {t('auth.loggingIn', 'লগইন হচ্ছে...')}
+                </span>
+              ) : (
+                t('auth.login', 'লগইন')
+              )}
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handleForgotPassword}>
+            <div className="text-center mb-3">
+              <i className="bi bi-key-fill fs-1 text-warning" />
+              <p className="login-subtitle mt-2">
+                {t('auth.enterEmail', 'আপনার ইমেইল ঠিকানা দিন')}
+              </p>
+            </div>
+
+            <div className="login-input-group">
+              <i className="bi bi-envelope login-input-icon" />
+              <input
+                type="email"
+                className="form-control"
+                value={resetEmail}
+                onChange={(e) => setResetEmail(e.target.value)}
+                placeholder={t('auth.emailPlaceholder', 'ইমেইল ঠিকানা')}
+                required
+              />
+            </div>
+
+            <button className="login-btn login-btn-trainee" disabled={resetting}>
+              {resetting ? (
+                <span className="d-flex align-items-center justify-content-center gap-2">
+                  <span className="login-spinner" />
+                  {t('auth.sending', 'পাঠানো হচ্ছে...')}
+                </span>
+              ) : (
+                <><i className="bi bi-send me-2" />{t('auth.sendResetLink', 'রিসেট লিংক পাঠান')}</>
+              )}
+            </button>
+
+            <div className="text-center mt-3">
+              <button
+                type="button"
+                className="login-link-btn login-link-btn-trainee"
+                onClick={() => setShowForgot(false)}
+              >
+                <i className="bi bi-arrow-left me-1" />
+                {t('auth.backToLogin', 'লগইনে ফিরে যান')}
               </button>
-              <div className="text-center">
-                <button type="button" className="btn btn-link btn-sm" onClick={() => setShowForgot(false)}>
-                  {t('auth.backToLogin', 'লগইনে ফিরে যান')}
-                </button>
-              </div>
-            </form>
-          )}
+            </div>
+          </form>
+        )}
+
+        <div className="login-divider">
+          <LanguageSwitcher />
+        </div>
+
+        <div className="login-footer">
+          <small>
+            <Link to="/login" className="login-link-btn login-link-btn-trainee">
+              <i className="bi bi-shield-lock me-1" />
+              {t('auth.staffLogin', 'স্টাফ লগইন')}
+            </Link>
+          </small>
         </div>
       </div>
     </div>

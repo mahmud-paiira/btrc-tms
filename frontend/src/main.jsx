@@ -1,3 +1,7 @@
+if (navigator.userAgent.indexOf('Firefox') !== -1) {
+  document.documentElement.classList.add('firefox');
+}
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';

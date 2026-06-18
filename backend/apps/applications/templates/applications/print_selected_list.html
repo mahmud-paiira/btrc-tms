@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="utf-8">
+    <title>নির্বাচিত তালিকা - {{ circular.title_bn }}</title>
+    <style>
+        @page { size: A4 landscape; margin: 1.5cm; }
+        body { font-family: 'Arial', 'Nikosh', sans-serif; font-size: 12px; line-height: 1.5; color: #333; }
+        .header { text-align: center; border-bottom: 2px solid #1a5276; padding-bottom: 10px; margin-bottom: 15px; }
+        .header h1 { font-size: 18px; color: #1a5276; margin: 3px 0; }
+        .header p { font-size: 12px; color: #666; margin: 2px 0; }
+        .info-row { display: flex; justify-content: space-between; font-size: 13px; margin: 10px 0; padding: 8px; background: #f8f9fa; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        table th { background: #1a5276; color: white; padding: 6px 4px; font-size: 11px; text-align: center; }
+        table td { padding: 5px 4px; border: 1px solid #ddd; font-size: 11px; }
+        table tr:nth-child(even) { background: #f8f9fa; }
+        .sl { text-align: center; width: 30px; }
+        .footer { text-align: center; margin-top: 20px; font-size: 11px; color: #999; border-top: 1px solid #ddd; padding-top: 8px; }
+        .signature-area { margin-top: 25px; display: flex; justify-content: space-between; }
+        .signature-box { text-align: center; width: 30%; }
+        .signature-line { margin-top: 35px; border-top: 1px solid #333; padding-top: 4px; font-size: 12px; }
+        .summary { font-size: 12px; margin: 5px 0; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>বাংলাদেশ সড়ক পরিবহন কর্পোরেশন</h1>
+        <p>প্রশিক্ষণ ব্যবস্থাপনা সিস্টেম</p>
+        <h2 style="font-size: 15px; color: #2e86c1; margin: 5px 0;">নির্বাচিত আবেদনকারীর তালিকা</h2>
+    </div>
+
+    <div class="info-row">
+        <span><strong>সার্কুলার:</strong> {{ circular.title_bn }}</span>
+        <span><strong>কোর্স:</strong> {{ course.name_bn }} ({{ course.code }})</span>
+        <span><strong>মোট নির্বাচিত:</strong> {{ applications|length }} জন</span>
+    </div>
+
+    {% if applications %}
+    <table>
+        <thead>
+            <tr>
+                <th class="sl">ক্রম</th>
+                <th>আবেদন নং</th>
+                <th>নাম</th>
+                <th>পিতার নাম</th>
+                <th>মাতার নাম</th>
+                <th>জন্ম তারিখ</th>
+                <th>এনআইডি</th>
+                <th>মোবাইল</th>
+                <th>নির্বাচিত কেন্দ্র</th>
+                <th>ঠিকানা</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for app in applications %}
+            <tr>
+                <td class="sl">{{ forloop.counter }}</td>
+                <td>{{ app.application_no }}</td>
+                <td>{{ app.name_bn }}</td>
+                <td>{{ app.father_name_bn }}</td>
+                <td>{{ app.mother_name_bn }}</td>
+                <td style="text-align: center;">{{ app.date_of_birth|date:"d/m/Y" }}</td>
+                <td>{{ app.nid }}</td>
+                <td>{{ app.phone }}</td>
+                <td>{{ app.chosen_center.name_bn|default:"—" }}</td>
+                <td>{{ app.present_address|truncatewords:8 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="text-align: center; padding: 30px; color: #999;">কোনো নির্বাচিত আবেদনকারী নেই</p>
+    {% endif %}
+
+    <div class="summary">
+        <p>মোট আসন: {{ circular.total_seats }} | অবশিষ্ট আসন: {{ circular.remaining_seats }} | নির্বাচিত: {{ applications|length }}</p>
+        <p>প্রশিক্ষণ: {{ circular.training_start_date|date:"d/m/Y" }} থেকে {{ circular.training_end_date|date:"d/m/Y" }} পর্যন্ত</p>
+    </div>
+
+    <div class="signature-area">
+        <div class="signature-box">
+            <div class="signature-line">প্রস্তুতকারকের স্বাক্ষর</div>
+        </div>
+        <div class="signature-box">
+            <div class="signature-line">যাচাইকারীর স্বাক্ষর</div>
+        </div>
+        <div class="signature-box">
+            <div class="signature-line">অনুমোদনকারীর স্বাক্ষর</div>
+        </div>
+    </div>
+
+    <div class="footer">
+        বাংলাদেশ সড়ক পরিবহন কর্পোরেশন (বিআরটিসি) | প্রশিক্ষণ ব্যবস্থাপনা সিস্টেম - {% now "d/m/Y" %}
+    </div>
+</body>
+</html>

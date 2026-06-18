@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="utf-8">
+    <title>{{ course.name_bn }}</title>
+    <style>
+        @page { size: A4; margin: 1.5cm; }
+        body { font-family: 'NikoshBAN', 'Siyam Rupali', 'SolaimanLipi', 'Arial', sans-serif; font-size: 13px; line-height: 1.8; color: #222; }
+
+        .header { text-align: center; border-bottom: 3px solid #1a5276; padding-bottom: 12px; margin-bottom: 20px; }
+        .header .govt-name { font-size: 16px; font-weight: bold; color: #1a5276; letter-spacing: 1px; }
+        .header .org-name { font-size: 20px; font-weight: bold; color: #000; margin: 2px 0; }
+        .header .org-sub { font-size: 13px; color: #555; margin: 2px 0; }
+        .header .ref-line { font-size: 11px; color: #777; margin-top: 6px; border-top: 1px dashed #ccc; padding-top: 6px; }
+
+        .doc-title { text-align: center; font-size: 17px; font-weight: bold; margin: 18px 0; padding: 10px 14px; border: 2px solid #1a5276; background: #f0f4f8; }
+
+        table.info { width: 100%; border-collapse: collapse; margin: 14px 0; }
+        table.info td { border: 1px solid #ccc; padding: 6px 10px; font-size: 13px; }
+        table.info .label { background: #e8edf2; font-weight: 600; width: 22%; }
+        table.info .value { width: 28%; }
+
+        .section-title { font-size: 14px; font-weight: bold; color: #1a5276; margin: 20px 0 8px; padding-bottom: 4px; border-bottom: 2px solid #1a5276; }
+
+        .desc-box { margin: 12px 0; padding: 12px 16px; background: #fafafa; border-left: 4px solid #1a5276; font-size: 13px; line-height: 1.9; }
+        .desc-box p { margin: 6px 0; }
+
+        table.data { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        table.data th { background: #1a5276; color: #fff; padding: 7px 8px; font-size: 12px; text-align: left; }
+        table.data td { border: 1px solid #ccc; padding: 6px 8px; font-size: 12px; }
+        table.data tr:nth-child(even) { background: #f8f9fa; }
+
+        .footer { text-align: center; margin-top: 35px; font-size: 10px; color: #999; border-top: 1px solid #ddd; padding-top: 8px; }
+
+        .signature-area { margin-top: 40px; display: flex; justify-content: space-between; }
+        .signature-box { text-align: center; width: 40%; }
+        .signature-line { margin-top: 55px; border-top: 1px solid #333; padding-top: 5px; font-size: 12px; font-weight: 600; }
+
+        .footer-note { text-align: center; font-size: 11px; color: #666; margin-top: 20px; font-style: italic; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="govt-name">গণপ্রজাতন্ত্রী বাংলাদেশ সরকার</div>
+        <div class="org-name">বাংলাদেশ সড়ক পরিবহন কর্পোরেশন</div>
+        <div class="org-sub">প্রশিক্ষণ ব্যবস্থাপনা সিস্টেম</div>
+        <div class="ref-line">কোর্স আইডি: {{ course.code }} | তৈরির তারিখ: {{ course.created_at|date:"d-m-Y" }}</div>
+    </div>
+
+    <div class="doc-title">{{ course.name_bn }}</div>
+    {% if course.name_en %}
+        <div style="text-align:center;font-size:13px;font-style:italic;margin:-10px 0 18px;color:#444;">{{ course.name_en }}</div>
+    {% endif %}
+
+    <div class="section-title">মূল তথ্য</div>
+    <table class="info">
+        <tr>
+            <td class="label">কোর্স কোড</td>
+            <td class="value">{{ course.code }}</td>
+            <td class="label">ধরন</td>
+            <td class="value">{{ course.get_course_type_display }}</td>
+        </tr>
+        <tr>
+            <td class="label">টার্ম</td>
+            <td class="value">{{ course.get_term_display|default:'—' }}</td>
+            <td class="label">সেশন</td>
+            <td class="value">{{ course.get_session_display|default:'—' }}</td>
+        </tr>
+        <tr>
+            <td class="label">মেয়াদ</td>
+            <td class="value">{{ course.duration_value }} {{ course.get_duration_unit_display }}</td>
+            <td class="label">মোট ঘন্টা</td>
+            <td class="value">{{ course.duration_hours }}</td>
+        </tr>
+        <tr>
+            <td class="label">প্রশিক্ষণ দিন</td>
+            <td class="value">{{ course.total_training_days }}</td>
+            <td class="label">কোর্স ফি</td>
+            <td class="value">৳{{ course.fee }}</td>
+        </tr>
+        <tr>
+            <td class="label">স্টাইপেন্ড</td>
+            <td class="value">{{ course.stipend_eligible|yesno:'হ্যাঁ,না' }}</td>
+            <td class="label">চাকরির উপযোগী</td>
+            <td class="value">{{ course.employment_eligible|yesno:'হ্যাঁ,না' }}</td>
+        </tr>
+        {% if course.project_name %}
+        <tr>
+            <td class="label">প্রকল্পের নাম</td>
+            <td class="value">{{ course.project_name }}</td>
+            <td class="label">স্পনসর</td>
+            <td class="value">{{ course.project_sponsor|default:'—' }}</td>
+        </tr>
+        {% endif %}
+        <tr>
+            <td class="label">অবস্থা</td>
+            <td class="value" colspan="3">{{ course.get_status_display }}</td>
+        </tr>
+    </table>
+
+    {% if course.description %}
+        <div class="section-title">বিবরণ</div>
+        <div class="desc-box">{{ course.description|safe }}</div>
+    {% endif %}
+
+    {% if config %}
+        <div class="section-title">কনফিগারেশন</div>
+        <table class="info">
+            <tr>
+                <td class="label">পাস মার্কস</td>
+                <td class="value">{{ config.passing_marks }}%</td>
+                <td class="label">উপস্থিতি</td>
+                <td class="value">{{ config.attendance_requirement }}%</td>
+            </tr>
+            {% if config.certificate_template %}
+            <tr>
+                <td class="label">সার্টিফিকেট টেমপ্লেট</td>
+                <td class="value" colspan="3">{{ config.certificate_template }}</td>
+            </tr>
+            {% endif %}
+        </table>
+        {% if config.eligibility_criteria %}
+            <div style="margin-top:10px;"><strong>যোগ্যতার মানদণ্ড:</strong></div>
+            <div class="desc-box">{{ config.eligibility_criteria|safe }}</div>
+        {% endif %}
+        {% if config.assessment_criteria %}
+            <div style="margin-top:10px;"><strong>মূল্যায়নের মানদণ্ড:</strong></div>
+            <div class="desc-box">{{ config.assessment_criteria|safe }}</div>
+        {% endif %}
+        {% if config.training_methodology %}
+            <div style="margin-top:10px;"><strong>প্রশিক্ষণ পদ্ধতি:</strong></div>
+            <div class="desc-box">{{ config.training_methodology|safe }}</div>
+        {% endif %}
+    {% endif %}
+
+    {% if chapters %}
+        <div class="section-title">অধ্যায়সমূহ ({{ chapters|length }})</div>
+        <table class="data">
+            <thead>
+                <tr><th style="width:50px;">নং</th><th>শিরোনাম (বাংলা)</th><th>শিরোনাম (ইংরেজি)</th><th style="width:80px;">সময় (ঘন্টা)</th></tr>
+            </thead>
+            <tbody>
+                {% for ch in chapters %}
+                <tr>
+                    <td style="text-align:center;">{{ ch.chapter_no }}</td>
+                    <td>{{ ch.title_bn }}</td>
+                    <td>{{ ch.title_en|default:'—' }}</td>
+                    <td style="text-align:center;">{{ ch.duration_hours }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+    {% if competencies %}
+        <div class="section-title">দক্ষতা ইউনিটসমূহ ({{ competencies|length }})</div>
+        <table class="data">
+            <thead>
+                <tr><th>কোড</th><th>নাম (বাংলা)</th><th>নাম (ইংরেজি)</th><th>মূল্যায়ন পদ্ধতি</th></tr>
+            </thead>
+            <tbody>
+                {% for comp in competencies %}
+                <tr>
+                    <td>{{ comp.code }}</td>
+                    <td>{{ comp.name_bn }}</td>
+                    <td>{{ comp.name_en|default:'—' }}</td>
+                    <td>{{ comp.assessment_method|default:'—' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+    {% if bills %}
+        <div class="section-title">বিল আইটেমসমূহ</div>
+        <table class="data">
+            <thead>
+                <tr><th>বিল আইটেম</th><th>পরিমাণ</th><th>বাধ্যতামূলক</th></tr>
+            </thead>
+            <tbody>
+                {% for b in bills %}
+                <tr>
+                    <td>{{ b.bill_item_bn }} <small>({{ b.bill_item_en }})</small></td>
+                    <td style="text-align:right;font-weight:600;">৳{{ b.amount }}</td>
+                    <td style="text-align:center;">{{ b.is_mandatory|yesno:'হ্যাঁ,না' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+    {% if course.unit_cost or course.total_target %}
+        <div class="section-title">আর্থিক তথ্য</div>
+        <table class="info">
+            {% if course.unit_cost %}
+            <tr><td class="label">ইউনিট খরচ</td><td class="value">৳{{ course.unit_cost }}</td>
+                <td class="label">মোট টার্গেট</td><td class="value">{{ course.total_target }}</td></tr>
+            {% endif %}
+        </table>
+    {% endif %}
+
+    <div class="signature-area">
+        <div class="signature-box">
+            <div class="signature-line">প্রস্তুতকারকের স্বাক্ষর</div>
+        </div>
+        <div class="signature-box">
+            <div class="signature-line">অনুমোদনকারীর স্বাক্ষর</div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>এটি একটি কম্পিউটার জেনারেটেড ডকুমেন্ট এবং স্বাক্ষরবিহীন অবস্থায় সিস্টেম কপি হিসেবে বিবেচিত হবে।</p>
+        <p>প্রশিক্ষণ ব্যবস্থাপনা সিস্টেম - বাংলাদেশ সড়ক পরিবহন কর্পোরেশন | তৈরির সময়: {% now "d-m-Y H:i" %}</p>
+    </div>
+
+</body>
+</html>

@@ -83,7 +83,7 @@ class CenterDashboardViewSet(viewsets.ViewSet):
         )
 
         app_stats = Application.objects.filter(
-            circular__center=center,
+            Q(circular__eligible_centers=center) | Q(circular__all_centers=True),
         ).aggregate(
             total=Count('id'),
             pending=Count('id', filter=Q(status='pending')),
@@ -263,7 +263,10 @@ class CenterDashboardViewSet(viewsets.ViewSet):
         if not center:
             return Response({'error': 'কেন্দ্র নির্ধারিত নেই।'}, status=400)
 
-        pending_apps = Application.objects.filter(circular__center=center, status='pending').count()
+        pending_apps = Application.objects.filter(
+            Q(circular__eligible_centers=center) | Q(circular__all_centers=True),
+            status='pending',
+        ).count()
         running_batches = self._get_batches(center).filter(status='running').count()
         today = date.today()
         today_total = Attendance.objects.filter(
@@ -285,7 +288,10 @@ class CenterDashboardViewSet(viewsets.ViewSet):
             'running_batches': running_batches,
             'needs_attendance_today': needs_attendance,
             'eligible_certificates': eligible_certs,
-            'can_publish_circular': Circular.objects.filter(center=center, status='draft').exists(),
+            'can_publish_circular': Circular.objects.filter(
+                Q(eligible_centers=center) | Q(all_centers=True),
+                status='draft',
+            ).exists(),
         })
 
     @action(detail=False, methods=['get'])
@@ -297,7 +303,8 @@ class CenterDashboardViewSet(viewsets.ViewSet):
         seven_days_ago = timezone.now() - timedelta(days=7)
 
         recent_apps = Application.objects.filter(
-            circular__center=center, applied_at__gte=seven_days_ago,
+            Q(circular__eligible_centers=center) | Q(circular__all_centers=True),
+            applied_at__gte=seven_days_ago,
         ).select_related('circular').order_by('-applied_at')[:5]
 
         pending_trainers = Trainer.objects.filter(

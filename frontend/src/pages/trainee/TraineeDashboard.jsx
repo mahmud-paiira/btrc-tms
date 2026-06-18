@@ -33,145 +33,107 @@ export default function TraineeDashboard() {
   const warning = attPct !== null && attPct < 80;
 
   return (
-    <div style={{ fontFamily: 'NikoshBAN, sans-serif' }}>
+    <div className="container-lg py-4" style={{ maxWidth: '800px' }}>
       {/* Welcome */}
-      <div className="card bg-primary text-white shadow-sm mb-4">
-        <div className="card-body d-flex align-items-center gap-3">
-          {data.profile_image ? (
-            <img src={data.profile_image} alt="" className="rounded-circle" style={{ width: 64, height: 64, objectFit: 'cover' }} />
-          ) : (
-            <div className="rounded-circle bg-white text-primary d-flex align-items-center justify-content-center" style={{ width: 64, height: 64, fontSize: 28 }}>
-              <i className="bi bi-person-fill"></i>
+      <div className="card bg-dark text-white shadow-lg mb-5 border-0 overflow-hidden" style={{ borderRadius: 24 }}>
+        <div className="card-body p-5 position-relative">
+          <div className="d-flex align-items-center gap-4 z-index-1">
+            {data.profile_image ? (
+              <img src={data.profile_image} alt="" className="rounded-circle shadow-sm border border-white border-4" style={{ width: 100, height: 100, objectFit: 'cover' }} />
+            ) : (
+              <div className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center shadow-sm" style={{ width: 100, height: 100, fontSize: 44 }}>
+                <i className="bi bi-person-fill"></i>
+              </div>
+            )}
+            <div>
+              <h2 className="mb-1 fw-bold">{data.full_name_bn || data.full_name_en}</h2>
+              <div className="d-flex flex-wrap gap-3 opacity-75">
+                <span><i className="bi bi-person-badge me-1"></i>{data.registration_no}</span>
+                {data.center_name && <span><i className="bi bi-building me-1"></i>{data.center_name}</span>}
+              </div>
             </div>
-          )}
-          <div>
-            <h4 className="mb-1">{data.full_name_bn || data.full_name_en}</h4>
-            <p className="mb-0 opacity-75">
-              <i className="bi bi-person-badge me-1"></i>{data.registration_no}
-            </p>
-            {data.center_name && <small className="opacity-75"><i className="bi bi-building me-1"></i>{data.center_name}</small>}
+          </div>
+          {/* Decorative background element */}
+          <div className="position-absolute end-0 bottom-0 opacity-10" style={{ transform: 'translate(20%, 20%)' }}>
+            <i className="bi bi-mortarboard-fill" style={{ fontSize: '12rem' }}></i>
           </div>
         </div>
       </div>
 
       {/* Stats cards */}
-      <div className="row g-3 mb-4">
+      <div className="row g-4 mb-5">
         {batch && (
           <>
-            <div className="col-md-3 col-6">
-              <div className="card text-bg-info shadow-sm h-100 text-center py-3">
-                <div className="card-body">
-                  <i className="bi bi-layers fs-2"></i>
-                  <h5 className="mt-2 mb-0">{batch.batch_no}</h5>
-                  <small>{batch.name_bn}</small>
+            <div className="col-md-6">
+              <div className="card shadow-sm border-0 h-100 bg-white">
+                <div className="card-body p-4 d-flex align-items-center gap-3">
+                  <div className="bg-primary bg-opacity-10 p-3 rounded-4"><i className="bi bi-layers text-primary fs-3"></i></div>
+                  <div>
+                    <div className="text-muted small mb-1">{t('trainee.dashboard.batchNo', 'ব্যাচ নম্বর')}</div>
+                    <h4 className="mb-0 fw-bold">{batch.batch_no}</h4>
+                    <div className="small text-primary">{batch.name_bn}</div>
+                  </div>
                 </div>
               </div>
             </div>
-            <div className="col-md-3 col-6">
-              <div className={`card shadow-sm h-100 text-center py-3 text-bg-${batch.status === 'running' ? 'success' : batch.status === 'completed' ? 'primary' : 'secondary'}`}>
-                <div className="card-body">
-                  <i className="bi bi-circle-fill fs-2"></i>
-                  <h5 className="mt-2 mb-0">{t(`batch.status.${batch.status}`, STATUS_MAP[batch.status] || batch.status)}</h5>
-                  <small>{t('trainee.dashboard.status', 'স্ট্যাটাস')}</small>
-                </div>
-              </div>
-            </div>
-            <div className="col-md-3 col-6">
-              <div className="card text-bg-warning shadow-sm h-100 text-center py-3">
-                <div className="card-body">
-                  <i className="bi bi-book fs-2"></i>
-                  <h5 className="mt-2 mb-0" style={{ fontSize: 16 }}>{batch.course_name}</h5>
-                  <small>{t('trainee.dashboard.course', 'কোর্স')}</small>
-                </div>
-              </div>
-            </div>
-            <div className="col-md-3 col-6">
-              <div className={`card shadow-sm h-100 text-center py-3 ${warning ? 'text-bg-danger' : 'text-bg-success'}`}>
-                <div className="card-body">
-                  <i className="bi bi-calendar-check fs-2"></i>
-                  <h5 className="mt-2 mb-0">{attPct !== null ? `${attPct}%` : '—'}</h5>
-                  <small>{t('trainee.dashboard.attendance', 'উপস্থিতি')}</small>
+            <div className="col-md-6">
+              <div className="card shadow-sm border-0 h-100 bg-white">
+                <div className="card-body p-4 d-flex align-items-center gap-3">
+                  <div className="bg-success bg-opacity-10 p-3 rounded-4"><i className="bi bi-check2-circle text-success fs-3"></i></div>
+                  <div>
+                    <div className="text-muted small mb-1">{t('trainee.dashboard.status', 'স্ট্যাটাস')}</div>
+                    <h4 className="mb-0 fw-bold">{t(`batch.status.${batch.status}`, STATUS_MAP[batch.status] || batch.status)}</h4>
+                  </div>
                 </div>
               </div>
             </div>
           </>
         )}
-        {!batch && (
-          <div className="col-12">
-            <div className="alert alert-warning mb-0">
-              <i className="bi bi-exclamation-triangle me-2"></i>
-              {t('trainee.dashboard.notEnrolled', 'আপনি কোনো ব্যাচে নথিভুক্ত নন। অনুগ্রহ করে কেন্দ্র প্রশাসকের সাথে যোগাযোগ করুন।')}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Attendance progress */}
       {attPct !== null && (
-        <div className="card shadow-sm mb-4">
-          <div className="card-body">
-            <div className="d-flex justify-content-between mb-1">
-              <span>{t('trainee.dashboard.attendanceRate', 'উপস্থিতির হার')}</span>
-              <span className={warning ? 'text-danger fw-bold' : 'text-success fw-bold'}>{attPct}%</span>
-            </div>
-            <div className="progress" style={{ height: 10 }}>
+        <div className="card shadow-sm mb-5 border-0 bg-white" style={{ borderRadius: 20 }}>
+          <div className="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+            <h6 className="mb-0 fw-bold"><i className="bi bi-calendar-check me-2 text-primary"></i>{t('trainee.dashboard.attendanceRate', 'উপস্থিতির হার')}</h6>
+            <span className={`badge px-3 py-2 rounded-pill ${warning ? 'bg-danger' : 'bg-success'}`}>{attPct}%</span>
+          </div>
+          <div className="card-body p-4">
+            <div className="progress" style={{ height: 12, borderRadius: 6 }}>
               <div
-                className={`progress-bar ${warning ? 'bg-danger' : 'bg-success'}`}
+                className={`progress-bar progress-bar-striped progress-bar-animated ${warning ? 'bg-danger' : 'bg-success'}`}
                 style={{ width: `${Math.min(attPct, 100)}%` }}
               />
             </div>
             {warning && (
-              <div className="alert alert-danger mt-2 mb-0 py-2">
-                <i className="bi bi-exclamation-triangle me-1"></i>
-                {t('trainee.dashboard.warningBelow80', 'সতর্কতা: আপনার উপস্থিতির হার ৮০% এর নিচে। মূল্যায়নে অংশগ্রহণের জন্য ন্যূনতম ৮০% উপস্থিতি প্রয়োজন।')}
+              <div className="d-flex align-items-start gap-2 mt-3 text-danger small">
+                <i className="bi bi-exclamation-triangle-fill"></i>
+                <div>{t('trainee.dashboard.warningBelow80', 'সতর্কতা: আপনার উপস্থিতির হার ৮০% এর নিচে।')}</div>
               </div>
             )}
           </div>
         </div>
       )}
 
-      {/* Quick links */}
+      {/* Quick links Grid */}
+      <h6 className="mb-3 fw-bold text-muted text-uppercase small letter-spacing-1">{t('trainee.dashboard.quickLinks', 'দ্রুত লিঙ্ক')}</h6>
       <div className="row g-3">
-        <div className="col-md-4 col-6">
-          <Link to="/trainee/schedule" className="card shadow-sm text-decoration-none text-dark h-100">
-            <div className="card-body text-center py-4">
-              <i className="bi bi-calendar-week fs-1 text-primary"></i>
-              <h6 className="mt-2 mb-0">{t('trainee.dashboard.schedule', 'সময়সূচি')}</h6>
-            </div>
-          </Link>
-        </div>
-        <div className="col-md-4 col-6">
-          <Link to="/trainee/attendance" className="card shadow-sm text-decoration-none text-dark h-100">
-            <div className="card-body text-center py-4">
-              <i className="bi bi-check-circle fs-1 text-success"></i>
-              <h6 className="mt-2 mb-0">{t('nav.attendance', 'উপস্থিতি')}</h6>
-            </div>
-          </Link>
-        </div>
-        <div className="col-md-4 col-6">
-          <Link to="/trainee/assessment" className="card shadow-sm text-decoration-none text-dark h-100">
-            <div className="card-body text-center py-4">
-              <i className="bi bi-clipboard-data fs-1 text-warning"></i>
-              <h6 className="mt-2 mb-0">{t('trainee.dashboard.assessment', 'মূল্যায়ন')}</h6>
-            </div>
-          </Link>
-        </div>
-        <div className="col-md-4 col-6">
-          <Link to="/trainee/certificate" className="card shadow-sm text-decoration-none text-dark h-100">
-            <div className="card-body text-center py-4">
-              <i className="bi bi-award fs-1 text-info"></i>
-              <h6 className="mt-2 mb-0">{t('trainee.dashboard.certificate', 'সার্টিফিকেট')}</h6>
-            </div>
-          </Link>
-        </div>
-        <div className="col-md-4 col-6">
-          <Link to="/trainee/profile" className="card shadow-sm text-decoration-none text-dark h-100">
-            <div className="card-body text-center py-4">
-              <i className="bi bi-person-gear fs-1 text-secondary"></i>
-              <h6 className="mt-2 mb-0">{t('nav.profile', 'প্রোফাইল')}</h6>
-            </div>
-          </Link>
-        </div>
+        {[
+          { to: '/trainee/schedule', label: t('trainee.dashboard.schedule', 'সময়সূচি'), icon: 'bi-calendar-week', color: 'primary' },
+          { to: '/trainee/attendance', label: t('nav.attendance', 'উপস্থিতি'), icon: 'bi-check-circle', color: 'success' },
+          { to: '/trainee/assessment', label: t('trainee.dashboard.assessment', 'মূল্যায়ন'), icon: 'bi-clipboard-data', color: 'warning' },
+          { to: '/trainee/certificate', label: t('trainee.dashboard.certificate', 'সার্টিফিকেট'), icon: 'bi-award', color: 'info' },
+          { to: '/trainee/profile', label: t('nav.profile', 'প্রোফাইল'), icon: 'bi-person-gear', color: 'secondary' },
+        ].map((link) => (
+          <div className="col-6 col-md-4" key={link.to}>
+            <Link to={link.to} className="card shadow-sm text-decoration-none h-100 hover-translate-y border-0 transition" style={{ borderRadius: 16 }}>
+              <div className="card-body text-center py-4">
+                <div className={`text-${link.color} mb-2`}><i className={`bi ${link.icon} fs-1`}></i></div>
+                <h6 className="mb-0 fw-bold text-heading">{link.label}</h6>
+              </div>
+            </Link>
+          </div>
+        ))}
       </div>
     </div>
   );

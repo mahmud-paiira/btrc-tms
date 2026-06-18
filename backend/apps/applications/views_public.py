@@ -73,9 +73,46 @@ def check_nid(request, nid):
 
 
 @api_view(['POST'])
+def verify_nid(request):
+    nid = request.data.get('nid', '').replace(' ', '').replace('-', '')
+    date_of_birth = request.data.get('date_of_birth', '')
+
+    if len(nid) not in (10, 17):
+        return Response({'verified': False, 'message': 'এনআইডি ১০ বা ১৭ ডিজিটের হতে হবে'}, status=400)
+    if not date_of_birth:
+        return Response({'verified': False, 'message': 'জন্ম তারিখ নির্বাচন করুন'}, status=400)
+
+    from datetime import date
+    try:
+        dob = date.fromisoformat(date_of_birth)
+    except (ValueError, TypeError):
+        return Response({'verified': False, 'message': 'জন্ম তারিখ ফরমেট সঠিক নয়'}, status=400)
+
+    today = date.today()
+    age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+    if age < 21:
+        return Response({'verified': False, 'message': f'বয়স {age} বছর। ন্যূনতম ২১ বছর হতে হবে।'})
+
+    return Response({
+        'verified': True,
+        'message': 'এনআইডি সফলভাবে যাচাই করা হয়েছে',
+        'name_bn': request.user.full_name_bn if request.user.is_authenticated else '',
+        'date_of_birth': date_of_birth,
+        'age': age,
+    })
+
+
+@api_view(['POST'])
 @parser_classes([MultiPartParser, FormParser])
 def public_apply(request):
-    serializer = PublicApplySerializer(data=request.data)
+    data = request.data.copy()
+    if request.user.is_authenticated:
+        data['user_id'] = request.user.id
+        data['name_bn'] = request.user.full_name_bn
+        data['name_en'] = request.user.full_name_en
+        data['nid'] = request.user.nid
+        data['phone'] = request.user.phone
+    serializer = PublicApplySerializer(data=data, context={'request': request})
     serializer.is_valid(raise_exception=True)
     application = serializer.save()
 
@@ -84,3 +121,29 @@ def public_apply(request):
         confirm.data,
         status=status.HTTP_201_CREATED,
     )
+
+
+@api_view(['GET'])
+def print_application(request, application_no):
+    try:
+        app = Application.objects.select_related(
+            'chosen_center', 'circular__course', 'user',
+        ).get(application_no=application_no)
+    except Application.DoesNotExist:
+        return Response({'error': 'আবেদন পাওয়া যায়নি'}, status=404)
+
+    from django.template.loader import render_to_string
+    from weasyprint import HTML
+    from django.http import HttpResponse
+
+    html = render_to_string('applications/print_application.html', {
+        'app': app,
+        'circular': app.circular,
+        'center': app.chosen_center,
+        'course': app.circular.course,
+    })
+    pdf = HTML(string=html).write_pdf()
+    filename = f'application_{app.application_no}.pdf'
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="{filename}"'
+    return response
