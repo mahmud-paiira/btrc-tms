@@ -133,7 +133,7 @@ export default function PublicCircularList() {
               {circular.description && (
                 <div className="col-12">
                   <h6 className="fw-bold mb-3 text-muted text-uppercase small">বিবরণ</h6>
-                  <div className="p-3 bg-light rounded" dangerouslySetInnerHTML={{ __html: circular.description }} />
+                  <div className="p-3 bg-light rounded description-content" dangerouslySetInnerHTML={{ __html: circular.description }} />
                 </div>
               )}
             </div>

@@ -171,6 +171,17 @@ export default function CircularList() {
     }
   };
 
+  const handleUnpublish = async (id) => {
+    if (!window.confirm('সার্কুলারটি কি খসড়া অবস্থায় ফেরত নিতে চান?')) return;
+    try {
+      await hoService.unpublishCircular(id);
+      toast.success('সার্কুলার খসড়ায় ফেরত নেওয়া হয়েছে');
+      fetchItems();
+    } catch (e) {
+      toast.error(e.response?.data?.error || 'খসড়ায় ফেরত নিতে ব্যর্থ');
+    }
+  };
+
   const handleDelete = async (id) => {
     if (!window.confirm('সার্কুলারটি মুছে ফেলবেন? এটি অপরিবর্তনীয়।')) return;
     try {
@@ -315,6 +326,7 @@ export default function CircularList() {
                           <>
                             <li><hr className="dropdown-divider" /></li>
                             <li><button className="dropdown-item text-warning" onClick={() => handleClose(c.id)}><i className="bi bi-stop me-2"></i>বন্ধ করুন</button></li>
+                            <li><button className="dropdown-item text-secondary" onClick={() => handleUnpublish(c.id)}><i className="bi bi-arrow-return-left me-2"></i>খসড়ায় ফেরত</button></li>
                           </>
                         )}
                       </ActionMenu>

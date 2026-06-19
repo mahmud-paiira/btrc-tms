@@ -21,7 +21,7 @@ export function LanguageProvider({ children }) {
     document.documentElement.setAttribute('lang', lang);
     document.documentElement.setAttribute('dir', 'ltr');
     document.body.style.fontFamily = lang === 'bn'
-      ? "'NikoshBAN', 'Noto Sans Bengali', system-ui, sans-serif"
+      ? "'Noto Sans Bengali', 'NikoshBAN', system-ui, sans-serif"
       : "system-ui, -apple-system, 'Segoe UI', Roboto, 'Times New Roman', serif";
     document.body.style.fontSize = lang === 'bn' ? '20px' : '16px';
     document.body.style.direction = 'ltr';

@@ -1,15 +1,8 @@
-@font-face {
-  font-family: 'NikoshBAN';
-  src: url('../../assets/fonts/NikoshBAN.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-}
-
 .public-circular-page {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  font-family: 'NikoshBAN', system-ui, -apple-system, sans-serif;
+  font-family: 'Noto Sans Bengali', 'NikoshBAN', system-ui, -apple-system, sans-serif;
 }
 
 .public-circular-page.ltr {
@@ -21,7 +14,7 @@
 .public-circular-page.rtl {
   direction: rtl;
   text-align: right;
-  font-family: 'NikoshBAN', sans-serif;
+  font-family: 'Noto Sans Bengali', 'NikoshBAN', sans-serif;
 }
 
 /* ── Header ─────────────────────────────────────────── */

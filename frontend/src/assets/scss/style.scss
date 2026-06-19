@@ -1,11 +1,3 @@
-@font-face {
-  font-family: 'NikoshBAN';
-  src: url('../fonts/NikoshBAN.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
 $primary: #6366f1;
 $primary-dark: #4f46e5;
 $secondary: #64748b;
@@ -40,7 +32,7 @@ $enable-rtl: true;
   --topbar-text: #ffffff;
   --topbar-text-muted: #64748b;
   --font-en: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-bn: 'NikoshBAN', 'Noto Sans Bengali', var(--font-en);
+  --font-bn: 'Noto Sans Bengali', 'NikoshBAN', var(--font-en);
 }
 
 html {
@@ -1495,4 +1487,42 @@ body[style*="font-family: 'NikoshBAN'"] .form-select {
   .login-title {
     font-size: 1.25rem;
   }
+}
+
+.description-content {
+  font-size: 14px;
+  line-height: 1.8;
+  font-weight: 400;
+  color: var(--text-body);
+  font-family: var(--font-bn);
+}
+.description-content div,
+.description-content p {
+  margin-bottom: 0.5em;
+}
+.description-content h1,
+.description-content h2,
+.description-content h3,
+.description-content h4,
+.description-content h5,
+.description-content h6 {
+  font-size: 14px;
+  font-weight: 400;
+  margin: 0 0 0.5em;
+  color: var(--text-body);
+}
+.description-content ul,
+.description-content ol {
+  padding-left: 1.5em;
+  margin-bottom: 0.5em;
+}
+.description-content li {
+  margin-bottom: 0.25em;
+}
+.description-content strong {
+  font-weight: 600;
+}
+.description-content a {
+  color: #6366f1;
+  text-decoration: underline;
 }

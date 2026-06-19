@@ -4,193 +4,428 @@
     <meta charset="utf-8">
     <title>{{ circular.title_bn }}</title>
     <style>
-        @page { size: A4; margin: 1.5cm; }
-        body { font-family: 'NikoshBAN', 'Siyam Rupali', 'SolaimanLipi', 'Arial', sans-serif; font-size: 13px; line-height: 1.8; color: #222; }
+        @page { size: A4; margin: 2cm 2.5cm; @bottom-center { content: "পৃষ্ঠা " counter(page) " / " counter(pages); font-size: 9px; color: #888; font-family: 'NikoshBAN', sans-serif; } }
 
-        .header { text-align: center; border-bottom: 3px solid #1a5276; padding-bottom: 12px; margin-bottom: 20px; }
-        .header .govt-name { font-size: 16px; font-weight: bold; color: #1a5276; letter-spacing: 1px; }
-        .header .org-name { font-size: 20px; font-weight: bold; color: #000; margin: 2px 0; }
-        .header .org-sub { font-size: 13px; color: #555; margin: 2px 0; }
-        .header .ref-line { font-size: 11px; color: #777; margin-top: 6px; border-top: 1px dashed #ccc; padding-top: 6px; }
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;600;700&display=swap');
 
-        .circular-title { text-align: center; font-size: 17px; font-weight: bold; margin: 18px 0; padding: 10px 14px; border: 2px solid #1a5276; background: #f0f4f8; }
-        .circular-title-en { text-align: center; font-size: 13px; font-style: italic; margin: 10px 0 18px; padding: 8px 14px; border: 1px solid #bbb; color: #444; }
+        @font-face {
+            font-family: 'NikoshBAN';
+            src: url('{{ font_path }}') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
 
-        table.info { width: 100%; border-collapse: collapse; margin: 14px 0; }
-        table.info td { border: 1px solid #ccc; padding: 6px 10px; font-size: 13px; }
-        table.info .label { background: #e8edf2; font-weight: 600; width: 22%; }
-        table.info .value { width: 28%; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        .section-title { font-size: 14px; font-weight: bold; color: #1a5276; margin: 20px 0 8px; padding-bottom: 4px; border-bottom: 2px solid #1a5276; }
+        body {
+            font-family: 'Noto Sans Bengali', 'NikoshBAN', 'Arial', sans-serif;
+            font-size: 12px;
+            line-height: 1.7;
+            color: #222;
+        }
 
-        .desc-box { margin: 12px 0; padding: 12px 16px; background: #fafafa; border-left: 4px solid #1a5276; font-size: 13px; line-height: 1.9; }
-        .desc-box p { margin: 6px 0; }
+        .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 80px;
+            opacity: 0.04;
+            color: #1a5276;
+            font-weight: bold;
+            pointer-events: none;
+            z-index: -1;
+        }
 
-        .checklist { width: 100%; border-collapse: collapse; margin: 10px 0; }
-        .checklist th { background: #1a5276; color: #fff; padding: 7px 8px; font-size: 12px; text-align: left; }
-        .checklist td { border: 1px solid #ccc; padding: 6px 8px; font-size: 12px; }
+        .emblem {
+            text-align: center;
+            font-size: 32px;
+            color: #1a5276;
+            margin-bottom: 2px;
+            letter-spacing: 4px;
+        }
+
+        .govt-header {
+            text-align: center;
+            border-bottom: 3px solid #1a5276;
+            padding-bottom: 10px;
+            margin-bottom: 18px;
+        }
+        .govt-header .govt-name {
+            font-size: 15px;
+            font-weight: bold;
+            color: #1a5276;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+        .govt-header .ministry {
+            font-size: 11px;
+            color: #444;
+            margin-top: 2px;
+        }
+        .govt-header .org-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #000;
+            margin-top: 3px;
+        }
+        .govt-header .org-sub {
+            font-size: 11px;
+            color: #666;
+            margin-top: 1px;
+        }
+
+        .ref-section {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            font-size: 11px;
+            padding: 8px 12px;
+            background: #f5f7fa;
+            border: 1px solid #d5dbe3;
+        }
+        .ref-section .left { text-align: left; }
+        .ref-section .right { text-align: right; }
+
+        .subject {
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            margin: 16px 0;
+            padding: 8px 16px;
+            background: #eaf0f7;
+            border: 1px solid #1a5276;
+            border-radius: 2px;
+        }
+        .subject-en {
+            text-align: center;
+            font-size: 11px;
+            font-style: italic;
+            color: #555;
+            margin: 4px 0 16px;
+            padding: 6px 16px;
+            border: 1px dashed #bbb;
+        }
+
+        .body-text {
+            text-align: justify;
+            margin: 14px 0;
+            font-size: 12px;
+            line-height: 1.9;
+        }
+        .body-text p {
+            margin: 8px 0;
+            text-indent: 2em;
+        }
+
+        table.info {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+            font-size: 11px;
+        }
+        table.info td {
+            border: 1px solid #bbb;
+            padding: 5px 8px;
+        }
+        table.info .label {
+            background: #eef2f7;
+            font-weight: 600;
+            width: 20%;
+        }
+        table.info .value {
+            width: 30%;
+        }
+
+        .section-title {
+            font-size: 12px;
+            font-weight: bold;
+            color: #1a5276;
+            margin: 16px 0 6px;
+            padding-bottom: 3px;
+            border-bottom: 2px solid #1a5276;
+        }
+
+        .center-list {
+            margin: 6px 0;
+            font-size: 11px;
+            line-height: 1.6;
+        }
+        .center-list strong {
+            font-weight: 600;
+        }
+
+        .checklist {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 8px 0;
+            font-size: 10px;
+        }
+        .checklist th {
+            background: #1a5276;
+            color: #fff;
+            padding: 5px 6px;
+            text-align: left;
+            font-weight: 600;
+        }
+        .checklist td {
+            border: 1px solid #ccc;
+            padding: 4px 6px;
+        }
         .checklist tr:nth-child(even) { background: #f8f9fa; }
 
-        .center-list { margin: 8px 0; padding: 0; }
-        .center-list li { display: inline; margin-right: 6px; }
+        .signature-area {
+            margin-top: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+        .signature-box {
+            text-align: center;
+            min-width: 35%;
+        }
+        .signature-box .title {
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+        .signature-box .designation {
+            font-size: 10px;
+            color: #555;
+        }
+        .signature-line {
+            margin-top: 50px;
+            border-top: 1px solid #333;
+            padding-top: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
 
-        .footer { text-align: center; margin-top: 35px; font-size: 10px; color: #999; border-top: 1px solid #ddd; padding-top: 8px; }
+        .distribution {
+            margin-top: 30px;
+            padding: 10px 12px;
+            border: 1px solid #bbb;
+            background: #fafbfc;
+            font-size: 10px;
+            line-height: 1.6;
+        }
+        .distribution .dist-title {
+            font-weight: bold;
+            font-size: 11px;
+            margin-bottom: 4px;
+            color: #1a5276;
+        }
 
-        .signature-area { margin-top: 40px; display: flex; justify-content: space-between; }
-        .signature-box { text-align: center; width: 40%; }
-        .signature-line { margin-top: 55px; border-top: 1px solid #333; padding-top: 5px; font-size: 12px; font-weight: 600; }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 9px;
+            color: #999;
+            border-top: 1px solid #ddd;
+            padding-top: 6px;
+        }
 
-        .footer-note { text-align: center; font-size: 11px; color: #666; margin-top: 20px; font-style: italic; }
+        .note {
+            font-size: 10px;
+            color: #666;
+            margin: 6px 0;
+            padding: 6px 10px;
+            background: #fef9e7;
+            border-left: 3px solid #f39c12;
+        }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <div class="govt-name">গণপ্রজাতন্ত্রী বাংলাদেশ সরকার</div>
-        <div class="org-name">বাংলাদেশ সড়ক পরিবহন কর্পোরেশন</div>
-        <div class="org-sub">প্রশিক্ষণ ব্যবস্থাপনা সিস্টেম</div>
-        <div class="ref-line">
-            সার্কুলার নং: {{ circular.circular_no|default:"-" }}
-            {% if circular.public_url %} &mdash; পাবলিক ইউআরএল: {{ circular.public_url }}{% endif %}
-            &mdash; সংস্করণ: {{ circular.edition }}
-        </div>
+<div class="watermark">বিআরটিসি</div>
+
+<!-- Government Emblem & Header -->
+<div class="govt-header">
+    <div class="govt-name">গণপ্রজাতন্ত্রী বাংলাদেশ সরকার</div>
+    <div class="ministry">সড়ক পরিবহন ও সেতু মন্ত্রণালয়</div>
+    <div class="org-name">বাংলাদেশ সড়ক পরিবহন কর্পোরেশন (বি.আর.টি.সি.)</div>
+    <div class="org-sub">বি-আরটিসি-বিআরএসপি</div>
+    <div class="org-sub">বি-আরডিসি ভবন<br>২১ রাজুক এভিনিউ, ঢাকা-১০০০</div>
+</div>
+
+<!-- Reference Section -->
+<div class="ref-section">
+    <div class="left">
+        <strong>সার্কুলার নং:</strong> {{ circular.circular_no|default:"-" }}<br>
+        <strong>সংস্করণ:</strong> {{ circular.edition }}
     </div>
-
-    <div class="circular-title">{{ circular.title_bn }}</div>
-    {% if circular.title_en %}
-    <div class="circular-title-en">{{ circular.title_en }}</div>
-    {% endif %}
-
-    <div class="section-title">সার্কুলার সংক্রান্ত তথ্য</div>
-    <table class="info">
-        <tr>
-            <td class="label">সার্কুলার নম্বর</td>
-            <td class="value">{{ circular.circular_no|default:"-" }}</td>
-            <td class="label">সংস্করণ</td>
-            <td class="value">{{ circular.edition }}</td>
-        </tr>
-        <tr>
-            <td class="label">কোর্স</td>
-            <td class="value">{{ course.code }} - {{ course.name_bn }}</td>
-            <td class="label">কোর্স কোড</td>
-            <td class="value">{{ course.code }}</td>
-        </tr>
-        <tr>
-            <td class="label">মোট আসন</td>
-            <td class="value">{{ circular.total_seats }}</td>
-            <td class="label">অবশিষ্ট আসন</td>
-            <td class="value">{{ circular.remaining_seats }}</td>
-        </tr>
-        <tr>
-            <td class="label">কোর্স ফি</td>
-            <td class="value">{% if circular.fee %}৳{{ circular.fee }}{% else %}ডিফল্ট (কোর্স অনুযায়ী){% endif %}</td>
-            <td class="label">প্রকাশের তারিখ</td>
-            <td class="value">{{ circular.published_at|date:"d/m/Y"|default:"-" }}</td>
-        </tr>
-    </table>
-
-    <div class="section-title">সময়সীমা</div>
-    <table class="info">
-        <tr>
-            <td class="label">আবেদন শুরুর তারিখ</td>
-            <td class="value">{{ circular.application_start_date|date:"d/m/Y" }}</td>
-            <td class="label">আবেদনের শেষ তারিখ</td>
-            <td class="value">{{ circular.application_end_date|date:"d/m/Y" }}</td>
-        </tr>
-        <tr>
-            <td class="label">প্রশিক্ষণ শুরুর তারিখ</td>
-            <td class="value">{{ circular.training_start_date|date:"d/m/Y" }}</td>
-            <td class="label">প্রশিক্ষণ শেষের তারিখ</td>
-            <td class="value">{{ circular.training_end_date|date:"d/m/Y" }}</td>
-        </tr>
-        <tr>
-            <td class="label">কোর্সের মেয়াদ</td>
-            <td class="value" colspan="3">
-                {% if course.duration_months %}{{ course.duration_months }} মাস{% elif course.duration_value %}{{ course.duration_value }} {{ course.duration_unit }}{% else %}-{% endif %}
-            </td>
-        </tr>
-    </table>
-
-    <div class="section-title">উপযুক্ত কেন্দ্র</div>
-    <table class="info">
-        <tr>
-            <td class="label">কেন্দ্র</td>
-            <td colspan="3">
-                {% if circular.all_centers %}
-                    <strong>সকল কেন্দ্রের জন্য প্রযোজ্য</strong>
-                {% elif centers %}
-                    {% for c in centers %}{{ c.code }} - {{ c.name_bn }}{% if not forloop.last %}, {% endif %}{% endfor %}
-                {% else %}
-                    কোন কেন্দ্র নির্ধারণ করা হয়নি
-                {% endif %}
-            </td>
-        </tr>
-    </table>
-
-    {% if circular.description %}
-    <div class="section-title">বিবরণ / শর্তাবলী</div>
-    <div class="desc-box">
-        {{ circular.description|safe }}
+    <div class="right">
+        <strong>তারিখ:</strong> {{ circular.created_at|date:"d/m/Y"|default:"-" }}
     </div>
-    {% endif %}
+</div>
 
-    {% if circular.auto_screen_total_score > 0 %}
-    <div class="section-title">অটো-স্ক্রিনিং</div>
-    <table class="info">
+<!-- Subject -->
+<div class="subject">{{ circular.title_bn }}</div>
+
+<!-- Body -->
+<div class="body-text">
+    <p>বাংলাদেশ সড়ক পরিবহন কর্পোরেশন (বিআরটিসি) এর প্রশিক্ষণ বিভাগ, নিম্নবর্ণিত কোর্সের জন্য প্রশিক্ষণার্থী নিয়োগের লক্ষ্যে এ সার্কুলার প্রকাশ করছে।</p>
+</div>
+
+<!-- Circular Info -->
+<div class="section-title">সার্কুলার সংক্রান্ত তথ্য</div>
+<table class="info">
+    <tr>
+        <td class="label">সার্কুলার নং</td>
+        <td class="value">{{ circular.circular_no|default:"-" }}</td>
+        <td class="label">প্রকাশের তারিখ</td>
+        <td class="value">{{ circular.published_at|date:"d/m/Y"|default:circular.created_at|date:"d/m/Y" }}</td>
+    </tr>
+    <tr>
+        <td class="label">কোর্স</td>
+        <td class="value">{{ course.code }} - {{ course.name_bn }}</td>
+        <td class="label">কোর্সের ধরন</td>
+        <td class="value">{{ course.get_course_type_display }}</td>
+    </tr>
+    <tr>
+        <td class="label">মোট আসন</td>
+        <td class="value">{{ circular.total_seats }}</td>
+        <td class="label">কোর্স ফি</td>
+        <td class="value">{% if circular.fee %}৳{{ circular.fee }}{% else %}ডিফল্ট (কোর্স অনুযায়ী){% endif %}</td>
+    </tr>
+    <tr>
+        <td class="label">কোর্সের মেয়াদ</td>
+        <td class="value" colspan="3">
+            {% if course.duration_months %}{{ course.duration_months }} মাস{% elif course.duration_value %}{{ course.duration_value }} {{ course.duration_unit }}{% else %}-{% endif %}
+        </td>
+    </tr>
+</table>
+
+<!-- Timeframe -->
+<div class="section-title">আবেদন ও প্রশিক্ষণের সময়সীমা</div>
+<table class="info">
+    <tr>
+        <td class="label">আবেদন শুরুর তারিখ</td>
+        <td class="value">{{ circular.application_start_date|date:"d/m/Y" }}</td>
+        <td class="label">আবেদনের শেষ তারিখ</td>
+        <td class="value">{{ circular.application_end_date|date:"d/m/Y" }}</td>
+    </tr>
+    <tr>
+        <td class="label">প্রশিক্ষণ শুরুর তারিখ</td>
+        <td class="value">{{ circular.training_start_date|date:"d/m/Y" }}</td>
+        <td class="label">প্রশিক্ষণ শেষের তারিখ</td>
+        <td class="value">{{ circular.training_end_date|date:"d/m/Y" }}</td>
+    </tr>
+</table>
+
+{% if circular.description %}
+<div class="section-title">বিবরণ / শর্তাবলী</div>
+<div class="body-text">
+    {{ circular.description|safe }}
+</div>
+{% endif %}
+
+<!-- Centers -->
+<div class="section-title">উপযুক্ত কেন্দ্রসমূহ</div>
+<div class="center-list">
+    <strong>কেন্দ্র:</strong>
+    {% if circular.all_centers %}
+        সকল কেন্দ্রের জন্য প্রযোজ্য
+    {% elif centers %}
+        {% for c in centers %}{{ c.code }} - {{ c.name_bn }}{% if not forloop.last %}, {% endif %}{% endfor %}
+    {% else %}
+        কোন কেন্দ্র নির্ধারণ করা হয়নি
+    {% endif %}
+</div>
+
+<!-- Auto Screening -->
+{% if circular.auto_screen_total_score > 0 %}
+<div class="section-title">অটো-স্ক্রিনিং</div>
+<table class="info">
+    <tr>
+        <td class="label">সর্বোচ্চ স্কোর</td>
+        <td class="value">{{ circular.auto_screen_total_score }}</td>
+        <td class="label">পাসের ন্যূনতম স্কোর</td>
+        <td class="value">{{ circular.auto_screen_min_score }}</td>
+    </tr>
+</table>
+{% endif %}
+
+<!-- Checklist -->
+{% with items=circular.checklist_items.all %}
+{% if items %}
+<div class="section-title">চেকলিস্ট আইটেম (নির্বাচনের শর্তাবলী)</div>
+<table class="checklist">
+    <thead>
         <tr>
-            <td class="label">সর্বোচ্চ স্কোর</td>
-            <td class="value">{{ circular.auto_screen_total_score }}</td>
-            <td class="label">পাসের ন্যূনতম স্কোর</td>
-            <td class="value">{{ circular.auto_screen_min_score }}</td>
+            <th style="width:32px">#</th>
+            <th>নির্ধারক</th>
+            <th>লেবেল</th>
+            <th>অপারেটর</th>
+            <th>প্রত্যাশিত মান</th>
+            <th>স্কোর</th>
+            <th style="width:55px">বাধ্যতামূলক</th>
         </tr>
-    </table>
-    {% endif %}
+    </thead>
+    <tbody>
+        {% for item in items %}
+        <tr>
+            <td style="text-align:center">{{ forloop.counter }}</td>
+            <td>{{ item.get_criteria_type_display }}</td>
+            <td>{{ item.label_bn }}</td>
+            <td>{{ item.operator }}</td>
+            <td>{{ item.expected_value }}</td>
+            <td style="text-align:center">{{ item.score }}</td>
+            <td style="text-align:center">{% if item.required %}হ্যাঁ{% else %}না{% endif %}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+{% endwith %}
 
-    {% with items=circular.checklist_items.all %}
-    {% if items %}
-    <div class="section-title">চেকলিস্ট আইটেম</div>
-    <table class="checklist">
-        <thead>
-            <tr>
-                <th style="width:40px">ক্রমিক</th>
-                <th>নির্ধারক</th>
-                <th>লেবেল</th>
-                <th>অপারেটর</th>
-                <th>প্রত্যাশিত মান</th>
-                <th>স্কোর</th>
-                <th style="width:60px">বাধ্যতামূলক</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in items %}
-            <tr>
-                <td style="text-align:center">{{ forloop.counter }}</td>
-                <td>{{ item.get_criteria_type_display }}</td>
-                <td>{{ item.label_bn }}</td>
-                <td>{{ item.operator }}</td>
-                <td>{{ item.expected_value }}</td>
-                <td style="text-align:center">{{ item.score }}</td>
-                <td style="text-align:center">{% if item.required %}হ্যাঁ{% else %}না{% endif %}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% endif %}
-    {% endwith %}
+<div class="note">
+    <strong>নির্দেশনা:</strong> আবেদনকারীদের নির্ধারিত সময়ের মধ্যে অনলাইনে আবেদন সম্পন্ন করতে হবে। অসম্পূর্ণ বা ভুল তথ্য প্রদান করলে আবেদন বাতিল বলে গণ্য হবে। কোনো প্রকার হেরফের বা জালিয়াতি আইনত দণ্ডনীয় অপরাধ।
+</div>
 
-    <div class="signature-area">
-        <div class="signature-box">
-            <div class="signature-line">প্রস্তুতকারকের স্বাক্ষর</div>
-        </div>
-        <div class="signature-box">
-            <div class="signature-line">কর্তৃপক্ষের স্বাক্ষর</div>
-        </div>
+<!-- Signature -->
+<div class="signature-area">
+    <div class="signature-box">
+        <div class="title">প্রস্তুতকারক</div>
+        <div class="designation">প্রশিক্ষণ কর্মকর্তা</div>
+        <div class="signature-line">স্বাক্ষর</div>
     </div>
-
-    <div class="footer">
-        <p>বাংলাদেশ সড়ক পরিবহন কর্পোরেশন (বিআরটিসি) | প্রশিক্ষণ ব্যবস্থাপনা সিস্টেম</p>
-        <p>সিস্টেম দ্বারা জেনারেট করা হয়েছে - {% now "d/m/Y H:i" %}</p>
+    <div class="signature-box">
+        <div class="title">অনুমোদনকারী</div>
+        <div class="designation">মহাপরিচালক (প্রশিক্ষণ)</div>
+        <div class="signature-line">স্বাক্ষর</div>
     </div>
+</div>
+
+<!-- Distribution -->
+<div class="distribution">
+    <div class="dist-title">বিতরণ তালিকা:</div>
+    <ol style="margin-left:18px; padding-left:0;">
+        <li>সকল আঞ্চলিক কার্যালয়, বিআরটিসি</li>
+        <li>সকল জেলা পরিবহন অফিসার</li>
+        <li>সম্প্রসারিত মনিটরিং সেল</li>
+        <li>প্রশিক্ষণ বিভাগ, সদর দপ্তর</li>
+        {% if not circular.all_centers %}
+        {% for c in centers %}
+        <li>{{ c.name_bn }} ({{ c.code }}){% if c.address %} — {{ c.address }}{% endif %}</li>
+        {% endfor %}
+        {% endif %}
+    </ol>
+</div>
+
+<div class="distribution" style="margin-top:8px;">
+    <div class="dist-title">মো. কপি (সূচনার জন্য):</div>
+    <ol style="margin-left:18px; padding-left:0;">
+        <li>মহাপরিচালক, বিআরটিসি</li>
+        <li>সচিব, সড়ক পরিবহন ও সেতু মন্ত্রণালয়</li>
+        <li>নথি</li>
+    </ol>
+</div>
+
+<div class="footer">
+    <p>বাংলাদেশ সড়ক পরিবহন কর্পোরেশন (বিআরটিসি) | প্রশিক্ষণ ব্যবস্থাপনা সিস্টেম</p>
+    <p>সিস্টেম কর্তৃক জেনারেটেড — {% now "d/m/Y H:i" %}</p>
+</div>
 
 </body>
 </html>

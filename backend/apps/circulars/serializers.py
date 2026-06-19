@@ -58,9 +58,10 @@ class CircularDetailSerializer(serializers.ModelSerializer):
     course_type = serializers.CharField(source='course.get_course_type_display', read_only=True)
     course_duration = serializers.CharField(source='course.duration_months', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
-    created_by_name = serializers.CharField(
-        source='created_by.full_name_bn', read_only=True, default=None,
-    )
+    created_by_name = serializers.SerializerMethodField()
+
+    def get_created_by_name(self, obj):
+        return obj.created_by.full_name_bn if obj.created_by else None
     checklist_items = ChecklistItemSerializer(many=True, read_only=True)
 
     class Meta:

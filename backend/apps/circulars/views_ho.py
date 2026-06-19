@@ -37,7 +37,7 @@ class IsHeadOffice(permissions.BasePermission):
 
 class HOCircularViewSet(viewsets.ModelViewSet):
     queryset = Circular.objects.prefetch_related(
-        'eligible_centers', 'checklist_items', 'applications',
+        'eligible_centers', 'checklist_items',
     ).select_related('course', 'created_by').all()
     permission_classes = [permissions.IsAuthenticated, IsHeadOffice]
     filter_backends = (DjangoFilterBackend, drf_filters.SearchFilter, drf_filters.OrderingFilter)
@@ -56,7 +56,7 @@ class HOCircularViewSet(viewsets.ModelViewSet):
     def _log(self, request, action_desc, target_id=None):
         ActionLog.objects.create(
             user=request.user,
-            action=action_desc,
+            action=action_desc[:255],
             target_type='Circular',
             target_id=str(target_id) if target_id else '',
             description=action_desc,
@@ -101,6 +101,17 @@ class HOCircularViewSet(viewsets.ModelViewSet):
         circular.status = Circular.Status.CLOSED
         circular.save(update_fields=['status'])
         self._log(request, f'Closed circular {circular.title_bn}', circular.id)
+        return Response(CircularDetailSerializer(circular).data)
+
+    @action(detail=True, methods=['post'])
+    def unpublish(self, request, pk=None):
+        circular = self.get_object()
+        if circular.status != Circular.Status.PUBLISHED:
+            return Response({'error': 'শুধুমাত্র প্রকাশিত সার্কুলার খসড়ায় ফেরত নেওয়া যাবে'}, status=400)
+        circular.status = Circular.Status.DRAFT
+        circular.published_at = None
+        circular.save(update_fields=['status', 'published_at'])
+        self._log(request, f'Unpublished circular {circular.title_bn}', circular.id)
         return Response(CircularDetailSerializer(circular).data)
 
     @action(detail=True, methods=['post'])
@@ -585,10 +596,12 @@ class HOCircularViewSet(viewsets.ModelViewSet):
         centers = []
         if not circular.all_centers:
             centers = circular.eligible_centers.all()
+        font_path = settings.BASE_DIR / 'static' / 'fonts' / 'NikoshBAN.ttf'
         html = render_to_string('circulars/print_circular.html', {
             'circular': circular,
             'centers': centers,
             'course': circular.course,
+            'font_path': font_path,
         })
         pdf = HTML(string=html).write_pdf()
         filename = f'circular_{circular.public_url or circular.id}.pdf'

@@ -118,7 +118,7 @@ class Circular(models.Model):
         return f'{self.title_bn} - {centers}'
 
     def save(self, *args, **kwargs):
-        if not self.remaining_seats:
+        if self.remaining_seats is None:
             self.remaining_seats = self.total_seats
         super().save(*args, **kwargs)
 

@@ -208,7 +208,7 @@ class ActionLog(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
         null=True, verbose_name='ব্যবহারকারী',
     )
-    action = models.CharField(max_length=100, verbose_name='কর্ম')
+    action = models.CharField(max_length=255, verbose_name='কর্ম')
     target_type = models.CharField(max_length=50, blank=True, verbose_name='লক্ষ্যের ধরন')
     target_id = models.CharField(max_length=20, blank=True, verbose_name='লক্ষ্যের আইডি')
     description = models.TextField(blank=True, verbose_name='বিবরণ')

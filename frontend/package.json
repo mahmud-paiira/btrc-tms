@@ -27,6 +27,7 @@
     "recharts": "^2.12.7",
     "sass": "^1.79.4",
     "styled-components": "^6.1.13",
+    "tinymce": "^8.6.0",
     "zustand": "^5.0.13"
   },
   "devDependencies": {

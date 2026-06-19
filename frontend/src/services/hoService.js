@@ -117,6 +117,7 @@ const hoService = {
   deleteCircular(id) { return api.delete(`/ho/circulars/${id}/`); },
   publishCircular(id) { return api.post(`/ho/circulars/${id}/publish/`); },
   closeCircular(id) { return api.post(`/ho/circulars/${id}/close/`); },
+  unpublishCircular(id) { return api.post(`/ho/circulars/${id}/unpublish/`); },
   extendCircular(id, days) { return api.post(`/ho/circulars/${id}/extend/`, { days }); },
   getCircularAnalytics(id) { return api.get(`/ho/circulars/${id}/analytics/`); },
   getCircularApplications(id, params) { return api.get(`/ho/circulars/${id}/applications/`, { params }); },

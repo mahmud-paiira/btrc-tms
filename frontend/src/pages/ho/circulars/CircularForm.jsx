@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
 import hoService from '../../../services/hoService';
 import BanglaInput from '../../../components/common/BanglaInput';
+import SimpleEditor from '../../../components/common/SimpleEditor';
 
 const CRITERIA_TYPES = [
   { value: 'age', label: 'বয়স', icon: 'bi-calendar' },
@@ -387,10 +388,11 @@ export default function CircularForm({ editData, onClose, onDone }) {
                 </div>
                 <div className="mb-2">
                   <label className="form-label fw-semibold" style={{ fontSize: 12 }}>বিবরণ</label>
-                  <BanglaInput as="textarea" className="form-control border-0 bg-light" style={{ fontSize: 13 }}
-                    rows={3} value={form.description}
-                    onChange={e => update('description', e.target.value)}
-                    placeholder="সার্কুলারের বিস্তারিত বিবরণ লিখুন" />
+                  <SimpleEditor
+                    value={form.description}
+                    onChange={val => update('description', val)}
+                    placeholder="সার্কুলারের বিস্তারিত বিবরণ লিখুন"
+                  />
                 </div>
               </div>
             )}
@@ -656,6 +658,9 @@ export default function CircularForm({ editData, onClose, onDone }) {
           </div>
         </div>
       </div>
+      <style>{`
+        .simple-editor [contenteditable]:empty:before { content: attr(data-placeholder); color: #94a3b8; pointer-events: none; }
+      `}</style>
     </div>
   );
 }
