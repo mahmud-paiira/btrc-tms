@@ -266,13 +266,24 @@ class Command(BaseCommand):
 
         # 10. Seed Assessment records
         log('  -- Assessment Records --')
+        all_assessors = list(Assessor.objects.select_related('user').filter(status='active')[:10])
         assm_count = 0
+        am_created = 0
         assessment_types = list(Assessment.AssessmentType.values)
         competency_pool = ['competent', 'competent', 'competent', 'not_competent', 'absent']
-        for batch in batches:
+        for bi, batch in enumerate(batches):
             mappings = list(AssessorMapping.objects.filter(
                 center=batch.center, course=batch.course, status='active',
             ).select_related('assessor__user'))
+            if not mappings and all_assessors:
+                a = all_assessors[bi % len(all_assessors)]
+                mapping, _ = AssessorMapping.objects.get_or_create(
+                    assessor=a, center=batch.center, course=batch.course,
+                    defaults=dict(status='active'),
+                )
+                if _:
+                    am_created += 1
+                mappings = [mapping]
             if not mappings:
                 continue
             mapping = mappings[0]
@@ -306,7 +317,7 @@ class Command(BaseCommand):
                     )
                     if created:
                         assm_count += 1
-        log(f'  [OK] {assm_count} assessment records created')
+        log(f'  [OK] {assm_count} assessment records created ({am_created} new assessor mappings)')
 
         # 11. Assign trainer to each batch
         log('  -- Batch Trainer Assignment --')
