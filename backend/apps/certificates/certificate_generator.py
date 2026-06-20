@@ -1,20 +1,27 @@
 import io
 import os
 import zipfile
+from pathlib import Path
 
 from django.conf import settings
 from django.template.loader import render_to_string
 from django.core.files.base import ContentFile
 from weasyprint import HTML
 
+FONT_PATH = Path(settings.STATICFILES_DIRS[0], 'fonts', 'NikoshBAN.ttf').as_uri()
+
 
 def generate_pdf_for_certificate(certificate, template='certificates/certificate_template.html'):
+    qr_path = certificate.qr_code_image.path if certificate.qr_code_image else ''
+    qr_file_url = Path(qr_path).as_uri() if qr_path else ''
     html_string = render_to_string(template, {
         'certificate': certificate,
         'trainee': certificate.trainee,
         'batch': certificate.batch,
         'STATIC_URL': settings.STATIC_URL,
         'SITE_URL': settings.SITE_URL,
+        'FONT_PATH': FONT_PATH,
+        'QR_FILE_URL': qr_file_url,
     })
 
     pdf_buffer = io.BytesIO()

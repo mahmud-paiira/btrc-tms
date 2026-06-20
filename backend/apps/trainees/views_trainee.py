@@ -2,6 +2,7 @@ from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.contrib.auth import update_session_auth_hash
+from django.core.exceptions import ObjectDoesNotExist
 
 from .models import Trainee
 from apps.attendance.models import Attendance, AttendanceSummary
@@ -22,9 +23,12 @@ class TraineePortalViewSet(viewsets.ViewSet):
     permission_classes = [permissions.IsAuthenticated, IsTraineeUser]
 
     def get_trainee(self, user):
-        return Trainee.objects.select_related(
-            'user', 'center', 'batch__course', 'batch__circular',
-        ).get(user=user)
+        try:
+            return Trainee.objects.select_related(
+                'user', 'center', 'batch__course', 'batch__circular',
+            ).get(user=user)
+        except ObjectDoesNotExist:
+            return None
 
     def list(self, request):
         return self.me(request)
@@ -32,6 +36,8 @@ class TraineePortalViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['get'])
     def me(self, request):
         trainee = self.get_trainee(request.user)
+        if not trainee:
+            return Response({'detail': 'আপনি এখনো কোনো ব্যাচে নথিভুক্ত হননি।'}, status=404)
         batch = trainee.batch
 
         attendance_pct = None
@@ -74,7 +80,7 @@ class TraineePortalViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['get'])
     def schedule(self, request):
         trainee = self.get_trainee(request.user)
-        if not trainee.batch:
+        if not trainee or not trainee.batch:
             return Response({'detail': 'আপনি কোনো ব্যাচে নথিভুক্ত নন।'}, status=400)
 
         plans = BatchWeekPlan.objects.filter(batch=trainee.batch).select_related(
@@ -117,7 +123,7 @@ class TraineePortalViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['get'])
     def attendance(self, request):
         trainee = self.get_trainee(request.user)
-        if not trainee.batch:
+        if not trainee or not trainee.batch:
             return Response({'detail': 'আপনি কোনো ব্যাচে নথিভুক্ত নন।'}, status=400)
 
         year = request.query_params.get('year')
@@ -186,7 +192,7 @@ class TraineePortalViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['get'])
     def assessments(self, request):
         trainee = self.get_trainee(request.user)
-        if not trainee.batch:
+        if not trainee or not trainee.batch:
             return Response({'detail': 'আপনি কোনো ব্যাচে নথিভুক্ত নন।'}, status=400)
 
         assessments = Assessment.objects.filter(
@@ -222,7 +228,7 @@ class TraineePortalViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['get'])
     def certificate(self, request):
         trainee = self.get_trainee(request.user)
-        if not trainee.batch:
+        if not trainee or not trainee.batch:
             return Response({'detail': 'আপনি কোনো ব্যাচে নথিভুক্ত নন।'}, status=400)
 
         cert = Certificate.objects.filter(
@@ -271,17 +277,18 @@ class TraineePortalViewSet(viewsets.ViewSet):
         if 'profile_image' in request.FILES:
             user.profile_image = request.FILES['profile_image']
 
-        allowed_trainee_fields = [
-            'bank_account_no', 'bank_name', 'bank_branch',
-            'nominee_name', 'nominee_relation', 'nominee_phone',
-        ]
-        for field in allowed_trainee_fields:
-            if field in request.data:
-                setattr(trainee, field, request.data[field])
+        if trainee:
+            allowed_trainee_fields = [
+                'bank_account_no', 'bank_name', 'bank_branch',
+                'nominee_name', 'nominee_relation', 'nominee_phone',
+            ]
+            for field in allowed_trainee_fields:
+                if field in request.data:
+                    setattr(trainee, field, request.data[field])
+            trainee.save()
 
         user.save()
         profile.save()
-        trainee.save()
 
         return Response({'detail': 'প্রোফাইল সফলভাবে আপডেট হয়েছে।'})
 

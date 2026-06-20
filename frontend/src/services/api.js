@@ -5,8 +5,9 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
+  const skipAuth = config.url?.includes('/auth/login/');
   const token = localStorage.getItem('access_token');
-  if (token) {
+  if (token && !skipAuth) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   if (config.data instanceof FormData) {

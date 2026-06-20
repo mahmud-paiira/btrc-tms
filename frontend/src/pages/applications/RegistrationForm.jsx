@@ -54,9 +54,13 @@ export default function RegistrationForm() {
     education_qualification: '',
     chosen_center_id: '',
     profile_image: null,
+    nid_front_image: null,
+    nid_back_image: null,
   });
   const [checklistValues, setChecklistValues] = useState({});
   const [photoPreview, setPhotoPreview] = useState(null);
+  const [nidFrontPreview, setNidFrontPreview] = useState(null);
+  const [nidBackPreview, setNidBackPreview] = useState(null);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(null);
@@ -143,6 +147,12 @@ export default function RegistrationForm() {
     if (name === 'profile_image' && files[0]) {
       setForm((prev) => ({ ...prev, profile_image: files[0] }));
       setPhotoPreview(URL.createObjectURL(files[0]));
+    } else if (name === 'nid_front_image' && files[0]) {
+      setForm((prev) => ({ ...prev, nid_front_image: files[0] }));
+      setNidFrontPreview(URL.createObjectURL(files[0]));
+    } else if (name === 'nid_back_image' && files[0]) {
+      setForm((prev) => ({ ...prev, nid_back_image: files[0] }));
+      setNidBackPreview(URL.createObjectURL(files[0]));
     } else {
       setForm((prev) => ({ ...prev, [name]: value }));
     }
@@ -600,6 +610,60 @@ export default function RegistrationForm() {
               )}
             </div>
           </div>
+          <div className="col-md-6">
+            <label className="form-label fw-medium">এনআইডি (সামনে)</label>
+            <div className={`upload-box border rounded-3 p-3 text-center ${errors.nid_front_image ? 'border-danger' : 'border-dashed'}`}>
+              {nidFrontPreview ? (
+                <div className="d-flex align-items-center gap-3 justify-content-center">
+                  <img src={nidFrontPreview} alt="NID Front" className="rounded-3"
+                    style={{ width: 120, height: 80, objectFit: 'cover' }} />
+                  <div className="text-start">
+                    <p className="mb-1 small text-muted">আপলোড করা হয়েছে</p>
+                    <button className="btn btn-sm btn-outline-danger"
+                      onClick={() => { setForm(p => ({ ...p, nid_front_image: null })); setNidFrontPreview(null); }}>
+                      <i className="bi bi-trash me-1"></i>মুছে ফেলুন
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <label className="mb-0 cursor-pointer d-block" style={{ cursor: 'pointer' }}>
+                  <input type="file" accept="image/*" name="nid_front_image" onChange={handleChange}
+                    className="d-none" />
+                  <div className="py-2">
+                    <i className="bi bi-card-image fs-2 text-muted"></i>
+                    <p className="mb-0 mt-2 small text-muted">এনআইডি (সামনে) নির্বাচন করুন</p>
+                  </div>
+                </label>
+              )}
+            </div>
+          </div>
+          <div className="col-md-6">
+            <label className="form-label fw-medium">এনআইডি (পেছনে)</label>
+            <div className={`upload-box border rounded-3 p-3 text-center ${errors.nid_back_image ? 'border-danger' : 'border-dashed'}`}>
+              {nidBackPreview ? (
+                <div className="d-flex align-items-center gap-3 justify-content-center">
+                  <img src={nidBackPreview} alt="NID Back" className="rounded-3"
+                    style={{ width: 120, height: 80, objectFit: 'cover' }} />
+                  <div className="text-start">
+                    <p className="mb-1 small text-muted">আপলোড করা হয়েছে</p>
+                    <button className="btn btn-sm btn-outline-danger"
+                      onClick={() => { setForm(p => ({ ...p, nid_back_image: null })); setNidBackPreview(null); }}>
+                      <i className="bi bi-trash me-1"></i>মুছে ফেলুন
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <label className="mb-0 cursor-pointer d-block" style={{ cursor: 'pointer' }}>
+                  <input type="file" accept="image/*" name="nid_back_image" onChange={handleChange}
+                    className="d-none" />
+                  <div className="py-2">
+                    <i className="bi bi-card-image fs-2 text-muted"></i>
+                    <p className="mb-0 mt-2 small text-muted">এনআইডি (পেছনে) নির্বাচন করুন</p>
+                  </div>
+                </label>
+              )}
+            </div>
+          </div>
         </SectionCard>
 
         <div className="d-flex justify-content-between mt-4 pt-3 border-top">
@@ -681,6 +745,24 @@ export default function RegistrationForm() {
               <strong>প্রোফাইল ছবি:</strong>
               <img src={photoPreview} alt="Profile" className="rounded-3 border"
                 style={{ width: 80, height: 80, objectFit: 'cover' }} />
+            </div>
+          )}
+          {(nidFrontPreview || nidBackPreview) && (
+            <div className="px-4 py-3 border-top d-flex align-items-center gap-4 flex-wrap">
+              {nidFrontPreview && (
+                <div className="d-flex align-items-center gap-2">
+                  <strong>এনআইডি (সামনে):</strong>
+                  <img src={nidFrontPreview} alt="NID Front" className="rounded-3 border"
+                    style={{ width: 120, height: 80, objectFit: 'cover' }} />
+                </div>
+              )}
+              {nidBackPreview && (
+                <div className="d-flex align-items-center gap-2">
+                  <strong>এনআইডি (পেছনে):</strong>
+                  <img src={nidBackPreview} alt="NID Back" className="rounded-3 border"
+                    style={{ width: 120, height: 80, objectFit: 'cover' }} />
+                </div>
+              )}
             </div>
           )}
         </div>

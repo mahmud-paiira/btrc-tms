@@ -10,14 +10,8 @@
     }
     @font-face {
       font-family: 'Nikosh';
-      src: url('file://{{ STATIC_URL }}fonts/Nikosh.ttf') format('truetype');
+      src: url('{{ FONT_PATH }}') format('truetype');
       font-weight: normal;
-      font-style: normal;
-    }
-    @font-face {
-      font-family: 'Nikosh';
-      src: url('file://{{ STATIC_URL }}fonts/NikoshBold.ttf') format('truetype');
-      font-weight: bold;
       font-style: normal;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -299,8 +293,8 @@
 
       <!-- QR Code -->
       <div class="qr-block">
-        {% if certificate.qr_code_image %}
-          <img src="file://{{ certificate.qr_code_image.path }}" alt="QR">
+        {% if QR_FILE_URL %}
+          <img src="{{ QR_FILE_URL }}" alt="QR">
         {% endif %}
         <div class="qr-label">Scan to verify</div>
       </div>

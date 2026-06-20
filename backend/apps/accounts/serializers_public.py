@@ -82,7 +82,9 @@ class PublicLoginSerializer(serializers.Serializer):
         password = data['password']
 
         try:
-            if identifier.isdigit() and len(identifier) == 11:
+            if '@' in identifier:
+                user = User.objects.get(email=identifier)
+            elif identifier.isdigit() and len(identifier) == 11:
                 user = User.objects.get(phone=identifier)
             else:
                 user = User.objects.get(nid=identifier)

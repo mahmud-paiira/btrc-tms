@@ -7,7 +7,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .models import User, OTPVerification
+from .models import User, OTPVerification, LoginLog
 from .serializers_public import (
     PublicRegisterSerializer,
     PublicOTPVerifySerializer,
@@ -149,6 +149,10 @@ def public_login(request):
     serializer = PublicLoginSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     user = serializer.validated_data['user']
+
+    ip = request.META.get('REMOTE_ADDR', '')
+    ua = request.META.get('HTTP_USER_AGENT', '')
+    LoginLog.objects.create(user=user, ip_address=ip, user_agent=ua, is_success=True)
 
     refresh = RefreshToken.for_user(user)
     return Response({

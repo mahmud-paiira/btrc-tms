@@ -44,6 +44,7 @@ class PublicApplySerializer(serializers.ModelSerializer):
             'phone', 'email',
             'present_address', 'permanent_address',
             'education_qualification', 'profile_image',
+            'nid_front_image', 'nid_back_image',
             'gender_id',
             'education_level_id',
             'present_division_id', 'present_district_id',

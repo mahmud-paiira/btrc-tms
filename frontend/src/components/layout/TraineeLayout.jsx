@@ -10,12 +10,12 @@ const links = [
   {
     section: 'main',
     items: [
-      { to: '/trainee/dashboard', icon: 'bi-speedometer2', labelBn: 'ড্যাশবোর্ড' },
-      { to: '/trainee/schedule', icon: 'bi-calendar-week', labelBn: 'সময়সূচি' },
-      { to: '/trainee/attendance', icon: 'bi-check-circle', labelBn: 'উপস্থিতি' },
-      { to: '/trainee/assessment', icon: 'bi-clipboard-data', labelBn: 'মূল্যায়ন' },
-      { to: '/trainee/certificate', icon: 'bi-award', labelBn: 'সার্টিফিকেট' },
-      { to: '/trainee/profile', icon: 'bi-person-gear', labelBn: 'প্রোফাইল' },
+      { to: '/trainee/dashboard', icon: 'bi-speedometer2', labelKey: 'nav.dashboard', labelBn: 'ড্যাশবোর্ড' },
+      { to: '/trainee/schedule', icon: 'bi-calendar-week', labelKey: 'nav.schedule', labelBn: 'সময়সূচি' },
+      { to: '/trainee/attendance', icon: 'bi-check-circle', labelKey: 'nav.attendance', labelBn: 'উপস্থিতি' },
+      { to: '/trainee/assessment', icon: 'bi-clipboard-data', labelKey: 'nav.assessment', labelBn: 'মূল্যায়ন' },
+      { to: '/trainee/certificate', icon: 'bi-award', labelKey: 'nav.certificate', labelBn: 'সার্টিফিকেট' },
+      { to: '/trainee/profile', icon: 'bi-person-gear', labelKey: 'nav.profile', labelBn: 'প্রোফাইল' },
     ],
   },
 ];

@@ -46,5 +46,14 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
 
 class LoginSerializer(serializers.Serializer):
-    email = serializers.EmailField(label='ইমেইল')
+    email = serializers.CharField(label='ইমেইল/মোবাইল')
     password = serializers.CharField(write_only=True, label='পাসওয়ার্ড')
+
+    def validate_email(self, value):
+        if '@' in value:
+            if not User.objects.filter(email=value).exists():
+                raise serializers.ValidationError('এই ইমেইলে কোনো ব্যবহারকারী নেই')
+        else:
+            if not User.objects.filter(phone=value).exists():
+                raise serializers.ValidationError('এই নম্বরে কোনো ব্যবহারকারী নেই')
+        return value

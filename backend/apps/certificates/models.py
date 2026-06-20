@@ -112,10 +112,17 @@ class Certificate(models.Model):
         from weasyprint import HTML
         from io import BytesIO
         from django.core.files.base import ContentFile
+        from django.conf import settings
+        from pathlib import Path
+        font_path = Path(settings.STATICFILES_DIRS[0], 'fonts', 'NikoshBAN.ttf').as_uri()
+        qr_path = self.qr_code_image.path if self.qr_code_image else ''
+        qr_file_url = Path(qr_path).as_uri() if qr_path else ''
         html_string = render_to_string('certificates/certificate_template.html', {
             'certificate': self,
             'trainee': self.trainee,
             'batch': self.batch,
+            'FONT_PATH': font_path,
+            'QR_FILE_URL': qr_file_url,
         })
         pdf_file = BytesIO()
         HTML(string=html_string).write_pdf(pdf_file)

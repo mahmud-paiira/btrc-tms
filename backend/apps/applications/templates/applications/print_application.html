@@ -72,6 +72,12 @@
             {% if app.spouse_name_bn %}<tr><th>স্বামী/স্ত্রীর নাম</th><td>{{ app.spouse_name_bn }}</td></tr>{% endif %}
             <tr><th>জন্ম তারিখ</th><td>{{ app.date_of_birth|date:"d/m/Y" }}</td></tr>
             <tr><th>জাতীয় পরিচয়পত্র নং</th><td>{{ app.nid }}</td></tr>
+            {% if app.nid_front_image %}
+            <tr><th>এনআইডি (সামনে)</th><td class="photo-cell"><img src="{{ app.nid_front_image.url }}" alt="NID Front"></td></tr>
+            {% endif %}
+            {% if app.nid_back_image %}
+            <tr><th>এনআইডি (পেছনে)</th><td class="photo-cell"><img src="{{ app.nid_back_image.url }}" alt="NID Back"></td></tr>
+            {% endif %}
         </table>
     </div>
 

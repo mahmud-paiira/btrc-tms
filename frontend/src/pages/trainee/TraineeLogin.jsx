@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from '../../services/api';
+import publicService from '../../services/publicService';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useAuth } from '../../contexts/AuthContext';
 import LanguageSwitcher from '../../components/common/LanguageSwitcher';
@@ -10,7 +11,7 @@ export default function TraineeLogin() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { refreshUser } = useAuth();
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -22,13 +23,12 @@ export default function TraineeLogin() {
     e.preventDefault();
     setLoading(true);
     try {
-      const { data } = await api.post('/auth/login/', { email, password });
-      localStorage.setItem('access_token', data.access);
-      localStorage.setItem('refresh_token', data.refresh);
-      api.defaults.headers.Authorization = `Bearer ${data.access}`;
+      const { data } = await publicService.loginPublic({ identifier, password });
+      localStorage.setItem('access_token', data.access_token);
+      localStorage.setItem('refresh_token', data.refresh_token);
+      api.defaults.headers.Authorization = `Bearer ${data.access_token}`;
 
-      const userRes = await api.get('/auth/me/');
-      const user = userRes.data;
+      const user = data.user;
 
       if (user.user_type !== 'trainee') {
         toast.error(t('auth.traineeOnly', 'এই পোর্টাল শুধুমাত্র প্রশিক্ষণার্থীদের জন্য।'));
@@ -42,7 +42,7 @@ export default function TraineeLogin() {
       toast.success(t('auth.loginSuccess', 'সফলভাবে লগইন হয়েছে'));
       navigate('/trainee/dashboard');
     } catch {
-      toast.error(t('auth.loginFailed', 'ইমেইল বা পাসওয়ার্ড ভুল।'));
+      toast.error(t('auth.loginFailed', 'মোবাইল/এনআইডি বা পাসওয়ার্ড ভুল।'));
     } finally {
       setLoading(false);
     }
@@ -81,13 +81,13 @@ export default function TraineeLogin() {
         {!showForgot ? (
           <form onSubmit={handleLogin}>
             <div className="login-input-group">
-              <i className="bi bi-envelope login-input-icon" />
+              <i className="bi bi-phone login-input-icon" />
               <input
-                type="email"
+                type="text"
                 className="form-control"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder={t('auth.emailPlaceholder', 'ইমেইল ঠিকানা')}
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
+                placeholder={t('auth.identifierPlaceholder', 'মোবাইল / এনআইডি / ইমেইল')}
                 required
               />
             </div>
@@ -181,15 +181,6 @@ export default function TraineeLogin() {
 
         <div className="login-divider">
           <LanguageSwitcher />
-        </div>
-
-        <div className="login-footer">
-          <small>
-            <Link to="/login" className="login-link-btn login-link-btn-trainee">
-              <i className="bi bi-shield-lock me-1" />
-              {t('auth.staffLogin', 'স্টাফ লগইন')}
-            </Link>
-          </small>
         </div>
       </div>
     </div>
