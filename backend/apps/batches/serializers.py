@@ -222,10 +222,6 @@ class BatchEnrollmentBulkSerializer(serializers.Serializer):
         child=serializers.IntegerField(),
         label='প্রশিক্ষণার্থী আইডি সমূহ',
     )
-    batch = serializers.PrimaryKeyRelatedField(
-        queryset=Batch.objects.all(),
-        label='ব্যাচ',
-    )
 
 
 class BatchCalendarDaySerializer(serializers.ModelSerializer):
