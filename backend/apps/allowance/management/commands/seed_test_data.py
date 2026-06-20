@@ -1,16 +1,29 @@
 import sys
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime as dt
 from decimal import Decimal
 from apps.accounts.models import User
 from apps.centers.models import Center
 from apps.batches.models import Batch, BatchEnrollment, BatchWeekPlan, BatchCalendarDay, Holiday
+from apps.courses.models import Course
 from apps.trainees.models import Trainee
 from apps.attendance.models import Attendance, AttendanceSummary
 from apps.allowance.models import AllowanceCategory, AllowanceTier, TraineeAllowance
 from apps.trainers.models import Trainer
 
+PHONE_COUNTER = [50000000]
+NID_COUNTER = [2000000000]
+
+def next_phone():
+    c = PHONE_COUNTER[0]
+    PHONE_COUNTER[0] += 1
+    return f'017{c:08d}'
+
+def next_nid():
+    c = NID_COUNTER[0]
+    NID_COUNTER[0] += 1
+    return str(c)
 
 def log(msg):
     sys.stdout.write(msg + '\n')
@@ -46,7 +59,7 @@ class Command(BaseCommand):
         # 1. Seed accountant users
         log('  -- Accountant Users --')
         acct_count = 0
-        for ci, center in enumerate(centers):
+        for center in centers:
             email = f'accountant_{center.code.lower()}@brtc.gov.bd'
             try:
                 user = User.objects.get(email=email)
@@ -55,8 +68,8 @@ class Command(BaseCommand):
                     email=email, user_type='accountant',
                     full_name_bn=f'{center.name_bn} accountant',
                     full_name_en=f'{center.name_en} Accountant',
-                    phone=f'017{90000000 + ci:08d}',
-                    nid=f'{9999999900 + ci}',
+                    phone=next_phone(),
+                    nid=next_nid(),
                     center=center,
                 )
                 acct_count += 1
@@ -73,6 +86,45 @@ class Command(BaseCommand):
                 batch.save(update_fields=['shift'])
                 shift_count += 1
         log(f'  [OK] {shift_count} batches assigned shifts')
+
+        # 2.5. Create week plans for batches without any
+        log('  -- Batch Week Plans --')
+        wp_count = 0
+        for batch in batches:
+            if BatchWeekPlan.objects.filter(batch=batch).exists():
+                continue
+            if not trainers:
+                continue
+            lead = trainers[0]
+            associate = trainers[1] if len(trainers) > 1 else None
+            plan = [
+                (6, 1, 'theory', '9:00', '11:00', 'তত্ত্ব', 'Theory'),
+                (6, 2, 'practical', '11:30', '13:00', 'ব্যবহারিক', 'Practical'),
+                (0, 3, 'theory', '9:00', '11:00', 'তত্ত্ব', 'Theory'),
+                (0, 4, 'practical', '11:30', '13:00', 'ব্যবহারিক', 'Practical'),
+                (1, 5, 'practical', '9:00', '11:00', 'ব্যবহারিক', 'Practical'),
+                (2, 6, 'theory', '9:00', '11:00', 'তত্ত্ব', 'Theory'),
+                (3, 7, 'practical', '9:00', '11:00', 'ব্যবহারিক', 'Practical'),
+                (4, 8, 'theory', '9:00', '11:00', 'তত্ত্ব', 'Theory'),
+            ]
+            for day_of_week, session_no, ct, st, et, topic_bn, topic_en in plan:
+                start_time = dt.strptime(st, '%H:%M').time()
+                end_time = dt.strptime(et, '%H:%M').time()
+                dur = round((dt.strptime(et, '%H:%M') - dt.strptime(st, '%H:%M')).seconds / 3600, 1)
+                BatchWeekPlan.objects.get_or_create(
+                    batch=batch, term_no=1, term_day=day_of_week, session_no=session_no,
+                    defaults=dict(
+                        class_type=ct, start_date=batch.start_date, end_date=batch.end_date,
+                        day_of_week=day_of_week,
+                        start_time=start_time, end_time=end_time,
+                        duration_hours=Decimal(str(dur)),
+                        training_room_bn='কক্ষ ১০১', training_room_en='Room 101',
+                        lead_trainer=lead, associate_trainer=associate,
+                        topic_bn=topic_bn, topic_en=topic_en,
+                    ),
+                )
+                wp_count += 1
+        log(f'  [OK] {wp_count} week plans created')
 
         # 3. Seed BatchCalendarDay
         log('  -- Batch Calendar Days --')
@@ -205,7 +257,7 @@ class Command(BaseCommand):
         for i, trainee in enumerate(trainees):
             if not trainee.mobile_banking_number:
                 trainee.mobile_banking_provider = providers[i % len(providers)]
-                trainee.mobile_banking_number = f'017{80000000 + i:08d}'
+                trainee.mobile_banking_number = next_phone()
                 trainee.save(update_fields=['mobile_banking_provider', 'mobile_banking_number'])
                 mb_count += 1
         log(f'  [OK] {mb_count} trainees updated with mobile banking')
