@@ -264,23 +264,6 @@ class Command(BaseCommand):
                 mb_count += 1
         log(f'  [OK] {mb_count} trainees updated with mobile banking')
 
-        # 8. Set known credentials for all non-admin users
-        log('  -- User Credentials --')
-        cred_count = 0
-        for trainee in trainees:
-            trainee.user.set_password('trainee123')
-            trainee.user.save(update_fields=['password'])
-            cred_count += 1
-        for trainer in trainers:
-            trainer.user.set_password('trainer123')
-            trainer.user.save(update_fields=['password'])
-            cred_count += 1
-        for assessor in Assessor.objects.select_related('user').all():
-            assessor.user.set_password('assessor123')
-            assessor.user.save(update_fields=['password'])
-            cred_count += 1
-        log(f'  [OK] {cred_count} user passwords set (trainee123 / trainer123 / assessor123)')
-
         # 10. Seed Assessment records
         log('  -- Assessment Records --')
         assm_count = 0
@@ -325,7 +308,7 @@ class Command(BaseCommand):
                         assm_count += 1
         log(f'  [OK] {assm_count} assessment records created')
 
-        # 11. Assign lead trainer to each batch
+        # 11. Assign trainer to each batch
         log('  -- Batch Trainer Assignment --')
         assign_count = 0
         for i, batch in enumerate(batches):
@@ -367,7 +350,6 @@ class Command(BaseCommand):
         log('  [OK] 5 allowance tiers (Platinum 1.5x to Base 0.5x)')
         log('  [OK] Trainee mobile banking (bKash/Nagad/Rocket)')
         log('  [OK] Allowance records with calculated amounts')
-        log('  [OK] Trainer, Trainee & Assessor test credentials')
         log('  [OK] Assessment records (assessor↔trainee linking)')
         log('  [OK] Trainer assignment to batches (lead + associate)')
         log('  [OK] Default week plan auto-creation on trainer assign')
