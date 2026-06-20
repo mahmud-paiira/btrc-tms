@@ -275,6 +275,17 @@ class Command(BaseCommand):
                 tr_count += 1
         log(f'  [OK] {tr_count} trainee passwords set to trainee123')
 
+        # 8.5. Set known credentials for trainer users
+        log('  -- Trainer User Credentials --')
+        tn_count = 0
+        for trainer in trainers:
+            user = trainer.user
+            if not user.check_password('trainer123'):
+                user.set_password('trainer123')
+                user.save(update_fields=['password'])
+                tn_count += 1
+        log(f'  [OK] {tn_count} trainer passwords set to trainer123')
+
         # 9. Set known credentials for assessor users
         log('  -- Assessor User Credentials --')
         asr_count = 0
@@ -337,6 +348,10 @@ class Command(BaseCommand):
         log('New accounts:')
         for center in centers:
             log(f'  accountant_{center.code.lower()}@brtc.gov.bd / accountant123 ({center.code})')
+        log('  trainer@brtc.gov.bd / trainer123 (Trainer Rahim)')
+        log('  trainer2@brtc.gov.bd / trainer123')
+        log('  trainer3@brtc.gov.bd / trainer123')
+        log('  trainer4@brtc.gov.bd / trainer123')
         log('  assessor@brtc.gov.bd / assessor123 (global assessor)')
         log('  assessor2@brtc.gov.bd / assessor123')
         log('  assessor3@brtc.gov.bd / assessor123')
@@ -351,6 +366,6 @@ class Command(BaseCommand):
         log('  [OK] 5 allowance tiers (Platinum 1.5x to Base 0.5x)')
         log('  [OK] Trainee mobile banking (bKash/Nagad/Rocket)')
         log('  [OK] Allowance records with calculated amounts')
-        log('  [OK] Trainee & Assessor test credentials')
+        log('  [OK] Trainer, Trainee & Assessor test credentials')
         log('  [OK] Assessment records (assessor↔trainee linking)')
         log('===================================')
