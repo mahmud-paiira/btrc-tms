@@ -14,7 +14,7 @@ from django.db import transaction
 from django.db.models import Q
 
 from apps.centers.models import Center
-from apps.trainers.models import Trainer
+from apps.trainers.models import Trainer, TrainerMapping
 from apps.trainees.models import Trainee
 from apps.trainees.serializers import TraineeListSerializer
 from .models import Batch, BatchWeekPlan, BatchEnrollment
@@ -114,6 +114,97 @@ class BatchViewSet(viewsets.ModelViewSet):
             return self.get_paginated_response(serializer.data)
         serializer = BatchWeekPlanListSerializer(plans, many=True)
         return Response(serializer.data)
+
+    @action(detail=True, methods=['post'])
+    def assign_trainer(self, request, pk=None):
+        batch = self.get_object()
+        center_id = None
+        if request.user.user_type == 'center_admin':
+            center_id = request.user.center_id
+        elif request.user.user_type != 'head_office':
+            return Response({'error': 'অনুমতি নেই।'}, status=403)
+        if center_id and str(batch.center_id) != str(center_id):
+            return Response({'error': 'আপনি শুধুমাত্র নিজ কেন্দ্রের ব্যাচে নিয়োগ দিতে পারেন।'}, status=403)
+
+        trainer_id = request.data.get('trainer_id')
+        associate_id = request.data.get('associate_trainer_id')
+        if not trainer_id:
+            return Response({'error': 'প্রধান প্রশিক্ষক নির্বাচন করুন।'}, status=400)
+
+        try:
+            lead = Trainer.objects.select_related('user').get(
+                pk=trainer_id, status='active', approval_status='approved',
+            )
+        except Trainer.DoesNotExist:
+            return Response({'error': 'প্রধান প্রশিক্ষক খুঁজে পাওয়া যায়নি বা সক্রিয় নন।'}, status=400)
+
+        if associate_id and str(associate_id) != str(trainer_id):
+            try:
+                associate = Trainer.objects.select_related('user').get(
+                    pk=associate_id, status='active', approval_status='approved',
+                )
+            except Trainer.DoesNotExist:
+                return Response({'error': 'সহকারী প্রশিক্ষক খুঁজে পাওয়া যায়নি বা সক্রিয় নন।'}, status=400)
+        else:
+            associate = None
+
+        mapping_exists = TrainerMapping.objects.filter(
+            trainer=lead, center=batch.center, course=batch.course, status='active',
+        ).exists()
+        if not mapping_exists and not request.user.is_superuser:
+            err = 'প্রধান প্রশিক্ষক এই ব্যাচের কেন্দ্র ও কোর্সের জন্য নির্ধারিত নন।'
+            return Response({'error': err}, status=400)
+
+        if associate:
+            assoc_mapped = TrainerMapping.objects.filter(
+                trainer=associate, center=batch.center, course=batch.course, status='active',
+            ).exists()
+            if not assoc_mapped and not request.user.is_superuser:
+                err = 'সহকারী প্রশিক্ষক এই ব্যাচের কেন্দ্র ও কোর্সের জন্য নির্ধারিত নন।'
+                return Response({'error': err}, status=400)
+
+        existing_plans = BatchWeekPlan.objects.filter(batch=batch)
+        if not existing_plans.exists():
+            self._create_default_week_plans(batch, lead, associate)
+
+        updated = BatchWeekPlan.objects.filter(batch=batch).update(
+            lead_trainer=lead,
+            associate_trainer=associate,
+        )
+        return Response({
+            'updated_plans': updated,
+            'lead_trainer_name': lead.user.full_name_bn,
+            'lead_trainer_id': lead.id,
+            'associate_trainer_name': associate.user.full_name_bn if associate else None,
+            'associate_trainer_id': associate.id if associate else None,
+        })
+
+    def _create_default_week_plans(self, batch, lead, associate):
+        from datetime import time as dt_time
+        default_plans = [
+            (6, 1, 'theory', '09:00', '11:00', 'তত্ত্ব', 'Theory'),
+            (6, 2, 'practical', '11:30', '13:00', 'ব্যবহারিক', 'Practical'),
+            (0, 3, 'theory', '09:00', '11:00', 'তত্ত্ব', 'Theory'),
+            (0, 4, 'practical', '11:30', '13:00', 'ব্যবহারিক', 'Practical'),
+            (1, 5, 'practical', '09:00', '11:00', 'ব্যবহারিক', 'Practical'),
+            (2, 6, 'theory', '09:00', '11:00', 'তত্ত্ব', 'Theory'),
+            (3, 7, 'practical', '09:00', '11:00', 'ব্যবহারিক', 'Practical'),
+            (4, 8, 'theory', '09:00', '11:00', 'তত্ত্ব', 'Theory'),
+        ]
+        for dow, sno, ct, st, et, t_bn, t_en in default_plans:
+            start_time = dt_time(*map(int, st.split(':')))
+            end_time = dt_time(*map(int, et.split(':')))
+            dur = round((end_time.hour * 60 + end_time.minute - start_time.hour * 60 - start_time.minute) / 60, 1)
+            BatchWeekPlan.objects.create(
+                batch=batch, term_no=1, term_day=dow, session_no=sno,
+                class_type=ct, start_date=batch.start_date, end_date=batch.end_date,
+                day_of_week=dow,
+                start_time=start_time, end_time=end_time,
+                duration_hours=dur,
+                training_room_bn='কক্ষ ১০১', training_room_en='Room 101',
+                lead_trainer=lead, associate_trainer=associate,
+                topic_bn=t_bn, topic_en=t_en,
+            )
 
     @action(detail=True, methods=['post'])
     def add_week_plan(self, request, pk=None):

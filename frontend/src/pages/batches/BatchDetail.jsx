@@ -7,6 +7,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { formatDate } from '../../utils/dateFormatter';
 import AddTraineeModal from '../../components/batches/AddTraineeModal';
 import TransferModal from '../../components/batches/TransferModal';
+import AssignTrainerModal from '../../components/batches/AssignTrainerModal';
 
 const STATUS_BADGE = {
   scheduled: 'secondary',
@@ -35,6 +36,7 @@ export default function BatchDetail() {
   const [actionLoading, setActionLoading] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [transferTarget, setTransferTarget] = useState(null);
+  const [showAssignTrainer, setShowAssignTrainer] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -318,6 +320,12 @@ export default function BatchDetail() {
                 >
                   {actionLoading === 'generateCalendar' ? 'প্রক্রিয়াধীন...' : 'ক্যালেন্ডার জেনারেট'}
                 </button>
+                <button
+                  className="btn btn-outline-primary btn-sm"
+                  onClick={() => setShowAssignTrainer(true)}
+                >
+                  প্রশিক্ষক নিয়োগ
+                </button>
               </div>
             </div>
           )}
@@ -420,6 +428,13 @@ export default function BatchDetail() {
           currentBatchId={transferTarget.batchId}
           onTransferred={loadData}
           onClose={() => setTransferTarget(null)}
+        />
+      )}
+      {showAssignTrainer && (
+        <AssignTrainerModal
+          batchId={id}
+          onAssigned={loadData}
+          onClose={() => setShowAssignTrainer(false)}
         />
       )}
     </div>

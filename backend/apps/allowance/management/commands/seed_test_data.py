@@ -10,7 +10,7 @@ from apps.courses.models import Course
 from apps.trainees.models import Trainee
 from apps.attendance.models import Attendance, AttendanceSummary
 from apps.allowance.models import AllowanceCategory, AllowanceTier, TraineeAllowance
-from apps.trainers.models import Trainer
+from apps.trainers.models import Trainer, TrainerMapping
 from apps.assessors.models import Assessor, AssessorMapping
 from apps.assessments.models import Assessment
 
@@ -325,6 +325,23 @@ class Command(BaseCommand):
                         assm_count += 1
         log(f'  [OK] {assm_count} assessment records created')
 
+        # 11. Assign lead trainer to each batch
+        log('  -- Batch Trainer Assignment --')
+        assign_count = 0
+        for i, batch in enumerate(batches):
+            lead = trainers[i % len(trainers)]
+            associate = trainers[(i + 1) % len(trainers)] if len(trainers) > 1 else None
+            plans = list(BatchWeekPlan.objects.filter(batch=batch)[:1])
+            if plans:
+                plans[0].lead_trainer = lead
+                plans[0].associate_trainer = associate
+                plans[0].save(update_fields=['lead_trainer', 'associate_trainer'])
+                BatchWeekPlan.objects.filter(batch=batch).exclude(pk=plans[0].pk).update(
+                    lead_trainer=lead, associate_trainer=associate,
+                )
+                assign_count += 1
+        log(f'  [OK] {assign_count} batches assigned trainers (lead + associate)')
+
         log('')
         log('===================================')
         log('Test data seeding complete!')
@@ -352,4 +369,6 @@ class Command(BaseCommand):
         log('  [OK] Allowance records with calculated amounts')
         log('  [OK] Trainer, Trainee & Assessor test credentials')
         log('  [OK] Assessment records (assessor↔trainee linking)')
+        log('  [OK] Trainer assignment to batches (lead + associate)')
+        log('  [OK] Default week plan auto-creation on trainer assign')
         log('===================================')

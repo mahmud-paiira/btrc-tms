@@ -73,6 +73,10 @@ const batchService = {
     return api.post(`/batches/batches/${id}/add_trainee/`, data);
   },
 
+  assignTrainer(id, data) {
+    return api.post(`/batches/batches/${id}/assign_trainer/`, data);
+  },
+
   availableTrainees(id, params) {
     return api.get(`/batches/batches/${id}/available_trainees/`, { params });
   },
