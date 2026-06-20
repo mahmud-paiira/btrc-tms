@@ -71,7 +71,7 @@ class AttendanceSummary(models.Model):
         related_name='attendance_summaries', verbose_name='ব্যাচ',
     )
     total_sessions = models.PositiveIntegerField(default=0, verbose_name='মোট সেশন')
-    attended_sessions = models.PositiveIntegerField(default=0, verbose_name='উপস্থিত সেশন')
+    attended_sessions = models.DecimalField(max_digits=8, decimal_places=2, default=0, verbose_name='উপস্থিত সেশন')
     attendance_percentage = models.DecimalField(
         max_digits=5, decimal_places=2, default=0,
         verbose_name='উপস্থিতির হার (%)',
@@ -86,16 +86,16 @@ class AttendanceSummary(models.Model):
         ]
 
     def refresh(self):
-        from django.db.models import Count, Q
         qs = Attendance.objects.filter(
             trainee=self.trainee, batch=self.batch,
         )
         self.total_sessions = qs.count()
-        self.attended_sessions = qs.filter(
-            Q(status=Attendance.Status.PRESENT) | Q(status=Attendance.Status.LATE),
-        ).count()
+        present = qs.filter(status=Attendance.Status.PRESENT).count()
+        late = qs.filter(status=Attendance.Status.LATE).count()
+        leave = qs.filter(status=Attendance.Status.LEAVE).count()
+        self.attended_sessions = present + late * 0.5 + leave
         self.attendance_percentage = round(
-            (self.attended_sessions / self.total_sessions * 100)
+            (float(self.attended_sessions) / self.total_sessions * 100)
             if self.total_sessions else 0, 2,
         )
         self.save(update_fields=['total_sessions', 'attended_sessions', 'attendance_percentage'])

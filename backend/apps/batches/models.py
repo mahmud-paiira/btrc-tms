@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 
 from django.db import models
 from django.core.exceptions import ValidationError
@@ -315,3 +315,24 @@ class BatchEnrollment(models.Model):
 
     def __str__(self):
         return f'{self.trainee.registration_no} → {self.batch.batch_no}'
+
+
+class BatchCalendarDay(models.Model):
+    batch = models.ForeignKey(
+        Batch, on_delete=models.CASCADE,
+        related_name='calendar_days', verbose_name='ব্যাচ',
+    )
+    date = models.DateField(verbose_name='তারিখ')
+    total_sessions = models.PositiveIntegerField(default=1, verbose_name='মোট সেশন')
+    is_holiday = models.BooleanField(default=False, verbose_name='ছুটির দিন')
+    is_generated = models.BooleanField(default=False, verbose_name='জেনারেট করা হয়েছে')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'ব্যাচ ক্যালেন্ডার দিন'
+        verbose_name_plural = 'ব্যাচ ক্যালেন্ডার দিন'
+        unique_together = ('batch', 'date')
+        ordering = ('date',)
+
+    def __str__(self):
+        return f'{self.batch.batch_no} - {self.date}'

@@ -35,6 +35,7 @@ export default function BatchCreate() {
     course: '',
     batch_name_bn: '',
     batch_name_en: '',
+    shift: '',
     total_seats: 30,
     start_date: '',
     end_date: '',
@@ -66,6 +67,7 @@ export default function BatchCreate() {
         course: data.course || '',
         batch_name_bn: data.batch_name_bn || '',
         batch_name_en: data.batch_name_en || '',
+        shift: data.shift || '',
         total_seats: data.total_seats || 30,
         start_date: data.start_date || '',
         end_date: data.end_date || '',
@@ -113,7 +115,7 @@ export default function BatchCreate() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.circular || !form.course || !form.batch_name_bn || !form.start_date || !form.end_date || !form.total_seats) {
+    if (!form.circular || !form.course || !form.batch_name_bn || !form.shift || !form.start_date || !form.end_date || !form.total_seats) {
       toast.warning(t('batch.create.required', 'প্রয়োজনীয় সকল ক্ষেত্র পূরণ করুন'));
       return;
     }
@@ -213,6 +215,14 @@ export default function BatchCreate() {
                     <input className="form-control" name="batch_name_en" value={form.batch_name_en} onChange={handleChange} placeholder="e.g. BRTC Batch 2026-01" />
                   </div>
                   <div className="col-md-4">
+                    <label className="form-label fw-bold">শিফট <span className="text-danger">*</span></label>
+                    <select className="form-select" name="shift" value={form.shift} onChange={handleChange} required>
+                      <option value="">-- নির্বাচন করুন --</option>
+                      <option value="shift_1">শিফট-১ (সকাল ৯:০০ - দুপুর ১:০০)</option>
+                      <option value="shift_2">শিফট-২ (দুপুর ২:০০ - সন্ধ্যা ৬:০০)</option>
+                    </select>
+                  </div>
+                  <div className="col-md-4">
                     <label className="form-label fw-bold">{t('batch.create.startDate', 'শুরুর তারিখ')} <span className="text-danger">*</span></label>
                     <input type="date" className="form-control" name="start_date" value={form.start_date} onChange={handleChange} required />
                   </div>
@@ -256,6 +266,7 @@ export default function BatchCreate() {
               <ul className="mb-0 small">
                 <li className="mb-2">{t('batch.create.guide1', 'প্রথমে সার্কুলার নির্বাচন করলে কোর্স ও শুরুর তারিখ স্বয়ংক্রীয়ভাবে বসে যাবে।')}</li>
                 <li className="mb-2">{t('batch.create.guide2', 'শেষের তারিখ শুরুর তারিখের পরে হতে হবে।')}</li>
+                <li className="mb-2">শিফট নির্বাচন করুন (শিফট-১: সকাল ৯-১টা, শিফট-২: দুপুর ২-৬টা)।</li>
                 <li className="mb-2">{t('batch.create.guide3', 'ব্যাচ তৈরি হওয়ার পর সাপ্তাহিক পরিকল্পনা যুক্ত করতে হবে।')}</li>
                 <li className="mb-2">{t('batch.create.guide4', 'সাপ্তাহিক পরিকল্পনার মোট ঘন্টা কোর্সের মোট ঘন্টার সাথে মিলতে হবে।')}</li>
                 <li>{t('batch.create.guide5', 'ব্যাচ শুরু করতে সাপ্তাহিক পরিকল্পনা সম্পূর্ণ ও বৈধ হতে হবে।')}</li>

@@ -15,6 +15,8 @@ from django.db.models import Q
 
 from apps.centers.models import Center
 from apps.trainers.models import Trainer
+from apps.trainees.models import Trainee
+from apps.trainees.serializers import TraineeListSerializer
 from .models import Batch, BatchWeekPlan, BatchEnrollment
 from .serializers import (
     BatchListSerializer,
@@ -24,6 +26,7 @@ from .serializers import (
     BatchWeekPlanWriteSerializer,
     BatchEnrollmentSerializer,
     BatchEnrollmentBulkSerializer,
+    BatchCalendarDaySerializer,
     ShiftSerializer,
     HolidaySerializer,
 )
@@ -209,6 +212,126 @@ class BatchViewSet(viewsets.ModelViewSet):
             'already_enrolled': len(skipped),
             'filled_seats': batch.filled_seats,
             'total_seats': batch.total_seats,
+        })
+
+    @action(detail=True, methods=['post'])
+    def add_trainee(self, request, pk=None):
+        batch = self.get_object()
+        reg_no = request.data.get('registration_no', '').strip()
+        if not reg_no:
+            return Response({'error': 'রেজিস্ট্রেশন নম্বর আবশ্যক।'}, status=400)
+        try:
+            trainee = Trainee.objects.get(registration_no=reg_no, center=batch.center)
+        except Trainee.DoesNotExist:
+            return Response({'error': f'"{reg_no}" নম্বরের কোনো প্রশিক্ষণার্থী এই কেন্দ্রে পাওয়া যায়নি।'}, status=404)
+
+        if BatchEnrollment.objects.filter(trainee=trainee, batch=batch).exists():
+            return Response({'error': 'প্রশিক্ষণার্থী ইতিমধ্যে এই ব্যাচে নথিভুক্ত।'}, status=400)
+
+        if batch.filled_seats >= batch.total_seats:
+            return Response({'error': 'ব্যাচে আসন পূর্ণ।'}, status=400)
+
+        enrollment = BatchEnrollment.objects.create(
+            trainee=trainee,
+            batch=batch,
+            status=BatchEnrollment.EnrollmentStatus.ACTIVE,
+        )
+        batch.filled_seats = BatchEnrollment.objects.filter(
+            batch=batch, status=BatchEnrollment.EnrollmentStatus.ACTIVE
+        ).count()
+        batch.save(update_fields=['filled_seats'])
+
+        return Response(BatchEnrollmentSerializer(enrollment).data, status=201)
+
+    @action(detail=True, methods=['get'])
+    def available_trainees(self, request, pk=None):
+        batch = self.get_object()
+        enrolled_ids = BatchEnrollment.objects.filter(
+            batch=batch, status=BatchEnrollment.EnrollmentStatus.ACTIVE
+        ).values_list('trainee_id', flat=True)
+        trainees = Trainee.objects.filter(center=batch.center).exclude(
+            id__in=enrolled_ids
+        ).select_related('user')
+        page = self.paginate_queryset(trainees)
+        if page is not None:
+            serializer = TraineeListSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = TraineeListSerializer(trainees, many=True)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['post'])
+    def generate_calendar(self, request, pk=None):
+        self.assert_admin_or_ho(request)
+        batch = self.get_object()
+        from .models import BatchCalendarDay, Holiday as BatchHoliday
+        from apps.attendance.models import Attendance, AttendanceSummary
+
+        week_plans = BatchWeekPlan.objects.filter(batch=batch)
+        if not week_plans.exists():
+            return Response({'error': 'প্রথমে সাপ্তাহিক পরিকল্পনা তৈরি করুন।'}, status=400)
+
+        days_map = {}
+        for wp in week_plans:
+            dow = wp.day_of_week
+            if dow not in days_map:
+                days_map[dow] = set()
+            days_map[dow].add(wp.session_no)
+
+        holidays = set(
+            BatchHoliday.objects.filter(
+                date__gte=batch.start_date,
+                date__lte=batch.end_date,
+            ).values_list('date', flat=True)
+        )
+
+        current = batch.start_date
+        created_days = 0
+        while current <= batch.end_date:
+            if current in holidays or current.weekday() in (4, 5):
+                current += timedelta(days=1)
+                continue
+            dow_map = {0: 6, 1: 0, 2: 1, 3: 2, 4: 3, 5: 4, 6: 5}
+            py_dow = dow_map[current.weekday()]
+            if py_dow in days_map:
+                _, was_created = BatchCalendarDay.objects.get_or_create(
+                    batch=batch, date=current,
+                    defaults={'total_sessions': len(days_map[py_dow]), 'is_generated': True},
+                )
+                if was_created:
+                    created_days += 1
+            current += timedelta(days=1)
+
+        active_enrollments = BatchEnrollment.objects.filter(
+            batch=batch, status=BatchEnrollment.EnrollmentStatus.ACTIVE,
+        ).select_related('trainee')
+
+        cal_days = BatchCalendarDay.objects.filter(batch=batch, is_generated=True, is_holiday=False)
+        attendance_created = 0
+        for cal_day in cal_days:
+            for session_no in range(1, cal_day.total_sessions + 1):
+                for enrollment in active_enrollments:
+                    _, was_created = Attendance.objects.get_or_create(
+                        trainee=enrollment.trainee,
+                        batch=batch,
+                        session_date=cal_day.date,
+                        session_no=session_no,
+                        defaults={'status': Attendance.Status.PRESENT},
+                    )
+                    if was_created:
+                        attendance_created += 1
+
+        for enrollment in active_enrollments:
+            summary, _ = AttendanceSummary.objects.get_or_create(
+                trainee=enrollment.trainee,
+                batch=batch,
+            )
+            summary.refresh()
+
+        return Response({
+            'calendar_days_created': created_days,
+            'attendance_records_created': attendance_created,
+            'enrolled_trainees': active_enrollments.count(),
+            'total_calendar_days': cal_days.count(),
         })
 
     def assert_admin_or_ho(self, request):
@@ -581,6 +704,56 @@ class BatchEnrollmentViewSet(viewsets.ModelViewSet):
         batch.save(update_fields=['filled_seats'])
 
         return Response(BatchEnrollmentSerializer(enrollment).data)
+
+    @action(detail=True, methods=['post'])
+    def transfer(self, request, pk=None):
+        enrollment = self.get_object()
+        if enrollment.status != BatchEnrollment.EnrollmentStatus.ACTIVE:
+            return Response({'error': 'শুধুমাত্র সক্রিয় নথিভুক্তি স্থানান্তর করা যাবে।'}, status=400)
+
+        target_batch_id = request.data.get('target_batch_id')
+        if not target_batch_id:
+            return Response({'error': 'target_batch_id আবশ্যক।'}, status=400)
+
+        try:
+            target_batch = Batch.objects.get(id=target_batch_id)
+        except Batch.DoesNotExist:
+            return Response({'error': 'টার্গেট ব্যাচ পাওয়া যায়নি।'}, status=404)
+
+        if target_batch.center_id != enrollment.batch.center_id:
+            return Response({'error': 'একই কেন্দ্রের ব্যাচে স্থানান্তর করা যাবে।'}, status=400)
+
+        if target_batch.filled_seats >= target_batch.total_seats:
+            return Response({'error': 'টার্গেট ব্যাচে আসন পূর্ণ।'}, status=400)
+
+        if BatchEnrollment.objects.filter(trainee=enrollment.trainee, batch=target_batch).exists():
+            return Response({'error': 'প্রশিক্ষণার্থী ইতিমধ্যে টার্গেট ব্যাচে নথিভুক্ত।'}, status=400)
+
+        from django.utils import timezone
+        old_batch = enrollment.batch
+
+        enrollment.status = BatchEnrollment.EnrollmentStatus.DROPPED
+        enrollment.dropped_date = timezone.now().date()
+        enrollment.drop_reason = 'স্থানান্তর'
+        enrollment.save(update_fields=['status', 'dropped_date', 'drop_reason'])
+
+        new_enrollment = BatchEnrollment.objects.create(
+            trainee=enrollment.trainee,
+            batch=target_batch,
+            status=BatchEnrollment.EnrollmentStatus.ACTIVE,
+        )
+
+        old_batch.filled_seats = BatchEnrollment.objects.filter(
+            batch=old_batch, status=BatchEnrollment.EnrollmentStatus.ACTIVE
+        ).count()
+        old_batch.save(update_fields=['filled_seats'])
+
+        target_batch.filled_seats = BatchEnrollment.objects.filter(
+            batch=target_batch, status=BatchEnrollment.EnrollmentStatus.ACTIVE
+        ).count()
+        target_batch.save(update_fields=['filled_seats'])
+
+        return Response(BatchEnrollmentSerializer(new_enrollment).data, status=201)
 
 
 class ShiftViewSet(viewsets.ModelViewSet):

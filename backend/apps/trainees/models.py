@@ -71,6 +71,11 @@ class Trainee(models.Model):
     bank_branch = models.CharField(
         max_length=255, blank=True, verbose_name='ব্যাংক শাখা',
     )
+    mobile_banking_provider = models.CharField(
+        max_length=20, blank=True, verbose_name='মোবাইল ব্যাংকিং',
+        choices=[('bkash', 'বিকাশ'), ('nagad', 'নগদ'), ('rocket', 'রকেট')],
+    )
+    mobile_banking_number = models.CharField(max_length=11, blank=True, verbose_name='মোবাইল ব্যাংকিং নম্বর')
 
     # Nominee info
     nominee_name = models.CharField(

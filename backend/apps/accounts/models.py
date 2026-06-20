@@ -52,6 +52,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     class UserType(models.TextChoices):
         HEAD_OFFICE = 'head_office', 'হেড অফিস'
         CENTER_ADMIN = 'center_admin', 'কেন্দ্র প্রশাসক'
+        ACCOUNTANT = 'accountant', 'হিসাবরক্ষক'
         TRAINER = 'trainer', 'প্রশিক্ষক'
         ASSESSOR = 'assessor', 'মূল্যায়নকারী'
         TRAINEE = 'trainee', 'প্রশিক্ষণার্থী'

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.core.exceptions import ValidationError as DjangoValidationError
-from .models import Batch, BatchWeekPlan, BatchEnrollment, Shift, Holiday
+from .models import Batch, BatchWeekPlan, BatchEnrollment, Shift, Holiday, BatchCalendarDay
 from .validators import validate_no_trainer_overlap
 
 
@@ -57,6 +57,7 @@ class BatchWriteSerializer(serializers.ModelSerializer):
         fields = (
             'custom_batch_no', 'circular', 'center', 'course',
             'batch_name_bn', 'batch_name_en',
+            'shift',
             'start_date', 'end_date',
             'total_seats', 'filled_seats', 'waitlist_seats',
             'status',
@@ -225,3 +226,9 @@ class BatchEnrollmentBulkSerializer(serializers.Serializer):
         queryset=Batch.objects.all(),
         label='ব্যাচ',
     )
+
+
+class BatchCalendarDaySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BatchCalendarDay
+        fields = '__all__'

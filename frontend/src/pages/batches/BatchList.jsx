@@ -160,12 +160,14 @@ export default function BatchList() {
         <span>প্রিন্টের তারিখ: ${new Date().toLocaleDateString('bn-BD')}</span>
       </div>
       <table>
-        <tr><th>ক্রমিক</th><th>ব্যাচ নং</th><th>নাম</th><th>কোর্স</th><th>শুরুর তারিখ</th><th>সমাপ্তির তারিখ</th><th>আসন</th><th>স্ট্যাটাস</th></tr>
+        <tr><th>ক্রমিক</th><th>ব্যাচ নং</th><th>নাম</th><th>শিফট</th><th>কোর্স</th><th>শুরুর তারিখ</th><th>সমাপ্তির তারিখ</th><th>আসন</th><th>স্ট্যাটাস</th></tr>
         ${items.map((b, i) => {
+          const shiftLabel = b.shift === 'shift_1' ? 'শিফট-১' : b.shift === 'shift_2' ? 'শিফট-২' : '—';
           return `<tr>
             <td style="text-align:center;width:40px;">${i + 1}</td>
             <td><strong>${b.batch_no || '—'}</strong></td>
             <td>${b.batch_name_bn || b.batch_name_en || '—'}</td>
+            <td>${shiftLabel}</td>
             <td>${b.course_name || '—'}</td>
             <td>${b.start_date || '—'}</td>
             <td>${b.end_date || '—'}</td>
@@ -305,6 +307,7 @@ export default function BatchList() {
                 </th>
                 <th>{t('batch.list.colBatchNo', 'ব্যাচ নং')}</th>
                 <th>{t('batch.list.colName', 'নাম')}</th>
+                <th className="d-none d-lg-table-cell">শিফট</th>
                 <th className="d-none d-xl-table-cell">{t('batch.list.colCourse', 'কোর্স')}</th>
                 <th className="d-none d-md-table-cell">{t('batch.list.colStartDate', 'শুরুর তারিখ')}</th>
                 <th className="d-none d-md-table-cell">{t('batch.list.colEndDate', 'সমাপ্তির তারিখ')}</th>
@@ -315,12 +318,12 @@ export default function BatchList() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={9} className="text-center py-5">
+                <tr><td colSpan={10} className="text-center py-5">
                   <div className="spinner-border text-primary" role="status" />
                   <p className="mt-2 mb-0 text-muted">{t('batch.list.loading', 'লোড হচ্ছে...')}</p>
                 </td></tr>
               ) : batches.length === 0 ? (
-                <tr><td colSpan={9} className="text-center py-5 text-muted">
+                <tr><td colSpan={10} className="text-center py-5 text-muted">
                   <i className="bi bi-inbox fs-1"></i>
                   <p className="mt-2 mb-0">{t('batch.list.empty', 'কোন ব্যাচ পাওয়া যায়নি')}</p>
                 </td></tr>
@@ -334,6 +337,9 @@ export default function BatchList() {
               </Link>
             </td>
                     <td style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 120 }}>{b.batch_name_bn || b.batch_name_en}</td>
+                    <td className="d-none d-lg-table-cell" style={{ whiteSpace: 'nowrap' }}>
+                      {b.shift === 'shift_1' ? 'শিফট-১' : b.shift === 'shift_2' ? 'শিফট-২' : '-'}
+                    </td>
                     <td className="d-none d-xl-table-cell" style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 100 }}>{b.course_name}</td>
                     <td className="d-none d-md-table-cell" style={{ whiteSpace: 'nowrap' }}>{b.start_date ? formatDate(b.start_date) : '-'}</td>
                     <td className="d-none d-md-table-cell" style={{ whiteSpace: 'nowrap' }}>{b.end_date ? formatDate(b.end_date) : '-'}</td>

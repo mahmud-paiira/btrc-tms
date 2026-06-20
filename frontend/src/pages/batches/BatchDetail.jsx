@@ -5,6 +5,8 @@ import batchService from '../../services/batchService';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useAuth } from '../../contexts/AuthContext';
 import { formatDate } from '../../utils/dateFormatter';
+import AddTraineeModal from '../../components/batches/AddTraineeModal';
+import TransferModal from '../../components/batches/TransferModal';
 
 const STATUS_BADGE = {
   scheduled: 'secondary',
@@ -31,6 +33,8 @@ export default function BatchDetail() {
   const [enrollments, setEnrollments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [transferTarget, setTransferTarget] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -86,6 +90,7 @@ export default function BatchDetail() {
         <div><span class="label">অবস্থা:</span> <strong>${statusLabel}</strong></div>
         <div><span class="label">নাম (বাংলা):</span> <strong>${batch.batch_name_bn || '-'}</strong></div>
         <div><span class="label">নাম (ইংরেজি):</span> <strong>${batch.batch_name_en || '-'}</strong></div>
+        <div><span class="label">শিফট:</span> <strong>${batch.shift === 'shift_1' ? 'শিফট-১' : batch.shift === 'shift_2' ? 'শিফট-২' : '-'}</strong></div>
         <div><span class="label">কোর্স:</span> <strong>${batch.course_name}</strong></div>
         <div><span class="label">কেন্দ্র:</span> <strong>${batch.center_name || '-'}</strong></div>
         <div><span class="label">শুরুর তারিখ:</span> <strong>${batch.start_date || '-'}</strong></div>
@@ -155,6 +160,17 @@ export default function BatchDetail() {
     }
   }
 
+  async function handleDrop(enrollmentId) {
+    if (!window.confirm('প্রশিক্ষণার্থীকে ব্যাচ থেকে বাদ দেবেন?')) return;
+    try {
+      await batchService.dropEnrollment(enrollmentId);
+      toast.success('বাদ দেওয়া হয়েছে।');
+      loadData();
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'ব্যর্থ হয়েছে।');
+    }
+  }
+
   if (loading) {
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ minHeight: 300 }}>
@@ -207,6 +223,10 @@ export default function BatchDetail() {
                 <div className="col-sm-6 mb-2">
                   <small className="text-muted d-block">নাম (ইংরেজি)</small>
                   <strong>{batch.batch_name_en || '-'}</strong>
+                </div>
+                <div className="col-sm-6 mb-2">
+                  <small className="text-muted d-block">শিফট</small>
+                  <strong>{batch.shift === 'shift_1' ? 'শিফট-১ (সকাল ৯টা-দুপুর ১টা)' : batch.shift === 'shift_2' ? 'শিফট-২ (দুপুর ২টা-সন্ধ্যা ৬টা)' : '-'}</strong>
                 </div>
                 <div className="col-sm-6 mb-2">
                   <small className="text-muted d-block">কোর্স</small>
@@ -291,6 +311,13 @@ export default function BatchDetail() {
                 <Link className="btn btn-info btn-sm text-white" to={`/center-admin/attendance/batch/${id}`}>
                   উপস্থিতি
                 </Link>
+                <button
+                  className="btn btn-outline-info btn-sm"
+                  onClick={() => handleAction('generateCalendar')}
+                  disabled={actionLoading === 'generateCalendar'}
+                >
+                  {actionLoading === 'generateCalendar' ? 'প্রক্রিয়াধীন...' : 'ক্যালেন্ডার জেনারেট'}
+                </button>
               </div>
             </div>
           )}
@@ -301,6 +328,11 @@ export default function BatchDetail() {
         <div className="card-header d-flex justify-content-between align-items-center">
           <span className="fw-bold">নথিভুক্ত প্রশিক্ষণার্থী ({enrollments.length})</span>
           <div className="d-flex gap-2">
+            {isAdmin && (
+              <button className="btn btn-sm btn-primary" onClick={() => setShowAddModal(true)}>
+                <i className="bi bi-plus-lg me-1"></i>যোগ করুন
+              </button>
+            )}
             <button className="btn btn-sm btn-secondary" onClick={handlePrint}>
               <i className="bi bi-printer me-1"></i>প্রিন্ট
             </button>
@@ -321,12 +353,13 @@ export default function BatchDetail() {
                   <th>শিফট</th>
                   <th>নথিভুক্তির তারিখ</th>
                   <th>অবস্থা</th>
+                  {isAdmin && <th>অ্যাকশন</th>}
                 </tr>
               </thead>
               <tbody>
                 {enrollments.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="text-center text-muted py-4">
+                    <td colSpan={isAdmin ? 8 : 7} className="text-center text-muted py-4">
                       কোনো প্রশিক্ষণার্থী নথিভুক্ত নন।
                     </td>
                   </tr>
@@ -343,6 +376,28 @@ export default function BatchDetail() {
                         {e.status === 'active' ? 'সক্রিয়' : e.status === 'completed' ? 'সমাপ্ত' : e.status === 'dropped' ? 'বাতিল' : e.status}
                       </span>
                     </td>
+                    {isAdmin && (
+                      <td style={{ whiteSpace: 'nowrap' }}>
+                        {e.status === 'active' && (
+                          <>
+                            <button
+                              className="btn btn-sm btn-outline-warning me-1"
+                              onClick={() => setTransferTarget({ enrollmentId: e.id, batchId: id })}
+                              title="স্থানান্তর"
+                            >
+                              <i className="bi bi-arrow-left-right"></i>
+                            </button>
+                            <button
+                              className="btn btn-sm btn-outline-danger"
+                              onClick={() => handleDrop(e.id)}
+                              title="বাদ দিন"
+                            >
+                              <i className="bi bi-x-lg"></i>
+                            </button>
+                          </>
+                        )}
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
@@ -350,6 +405,23 @@ export default function BatchDetail() {
           </div>
         </div>
       </div>
+
+      {showAddModal && (
+        <AddTraineeModal
+          batchId={id}
+          onAdded={loadData}
+          onClose={() => setShowAddModal(false)}
+        />
+      )}
+
+      {transferTarget && (
+        <TransferModal
+          enrollmentId={transferTarget.enrollmentId}
+          currentBatchId={transferTarget.batchId}
+          onTransferred={loadData}
+          onClose={() => setTransferTarget(null)}
+        />
+      )}
     </div>
   );
 }

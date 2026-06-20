@@ -4,9 +4,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.utils import timezone
 
-from .models import AllowanceCategory, TraineeAllowance
+from .models import AllowanceCategory, AllowanceTier, TraineeAllowance
 from .serializers import (
     AllowanceCategorySerializer,
+    AllowanceTierSerializer,
     TraineeAllowanceListSerializer,
     TraineeAllowanceWriteSerializer,
 )
@@ -19,6 +20,14 @@ class AllowanceCategoryViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
+
+
+class AllowanceTierViewSet(viewsets.ModelViewSet):
+    queryset = AllowanceTier.objects.select_related('category').all()
+    serializer_class = AllowanceTierSerializer
+    permission_classes = [IsAuthenticated]
+    filterset_fields = ('category', 'is_active')
+    ordering = ('category', 'min_percentage')
 
 
 class TraineeAllowanceViewSet(viewsets.ModelViewSet):
@@ -43,20 +52,18 @@ class TraineeAllowanceViewSet(viewsets.ModelViewSet):
         if not batch_id:
             return Response({'error': 'batch is required'}, status=status.HTTP_400_BAD_REQUEST)
 
-        categories = AllowanceCategory.objects.filter(is_active=True)
         allowances = TraineeAllowance.objects.filter(batch_id=batch_id)
 
-        from django.db.models import Count, Q
-        from apps.attendance.models import Attendance
+        from apps.attendance.models import Attendance, AttendanceSummary
 
         for allowance in allowances:
-            qs = Attendance.objects.filter(
+            summary, created = AttendanceSummary.objects.get_or_create(
                 trainee=allowance.trainee, batch_id=batch_id,
             )
-            allowance.total_sessions = qs.count()
-            allowance.attended_sessions = qs.filter(
-                Q(status=Attendance.Status.PRESENT) | Q(status=Attendance.Status.LATE),
-            ).count()
+            if not created:
+                summary.refresh()
+            allowance.total_sessions = summary.total_sessions
+            allowance.attended_sessions = summary.attended_sessions
             allowance.calculate()
 
         return Response({'message': f'{allowances.count()} allowances recalculated'})
@@ -105,9 +112,12 @@ class TraineeAllowanceViewSet(viewsets.ModelViewSet):
     def disburse(self, request, pk=None):
         allowance = self.get_object()
         if allowance.status != TraineeAllowance.AllowanceStatus.APPROVED:
-            return Response({'error': 'Only approved allowances can be disbursed'}, status=400)
+            return Response({'error': 'শুধুমাত্র অনুমোদিত ভাতা বিতরণ করা যাবে।'}, status=400)
         allowance.status = TraineeAllowance.AllowanceStatus.DISBURSED
         allowance.disbursed_by = request.user
         allowance.disbursed_at = timezone.now()
+        allowance.payment_method = request.data.get('payment_method', '')
+        allowance.transaction_id = request.data.get('transaction_id', '')
+        allowance.disbursement_notes = request.data.get('disbursement_notes', '')
         allowance.save()
         return Response(TraineeAllowanceListSerializer(allowance).data)

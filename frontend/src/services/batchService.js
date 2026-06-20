@@ -64,6 +64,26 @@ const batchService = {
   generate(data) {
     return api.post('/batches/batches/generate/', data);
   },
+
+  generateCalendar(id) {
+    return api.post(`/batches/batches/${id}/generate_calendar/`);
+  },
+
+  addTrainee(id, data) {
+    return api.post(`/batches/batches/${id}/add_trainee/`, data);
+  },
+
+  availableTrainees(id, params) {
+    return api.get(`/batches/batches/${id}/available_trainees/`, { params });
+  },
+
+  dropEnrollment(id) {
+    return api.post(`/batches/enrollments/${id}/drop/`);
+  },
+
+  transferEnrollment(id, data) {
+    return api.post(`/batches/enrollments/${id}/transfer/`, data);
+  },
 };
 
 export default batchService;
