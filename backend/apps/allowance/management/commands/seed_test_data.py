@@ -264,38 +264,22 @@ class Command(BaseCommand):
                 mb_count += 1
         log(f'  [OK] {mb_count} trainees updated with mobile banking')
 
-        # 8. Set known credentials for trainee users
-        log('  -- Trainee User Credentials --')
-        tr_count = 0
+        # 8. Set known credentials for all non-admin users
+        log('  -- User Credentials --')
+        cred_count = 0
         for trainee in trainees:
-            user = trainee.user
-            if not user.check_password('trainee123'):
-                user.set_password('trainee123')
-                user.save(update_fields=['password'])
-                tr_count += 1
-        log(f'  [OK] {tr_count} trainee passwords set to trainee123')
-
-        # 8.5. Set known credentials for trainer users
-        log('  -- Trainer User Credentials --')
-        tn_count = 0
+            trainee.user.set_password('trainee123')
+            trainee.user.save(update_fields=['password'])
+            cred_count += 1
         for trainer in trainers:
-            user = trainer.user
-            if not user.check_password('trainer123'):
-                user.set_password('trainer123')
-                user.save(update_fields=['password'])
-                tn_count += 1
-        log(f'  [OK] {tn_count} trainer passwords set to trainer123')
-
-        # 9. Set known credentials for assessor users
-        log('  -- Assessor User Credentials --')
-        asr_count = 0
+            trainer.user.set_password('trainer123')
+            trainer.user.save(update_fields=['password'])
+            cred_count += 1
         for assessor in Assessor.objects.select_related('user').all():
-            user = assessor.user
-            if not user.check_password('assessor123'):
-                user.set_password('assessor123')
-                user.save(update_fields=['password'])
-                asr_count += 1
-        log(f'  [OK] {asr_count} assessor passwords set to assessor123')
+            assessor.user.set_password('assessor123')
+            assessor.user.save(update_fields=['password'])
+            cred_count += 1
+        log(f'  [OK] {cred_count} user passwords set (trainee123 / trainer123 / assessor123)')
 
         # 10. Seed Assessment records
         log('  -- Assessment Records --')
