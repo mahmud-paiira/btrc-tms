@@ -1,16 +1,5 @@
 from rest_framework import serializers
 from .models import Assessment, Reassessment
-from apps.attendance.eligibility import check_trainee_eligibility
-
-
-class EligibleTraineeSerializer(serializers.Serializer):
-    trainee_id = serializers.IntegerField()
-    trainee_name = serializers.CharField()
-    trainee_reg_no = serializers.CharField()
-    total_sessions = serializers.IntegerField()
-    attended_sessions = serializers.IntegerField()
-    attendance_percentage = serializers.FloatField()
-    is_eligible = serializers.BooleanField()
 
 
 class AssessmentSerializer(serializers.ModelSerializer):
@@ -58,48 +47,9 @@ class ConductAssessmentSerializer(serializers.Serializer):
         if not value:
             raise serializers.ValidationError('কমপক্ষে একজন প্রশিক্ষণার্থীর তথ্য দিন')
 
-        batch_id = self.initial_data.get('batch')
-        assessment_type = self.initial_data.get('assessment_type')
-        ineligible = []
-
         for entry in value:
             if 'trainee' not in entry:
                 raise serializers.ValidationError('প্রতিটি এন্ট্রিতে trainee আবশ্যক')
-
-            trainee_id = entry['trainee']
-            is_eligible, pct, _ = check_trainee_eligibility(
-                int(trainee_id), int(batch_id),
-            )
-            if not is_eligible:
-                ineligible.append({
-                    'trainee_id': int(trainee_id),
-                    'percentage': float(pct),
-                })
-
-            if assessment_type == 'final':
-                prev_types = [
-                    t for t in Assessment.AssessmentType.values
-                    if t != 'final'
-                ]
-                for atype in prev_types:
-                    exists = Assessment.objects.filter(
-                        trainee_id=int(trainee_id),
-                        batch_id=int(batch_id),
-                        assessment_type=atype,
-                        competency_status='competent',
-                    ).exists()
-                    if not exists:
-                        raise serializers.ValidationError(
-                            f'প্রশিক্ষণার্থী {trainee_id} চূড়ান্ত মূল্যায়নের পূর্বে '
-                            f'"{atype}" মূল্যায়নে দক্ষ হয়নি।',
-                        )
-
-        if ineligible:
-            names = ', '.join([str(i['trainee_id']) for i in ineligible[:5]])
-            raise serializers.ValidationError(
-                f'এই প্রশিক্ষণার্থীদের উপস্থিতি ৮০% এর নিচে। '
-                f'মূল্যায়নের অনুমতি নেই: {names}',
-            )
 
         return value
 

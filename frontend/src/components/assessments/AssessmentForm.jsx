@@ -1,13 +1,5 @@
 import React from 'react';
 
-const ASSESSMENT_TYPES = [
-  { value: 'pre_evaluation', label: 'পূর্ব-মূল্যায়ন' },
-  { value: 'written', label: 'লিখিত' },
-  { value: 'viva', label: 'মৌখিক' },
-  { value: 'practical', label: 'ব্যবহারিক' },
-  { value: 'final', label: 'চূড়ান্ত' },
-];
-
 const COMPETENCY_STATUSES = [
   { value: 'competent', label: 'দক্ষ', color: 'success' },
   { value: 'not_competent', label: 'অদক্ষ', color: 'danger' },
@@ -44,18 +36,11 @@ export default function AssessmentForm({
     onSave(payload);
   };
 
-  const isLowAttendance = trainee.attendance_percentage < 80;
   const isNotCompetent = data.competency_status === 'not_competent';
-  const isFinal = assessmentType === 'final';
-  const hasPendingPrevious = trainee.pending_assessment_types?.filter(
-    (t) => t !== 'final',
-  ).length > 0;
-  const canTakeFinal = !hasPendingPrevious && trainee.pending_assessment_types?.includes('final');
-  const showFinalWarning = isFinal && hasPendingPrevious;
   const marksDisabled = data.competency_status === 'absent';
 
   return (
-    <tr className={isLowAttendance ? 'table-warning' : ''}>
+    <tr>
       <td className="text-center">{index + 1}</td>
       <td>
         <div className="d-flex align-items-center gap-2">
@@ -72,9 +57,7 @@ export default function AssessmentForm({
         </div>
       </td>
       <td className="text-center align-middle">
-        <span
-          className={`badge fs-6 ${isLowAttendance ? 'bg-danger' : 'bg-success'}`}
-        >
+        <span className="badge fs-6 bg-info">
           {trainee.attendance_percentage}%
         </span>
       </td>
@@ -154,18 +137,6 @@ export default function AssessmentForm({
           )}
         </div>
       </td>
-      {showFinalWarning && (
-        <td colSpan={7} className="text-danger small py-1">
-          <i className="bi bi-exclamation-triangle me-1"></i>
-          পূর্ববর্তী সব মূল্যায়ন শেষ না হওয়া পর্যন্ত চূড়ান্ত মূল্যায়ন সম্ভব নয়।
-        </td>
-      )}
-      {isFinal && canTakeFinal && (
-        <td colSpan={7} className="text-success small py-1">
-          <i className="bi bi-award me-1"></i>
-          চূড়ান্ত মূল্যায়নের পর দক্ষ হলে সার্টিফিকেটের জন্য যোগ্য হবেন।
-        </td>
-      )}
     </tr>
   );
 }

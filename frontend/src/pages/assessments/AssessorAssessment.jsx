@@ -56,7 +56,6 @@ export default function AssessorAssessment() {
   useEffect(() => { fetchData(); }, [fetchData]);
 
   const trainees = eligibleData?.trainees || [];
-  const eligibleCount = eligibleData?.eligible_count || 0;
   const todayStr = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
@@ -218,8 +217,8 @@ export default function AssessorAssessment() {
                 <strong>{batch.start_date || '—'}</strong>
               </div>
               <div className="col-md-3">
-                <small className="text-muted d-block">{t('assessment.conduct.eligibleCount', 'যোগ্য প্রশিক্ষণার্থী')}</small>
-                <strong className="text-success">{eligibleCount} জন</strong>
+                <small className="text-muted d-block">{t('assessment.conduct.eligibleCount', 'প্রশিক্ষণার্থী')}</small>
+                <strong className="text-success">{trainees.length} জন</strong>
               </div>
             </div>
           </div>
@@ -321,17 +320,6 @@ export default function AssessorAssessment() {
         </div>
       </div>
 
-      {/* Certificate Eligibility Info */}
-      {assessmentType === 'final' && competentCount > 0 && (
-        <div className="alert alert-success d-flex align-items-center gap-2 mb-3">
-          <i className="bi bi-award-fill fs-4"></i>
-          <div>
-            <strong>{competentCount} জন</strong> প্রশিক্ষণার্থী চূড়ান্ত মূল্যায়নে দক্ষ
-            হয়েছেন। তারা সার্টিফিকেটের জন্য যোগ্য।
-          </div>
-        </div>
-      )}
-
       {/* Trainee Assessment Table */}
       <div className="card shadow-sm">
         <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center">
@@ -341,7 +329,7 @@ export default function AssessorAssessment() {
           </h6>
           {eligibleData && (
             <span className="badge bg-light text-dark">
-              যোগ্য: {eligibleCount} জন
+              মোট: {trainees.length} জন
             </span>
           )}
         </div>
@@ -364,7 +352,7 @@ export default function AssessorAssessment() {
                   <tr>
                     <td colSpan={7} className="text-center py-4 text-muted">
                       <i className="bi bi-inbox me-2"></i>
-                      {t('assessment.conduct.noEligible', 'কোন যোগ্য প্রশিক্ষণার্থী নেই')}
+                      {t('assessment.conduct.noEligible', 'কোন প্রশিক্ষণার্থী নেই')}
                     </td>
                   </tr>
                 ) : (
@@ -387,23 +375,7 @@ export default function AssessorAssessment() {
             </table>
           </div>
         </div>
-        {trainees.length > 0 && (
-          <div className="card-footer text-muted small">
-            <i className="bi bi-info-circle me-1"></i>
-            হলুদ সারি = ৮০% এর নিচে উপস্থিতি (মূল্যায়ন অযোগ্য)
-          </div>
-        )}
       </div>
-
-      {/* Ineligible warning */}
-      {trainees.length < (eligibleData?.trainees?.length || 0) && (
-        <div className="alert alert-warning mt-3">
-          <i className="bi bi-exclamation-triangle me-2"></i>
-          {(eligibleData?.trainees?.length || 0) - trainees.length} জন
-          প্রশিক্ষণার্থীর উপস্থিতির হার ৮০% এর নিচে, তাই তারা এই তালিকায়
-          দেখানো হচ্ছে না।
-        </div>
-      )}
 
       {/* Reassessment Modal */}
       {reassessmentTrainee && (

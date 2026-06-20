@@ -8,7 +8,7 @@ from .serializers import (
     ConductAssessmentSerializer,
     ReassessmentSerializer,
 )
-from apps.attendance.eligibility import get_batch_eligibility, check_trainee_eligibility
+from apps.attendance.models import AttendanceSummary
 
 
 class IsCenterAdminOrHeadOffice(permissions.BasePermission):
@@ -31,8 +31,7 @@ class CenterAssessmentViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['get'], url_path='batch/(?P<batch_id>[^/.]+)/eligible')
     def batch_eligible(self, request, batch_id=None):
-        from apps.batches.models import Batch
-        from apps.trainees.models import Trainee
+        from apps.batches.models import Batch, BatchEnrollment
 
         center_id = self.get_center_id(request)
         batch = Batch.objects.filter(pk=batch_id).first()
@@ -48,40 +47,36 @@ class CenterAssessmentViewSet(viewsets.ViewSet):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        eligibility_data = get_batch_eligibility(int(batch_id))
-        eligible_trainees = [
-            t for t in eligibility_data['trainees'] if t['is_eligible']
-        ]
+        enrolled = BatchEnrollment.objects.filter(
+            batch_id=batch_id, status=BatchEnrollment.EnrollmentStatus.ACTIVE,
+        ).select_related('trainee__user')
 
-        all_types = [t for t in Assessment.AssessmentType.values]
+        all_types = list(Assessment.AssessmentType.values)
         data = []
-        for t in eligible_trainees:
-            trainee = Trainee.objects.filter(pk=t['trainee_id']).first()
-            if not trainee:
-                continue
+        for e in enrolled:
+            trainee = e.trainee
+            summary = AttendanceSummary.objects.filter(
+                trainee=trainee, batch_id=int(batch_id),
+            ).first()
+            pct = float(summary.attendance_percentage) if summary else 0
+
             done_types = list(
                 Assessment.objects.filter(
-                    trainee_id=t['trainee_id'],
+                    trainee=trainee,
                     batch_id=int(batch_id),
                 ).values_list('assessment_type', flat=True).distinct()
             )
             pending_types = [at for at in all_types if at not in done_types]
 
             data.append({
-                'trainee_id': t['trainee_id'],
-                'trainee_name': t['trainee_name'],
-                'trainee_reg_no': t['trainee_reg_no'],
-                'registration_no': t['trainee_reg_no'],
-                'attendance_percentage': t['attendance_percentage'],
+                'trainee_id': trainee.id,
+                'trainee_name': trainee.user.full_name_bn,
+                'trainee_reg_no': trainee.registration_no,
+                'registration_no': trainee.registration_no,
+                'attendance_percentage': pct,
                 'completed_assessments': done_types,
                 'pending_assessment_types': pending_types,
-                'can_take_final': (
-                    'final' in pending_types and
-                    all(
-                        at in done_types
-                        for at in all_types if at != 'final'
-                    )
-                ),
+                'can_take_final': 'final' in pending_types,
             })
 
         return Response({

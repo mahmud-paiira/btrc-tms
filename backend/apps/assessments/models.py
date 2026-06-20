@@ -4,7 +4,6 @@ from apps.accounts.models import User
 from apps.batches.models import Batch
 from apps.trainees.models import Trainee
 from apps.assessors.models import Assessor
-from apps.attendance.eligibility import check_trainee_eligibility
 
 
 class Assessment(models.Model):
@@ -91,32 +90,6 @@ class Assessment(models.Model):
         if self.marks_obtained is not None and self.total_marks:
             if self.marks_obtained > self.total_marks:
                 errors['marks_obtained'] = 'প্রাপ্ত নম্বর পূর্ণ নম্বরের চেয়ে বেশি হতে পারবে না।'
-
-        if self.trainee_id and self.batch_id:
-            is_eligible, pct, _ = check_trainee_eligibility(
-                self.trainee_id, self.batch_id,
-            )
-            if not is_eligible:
-                errors['trainee'] = (
-                    'এই প্রশিক্ষণার্থীর উপস্থিতি ৮০% এর নিচে। '
-                    'মূল্যায়নের অনুমতি নেই।'
-                )
-
-            if self.assessment_type == 'final':
-                prev_types = [t for t in self.AssessmentType.values if t != 'final']
-                for atype in prev_types:
-                    exists = Assessment.objects.filter(
-                        trainee=self.trainee,
-                        batch=self.batch,
-                        assessment_type=atype,
-                        competency_status='competent',
-                    ).exclude(pk=self.pk).exists()
-                    if not exists:
-                        errors['assessment_type'] = (
-                            f'চূড়ান্ত মূল্যায়নের পূর্বে "{atype}" মূল্যায়নে দক্ষ '
-                            'হওয়া আবশ্যক।'
-                        )
-                        break
 
         if errors:
             raise ValidationError(errors)
