@@ -11,6 +11,8 @@ from apps.trainees.models import Trainee
 from apps.attendance.models import Attendance, AttendanceSummary
 from apps.allowance.models import AllowanceCategory, AllowanceTier, TraineeAllowance
 from apps.trainers.models import Trainer
+from apps.assessors.models import Assessor, AssessorMapping
+from apps.assessments.models import Assessment
 
 PHONE_COUNTER = [50000000]
 NID_COUNTER = [2000000000]
@@ -262,6 +264,72 @@ class Command(BaseCommand):
                 mb_count += 1
         log(f'  [OK] {mb_count} trainees updated with mobile banking')
 
+        # 8. Set known credentials for trainee users
+        log('  -- Trainee User Credentials --')
+        tr_count = 0
+        for trainee in trainees:
+            user = trainee.user
+            if not user.check_password('trainee123'):
+                user.set_password('trainee123')
+                user.save(update_fields=['password'])
+                tr_count += 1
+        log(f'  [OK] {tr_count} trainee passwords set to trainee123')
+
+        # 9. Set known credentials for assessor users
+        log('  -- Assessor User Credentials --')
+        asr_count = 0
+        for assessor in Assessor.objects.select_related('user').all():
+            user = assessor.user
+            if not user.check_password('assessor123'):
+                user.set_password('assessor123')
+                user.save(update_fields=['password'])
+                asr_count += 1
+        log(f'  [OK] {asr_count} assessor passwords set to assessor123')
+
+        # 10. Seed Assessment records
+        log('  -- Assessment Records --')
+        assm_count = 0
+        assessment_types = list(Assessment.AssessmentType.values)
+        competency_pool = ['competent', 'competent', 'competent', 'not_competent', 'absent']
+        for batch in batches:
+            mappings = list(AssessorMapping.objects.filter(
+                center=batch.center, course=batch.course, status='active',
+            ).select_related('assessor__user'))
+            if not mappings:
+                continue
+            mapping = mappings[0]
+            enrollments = list(BatchEnrollment.objects.filter(
+                batch=batch, status=BatchEnrollment.EnrollmentStatus.ACTIVE,
+            )[:6])
+            if not enrollments:
+                continue
+            for ei, enrollment in enumerate(enrollments):
+                num_assessments = (ei % 4) + 2
+                for ai in range(num_assessments):
+                    atype = assessment_types[ai % len(assessment_types)]
+                    pct = enrollment.trainee.user.id + ei + ai
+                    marks_obtained = (pct * 80) % 90 + 10
+                    total_marks = 100
+                    comp = competency_pool[(ei + ai) % len(competency_pool)]
+                    _, created = Assessment.objects.get_or_create(
+                        trainee=enrollment.trainee,
+                        batch=batch,
+                        assessment_type=atype,
+                        is_reassessment=False,
+                        defaults=dict(
+                            assessor=mapping.assessor,
+                            assessment_date=date.today() - timedelta(days=ai * 3),
+                            competency_status=comp,
+                            marks_obtained=marks_obtained,
+                            total_marks=total_marks,
+                            remarks='Test assessment',
+                            assessed_by=mapping.assessor.user,
+                        ),
+                    )
+                    if created:
+                        assm_count += 1
+        log(f'  [OK] {assm_count} assessment records created')
+
         log('')
         log('===================================')
         log('Test data seeding complete!')
@@ -269,6 +337,10 @@ class Command(BaseCommand):
         log('New accounts:')
         for center in centers:
             log(f'  accountant_{center.code.lower()}@brtc.gov.bd / accountant123 ({center.code})')
+        log('  assessor@brtc.gov.bd / assessor123 (global assessor)')
+        log('  assessor2@brtc.gov.bd / assessor123')
+        log('  assessor3@brtc.gov.bd / assessor123')
+        log('  trainee@brtc.gov.bd through trainee12@brtc.gov.bd / trainee123')
         log('')
         log('Features tested:')
         log('  [OK] Accountant user type')
@@ -279,4 +351,6 @@ class Command(BaseCommand):
         log('  [OK] 5 allowance tiers (Platinum 1.5x to Base 0.5x)')
         log('  [OK] Trainee mobile banking (bKash/Nagad/Rocket)')
         log('  [OK] Allowance records with calculated amounts')
+        log('  [OK] Trainee & Assessor test credentials')
+        log('  [OK] Assessment records (assessor↔trainee linking)')
         log('===================================')
