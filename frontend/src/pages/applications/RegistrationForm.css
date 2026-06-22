@@ -204,6 +204,111 @@
   object-fit: contain;
 }
 
+/* ── Government Style Registration Form ──────────── */
+.gov-reg-card {
+  border: 3px solid #1a5276;
+  border-radius: 4px;
+  background: #fff;
+  padding: 0;
+  overflow: hidden;
+}
+
+.gov-reg-inner {
+  border: 1px solid #1a5276;
+  margin: 10px;
+  padding: 20px;
+}
+
+.gov-header {
+  text-align: center;
+  padding-bottom: 14px;
+  border-bottom: 3px solid #1a5276;
+  margin-bottom: 20px;
+}
+
+.gov-header .gov-line-1 {
+  font-size: 16px;
+  font-weight: bold;
+  color: #1a5276;
+  letter-spacing: 1px;
+}
+
+.gov-header .gov-line-2 {
+  font-size: 13px;
+  color: #2c3e50;
+  margin-top: 3px;
+}
+
+.gov-header .gov-line-3 {
+  font-size: 11px;
+  color: #888;
+  margin-top: 2px;
+}
+
+.gov-divider {
+  border-top: 1px solid #1a5276;
+  margin: 16px 0;
+}
+
+.gov-section-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #1a5276;
+  letter-spacing: 0.3px;
+  margin-bottom: 16px;
+  padding-bottom: 6px;
+  border-bottom: 1px dashed #1a5276;
+}
+
+.gov-section-title i {
+  margin-right: 8px;
+}
+
+.gov-reg-card .form-label {
+  font-size: 0.85rem;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.gov-reg-card .form-control,
+.gov-reg-card .form-select {
+  border-radius: 4px;
+  border: 1px solid #bbb;
+  font-size: 0.9rem;
+  padding: 8px 12px;
+}
+
+.gov-reg-card .form-control:focus,
+.gov-reg-card .form-select:focus {
+  border-color: #1a5276;
+  box-shadow: 0 0 0 2px rgba(26, 82, 118, 0.15);
+}
+
+.gov-reg-card .form-control.is-invalid,
+.gov-reg-card .form-select.is-invalid {
+  border-color: #dc3545;
+  box-shadow: none;
+}
+
+.gov-btn-primary {
+  background-color: #1a5276 !important;
+  border-color: #1a5276 !important;
+  color: #fff !important;
+  border-radius: 4px;
+  padding: 8px 24px;
+  font-size: 0.9rem;
+}
+
+.gov-btn-primary:hover {
+  background-color: #154467 !important;
+  border-color: #154467 !important;
+}
+
+.gov-btn-primary:disabled {
+  background-color: #7fa3bd !important;
+  border-color: #7fa3bd !important;
+}
+
 /* ── Responsive ──────────────────────────────────── */
 @media (max-width: 576px) {
   .steps-indicator::before {

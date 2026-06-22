@@ -560,77 +560,91 @@ export default function RegisterAndApply() {
                     )}
 
                     {mode === 'register' ? (
-                      <form onSubmit={handleRegister}>
-                        <div className="row g-3">
-                          <div className="col-md-6">
-                            <label className="form-label fw-medium">নাম (বাংলায়) <span className="text-danger">*</span></label>
-                            <BanglaInput as="input" className={`form-control ${regErrors.full_name_bn ? 'is-invalid' : ''}`} name="full_name_bn" value={regForm.full_name_bn} onChange={handleRegChange} placeholder="আপনার নাম বাংলায়" />
-                            {regErrors.full_name_bn && <div className="invalid-feedback">{regErrors.full_name_bn}</div>}
+                      <div className="gov-reg-card">
+                        <div className="gov-reg-inner">
+                          <div className="gov-header">
+                            <div className="gov-line-1">গণপ্রজাতন্ত্রী বাংলাদেশ সরকার</div>
+                            <div className="gov-line-2">বাংলাদেশ সড়ক পরিবহন কর্পোরেশন (BRTC)</div>
+                            <div className="gov-line-3">প্রশিক্ষণ ব্যবস্থাপনা সিস্টেম — নিবন্ধন ফর্ম</div>
                           </div>
-                          <div className="col-md-6">
-                            <label className="form-label fw-medium">নাম (ইংরেজিতে) <span className="text-danger">*</span></label>
-                            <input className={`form-control ${regErrors.full_name_en ? 'is-invalid' : ''}`} name="full_name_en" value={regForm.full_name_en} onChange={handleRegChange} placeholder="Your name in English" />
-                            {regErrors.full_name_en && <div className="invalid-feedback">{regErrors.full_name_en}</div>}
-                          </div>
-                          <div className="col-md-6">
-                            <label className="form-label fw-medium">মোবাইল নম্বর <span className="text-danger">*</span></label>
-                            <input className={`form-control ${regErrors.phone ? 'is-invalid' : ''}`} name="phone" value={regForm.phone} onChange={handleRegChange} placeholder="01XXXXXXXXX" />
-                            {regErrors.phone && <div className="invalid-feedback">{regErrors.phone}</div>}
-                          </div>
-                          <div className="col-md-6">
-                            <label className="form-label fw-medium">এনআইডি নম্বর <span className="text-danger">*</span></label>
-                            <input className={`form-control ${regErrors.nid ? 'is-invalid' : ''}`} name="nid" value={regForm.nid} onChange={handleRegChange} placeholder="১০ বা ১৭ ডিজিট" />
-                            {regErrors.nid && <div className="invalid-feedback">{regErrors.nid}</div>}
-                          </div>
-                          <div className="col-md-6">
-                            <label className="form-label fw-medium">জন্ম তারিখ <span className="text-danger">*</span></label>
-                            <div className="row g-1">
-                              <div className="col-4">
-                                <select className={`form-select ${regErrors.date_of_birth ? 'is-invalid' : ''}`} value={regDobDay} onChange={e => setRegDobDay(e.target.value)}>
-                                  <option value="">দিন</option>
-                                  {DAYS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
-                                </select>
+                          <form onSubmit={handleRegister}>
+                            <div className="gov-section-title"><i className="bi bi-person-vcard"></i>আবেদনকারীর তথ্য</div>
+                            <div className="row g-3">
+                              <div className="col-md-6">
+                                <label className="form-label">নাম (বাংলায়) <span className="text-danger">*</span></label>
+                                <BanglaInput as="input" className={`form-control ${regErrors.full_name_bn ? 'is-invalid' : ''}`} name="full_name_bn" value={regForm.full_name_bn} onChange={handleRegChange} placeholder="আপনার নাম বাংলায় লিখুন" />
+                                {regErrors.full_name_bn && <div className="invalid-feedback">{regErrors.full_name_bn}</div>}
                               </div>
-                              <div className="col-4">
-                                <select className={`form-select ${regErrors.date_of_birth ? 'is-invalid' : ''}`} value={regDobMonth} onChange={e => setRegDobMonth(e.target.value)}>
-                                  <option value="">মাস</option>
-                                  {MONTHS.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
-                                </select>
+                              <div className="col-md-6">
+                                <label className="form-label">নাম (ইংরেজিতে) <span className="text-danger">*</span></label>
+                                <input className={`form-control ${regErrors.full_name_en ? 'is-invalid' : ''}`} name="full_name_en" value={regForm.full_name_en} onChange={handleRegChange} placeholder="Your name in English" />
+                                {regErrors.full_name_en && <div className="invalid-feedback">{regErrors.full_name_en}</div>}
                               </div>
-                              <div className="col-4">
-                                <select className={`form-select ${regErrors.date_of_birth ? 'is-invalid' : ''}`} value={regDobYear} onChange={e => setRegDobYear(e.target.value)}>
-                                  <option value="">সাল</option>
-                                  {YEARS.map(y => <option key={y.value} value={y.value}>{y.label}</option>)}
-                                </select>
+                              <div className="col-md-6">
+                                <label className="form-label">মোবাইল নম্বর <span className="text-danger">*</span></label>
+                                <input className={`form-control ${regErrors.phone ? 'is-invalid' : ''}`} name="phone" value={regForm.phone} onChange={handleRegChange} placeholder="01XXXXXXXXX" />
+                                {regErrors.phone && <div className="invalid-feedback">{regErrors.phone}</div>}
+                              </div>
+                              <div className="col-md-6">
+                                <label className="form-label">জাতীয় পরিচয়পত্র নম্বর <span className="text-danger">*</span></label>
+                                <input className={`form-control ${regErrors.nid ? 'is-invalid' : ''}`} name="nid" value={regForm.nid} onChange={handleRegChange} placeholder="১০ বা ১৭ ডিজিট" />
+                                {regErrors.nid && <div className="invalid-feedback">{regErrors.nid}</div>}
+                              </div>
+                              <div className="col-md-6">
+                                <label className="form-label">জন্ম তারিখ <span className="text-danger">*</span></label>
+                                <div className="row g-1">
+                                  <div className="col-4">
+                                    <select className={`form-select ${regErrors.date_of_birth ? 'is-invalid' : ''}`} value={regDobDay} onChange={e => setRegDobDay(e.target.value)}>
+                                      <option value="">দিন</option>
+                                      {DAYS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
+                                    </select>
+                                  </div>
+                                  <div className="col-4">
+                                    <select className={`form-select ${regErrors.date_of_birth ? 'is-invalid' : ''}`} value={regDobMonth} onChange={e => setRegDobMonth(e.target.value)}>
+                                      <option value="">মাস</option>
+                                      {MONTHS.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
+                                    </select>
+                                  </div>
+                                  <div className="col-4">
+                                    <select className={`form-select ${regErrors.date_of_birth ? 'is-invalid' : ''}`} value={regDobYear} onChange={e => setRegDobYear(e.target.value)}>
+                                      <option value="">সাল</option>
+                                      {YEARS.map(y => <option key={y.value} value={y.value}>{y.label}</option>)}
+                                    </select>
+                                  </div>
+                                </div>
+                                {regErrors.date_of_birth && <div className="invalid-feedback d-block">{regErrors.date_of_birth}</div>}
+                              </div>
+                              <div className="col-md-6">
+                                <label className="form-label">পাসওয়ার্ড <span className="text-danger">*</span></label>
+                                <input type="password" className={`form-control ${regErrors.password ? 'is-invalid' : ''}`} name="password" value={regForm.password} onChange={handleRegChange} placeholder="ন্যূনতম ৬ অক্ষর" />
+                                {regErrors.password && <div className="invalid-feedback">{regErrors.password}</div>}
+                              </div>
+                              <div className="col-md-6">
+                                <label className="form-label">পাসওয়ার্ড নিশ্চিতকরণ <span className="text-danger">*</span></label>
+                                <input type="password" className={`form-control ${regErrors.confirm_password ? 'is-invalid' : ''}`} name="confirm_password" value={regForm.confirm_password} onChange={handleRegChange} placeholder="আবার পাসওয়ার্ড দিন" />
+                                {regErrors.confirm_password && <div className="invalid-feedback">{regErrors.confirm_password}</div>}
                               </div>
                             </div>
-                            {regErrors.date_of_birth && <div className="invalid-feedback d-block">{regErrors.date_of_birth}</div>}
-                          </div>
-                          <div className="col-md-6">
-                            <label className="form-label fw-medium">পাসওয়ার্ড <span className="text-danger">*</span></label>
-                            <input type="password" className={`form-control ${regErrors.password ? 'is-invalid' : ''}`} name="password" value={regForm.password} onChange={handleRegChange} placeholder="ন্যূনতম ৬ অক্ষর" />
-                            {regErrors.password && <div className="invalid-feedback">{regErrors.password}</div>}
-                          </div>
-                          <div className="col-md-6">
-                            <label className="form-label fw-medium">পাসওয়ার্ড নিশ্চিতকরণ <span className="text-danger">*</span></label>
-                            <input type="password" className={`form-control ${regErrors.confirm_password ? 'is-invalid' : ''}`} name="confirm_password" value={regForm.confirm_password} onChange={handleRegChange} placeholder="আবার পাসওয়ার্ড দিন" />
-                            {regErrors.confirm_password && <div className="invalid-feedback">{regErrors.confirm_password}</div>}
+                            {regErrors.form && <div className="alert alert-danger mt-3 py-2 small">{regErrors.form}</div>}
+                            <div className="gov-divider"></div>
+                            <div className="d-flex justify-content-between align-items-center">
+                              <button type="button" className="btn btn-outline-secondary px-4" onClick={() => window.history.back()}>
+                                <i className="bi bi-arrow-left me-1"></i>পেছনে
+                              </button>
+                              <button type="submit" className="btn gov-btn-primary px-4" disabled={regSubmitting}>
+                                {regSubmitting ? (
+                                  <><span className="spinner-border spinner-border-sm me-1"></span>অপেক্ষা করুন...</>
+                                ) : (
+                                  <><i className="bi bi-person-check me-1"></i>নিবন্ধন করুন</>
+                                )}
+                              </button>
+                            </div>
+                          </form>
+                          <div className="text-center mt-3">
+                            <small className="text-muted" style={{fontSize: '0.75rem'}}>সরকারি ব্যবহারের জন্য — সঠিক তথ্য প্রদান করুন</small>
                           </div>
                         </div>
-                        {regErrors.form && <div className="alert alert-danger mt-3 py-2 small">{regErrors.form}</div>}
-                        <div className="d-flex justify-content-between mt-4 pt-3 border-top">
-                          <button type="button" className="btn btn-outline-secondary px-4" onClick={() => window.history.back()}>
-                            <i className="bi bi-arrow-left me-1"></i>পেছনে
-                          </button>
-                          <button type="submit" className="btn btn-primary px-4" disabled={regSubmitting}>
-                            {regSubmitting ? (
-                              <><span className="spinner-border spinner-border-sm me-1"></span>অপেক্ষা করুন...</>
-                            ) : (
-                              <><i className="bi bi-person-plus me-1"></i>একাউন্ট তৈরি করুন</>
-                            )}
-                          </button>
-                        </div>
-                      </form>
+                      </div>
                     ) : (
                       <form onSubmit={handleLogin}>
                         <div className="row g-3">
