@@ -23,6 +23,8 @@ export default function Login() {
       else if (role === 'trainee') navigate('/trainee/dashboard');
       else if (role === 'trainer') navigate('/trainer/dashboard');
       else if (role === 'assessor') navigate('/assessor/dashboard');
+      else if (role === 'center_admin') navigate('/');
+      else if (role === 'accountant') navigate('/');
       else navigate('/');
     } catch {
       toast.error(t('auth.loginFailed', 'ইমেইল বা পাসওয়ার্ড ভুল'));

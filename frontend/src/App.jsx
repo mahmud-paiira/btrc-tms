@@ -90,6 +90,8 @@ function RootRedirect() {
   if (role === 'trainee') return <Navigate to="/trainee/dashboard" />;
   if (role === 'trainer') return <Navigate to="/trainer/dashboard" />;
   if (role === 'assessor') return <Navigate to="/assessor/dashboard" />;
+  if (role === 'center_admin') return <Dashboard />;
+  if (role === 'accountant') return <Dashboard />;
   return <Dashboard />;
 }
 
