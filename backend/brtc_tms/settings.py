@@ -3,6 +3,19 @@ from datetime import timedelta
 from decouple import config
 from pathlib import Path
 
+# ── DRF + Django 6.x compat: register_converter raises on duplicate ────────
+import django.urls.converters
+_orig_rc = django.urls.converters.register_converter
+def _safe_rc(converter, type_name):
+    try:
+        _orig_rc(converter, type_name)
+    except ValueError:
+        pass
+django.urls.converters.register_converter = _safe_rc
+# DRF 3.15+ urlpatterns holds a local import reference — patch it too
+import rest_framework.urlpatterns
+rest_framework.urlpatterns.register_converter = _safe_rc
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ── Security ──────────────────────────────────────────────────────────────
