@@ -1,6 +1,6 @@
 from django.contrib.auth import authenticate
 from rest_framework import serializers
-from .models import User
+from .models import User, UserProfile
 
 
 class PublicRegisterSerializer(serializers.ModelSerializer):
@@ -13,6 +13,7 @@ class PublicRegisterSerializer(serializers.ModelSerializer):
         label='পাসওয়ার্ড নিশ্চিতকরণ',
     )
     email = serializers.EmailField(required=False, allow_blank=True, label='ইমেইল')
+    date_of_birth = serializers.DateField(required=False, allow_null=True, label='জন্ম তারিখ')
 
     class Meta:
         model = User
@@ -20,6 +21,7 @@ class PublicRegisterSerializer(serializers.ModelSerializer):
             'full_name_bn', 'full_name_en',
             'phone', 'nid', 'email',
             'password', 'confirm_password',
+            'date_of_birth',
         )
 
     def validate_phone(self, value):
@@ -42,9 +44,16 @@ class PublicRegisterSerializer(serializers.ModelSerializer):
     def validate(self, data):
         if data['password'] != data['confirm_password']:
             raise serializers.ValidationError({'confirm_password': 'পাসওয়ার্ড দুটি একই হতে হবে'})
+        dob = data.get('date_of_birth')
+        if dob:
+            from datetime import date
+            age = date.today().year - dob.year - ((date.today().month, date.today().day) < (dob.month, dob.day))
+            if age < 21:
+                raise serializers.ValidationError({'date_of_birth': 'বয়স ১৮ বছরের কম। নিবন্ধন সম্ভব নয়।'})
         return data
 
     def create(self, validated_data):
+        date_of_birth = validated_data.pop('date_of_birth', None)
         validated_data.pop('confirm_password')
         email = validated_data.pop('email', '') or f'phone_{validated_data["phone"]}@brtc.app'
         user = User(
@@ -60,6 +69,11 @@ class PublicRegisterSerializer(serializers.ModelSerializer):
         )
         user.set_password(validated_data['password'])
         user.save()
+        if date_of_birth:
+            UserProfile.objects.update_or_create(
+                user=user,
+                defaults={'date_of_birth': date_of_birth},
+            )
         return user
 
 

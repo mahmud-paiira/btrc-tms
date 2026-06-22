@@ -57,6 +57,9 @@ export default function RegisterAndApply() {
   });
   const [regErrors, setRegErrors] = useState({});
   const [regSubmitting, setRegSubmitting] = useState(false);
+  const [regDobDay, setRegDobDay] = useState('');
+  const [regDobMonth, setRegDobMonth] = useState('');
+  const [regDobYear, setRegDobYear] = useState('');
 
   const [loginForm, setLoginForm] = useState({ identifier: '', password: '' });
   const [loginErrors, setLoginErrors] = useState({});
@@ -240,10 +243,28 @@ export default function RegisterAndApply() {
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    setRegSubmitting(true);
     setRegErrors({});
+    const day = regDobDay;
+    const month = regDobMonth;
+    const year = regDobYear;
+    let dob = '';
+    if (day && month && year) {
+      dob = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const age = calculateAge(dob);
+      if (age < 21) {
+        setRegErrors({ date_of_birth: `বয়স ${age} বছর। ন্যূনতম ২১ বছর হতে হবে।` });
+        setRegSubmitting(false);
+        return;
+      }
+    } else {
+      setRegErrors({ date_of_birth: 'জন্ম তারিখ নির্বাচন করুন' });
+      setRegSubmitting(false);
+      return;
+    }
+    setRegSubmitting(true);
     try {
-      const { data } = await publicService.register(regForm);
+      const payload = { ...regForm, date_of_birth: dob };
+      const { data } = await publicService.register(payload);
       setOtpPhone(data.phone);
       setUserId(data.user_id);
       setOtpModal(true);
@@ -294,12 +315,22 @@ export default function RegisterAndApply() {
     try {
       const { data } = await publicService.loginPublic(loginForm);
       storeUserSession(data);
+      const dobStr = data.user?.date_of_birth || '';
+      if (dobStr) {
+        const parts = dobStr.split('-');
+        if (parts.length === 3) {
+          setDobDay(parts[2]);
+          setDobMonth(parts[1]);
+          setDobYear(parts[0]);
+        }
+      }
       setForm(prev => ({
         ...prev,
         name_bn: data.user.full_name_bn,
         name_en: data.user.full_name_en,
         nid: data.user.nid,
         phone: data.user.phone,
+        date_of_birth: dobStr,
       }));
       setUserId(data.user.id);
       setApplyStep(1);
@@ -552,6 +583,30 @@ export default function RegisterAndApply() {
                             {regErrors.nid && <div className="invalid-feedback">{regErrors.nid}</div>}
                           </div>
                           <div className="col-md-6">
+                            <label className="form-label fw-medium">জন্ম তারিখ <span className="text-danger">*</span></label>
+                            <div className="row g-1">
+                              <div className="col-4">
+                                <select className={`form-select ${regErrors.date_of_birth ? 'is-invalid' : ''}`} value={regDobDay} onChange={e => setRegDobDay(e.target.value)}>
+                                  <option value="">দিন</option>
+                                  {DAYS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
+                                </select>
+                              </div>
+                              <div className="col-4">
+                                <select className={`form-select ${regErrors.date_of_birth ? 'is-invalid' : ''}`} value={regDobMonth} onChange={e => setRegDobMonth(e.target.value)}>
+                                  <option value="">মাস</option>
+                                  {MONTHS.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
+                                </select>
+                              </div>
+                              <div className="col-4">
+                                <select className={`form-select ${regErrors.date_of_birth ? 'is-invalid' : ''}`} value={regDobYear} onChange={e => setRegDobYear(e.target.value)}>
+                                  <option value="">সাল</option>
+                                  {YEARS.map(y => <option key={y.value} value={y.value}>{y.label}</option>)}
+                                </select>
+                              </div>
+                            </div>
+                            {regErrors.date_of_birth && <div className="invalid-feedback d-block">{regErrors.date_of_birth}</div>}
+                          </div>
+                          <div className="col-md-6">
                             <label className="form-label fw-medium">পাসওয়ার্ড <span className="text-danger">*</span></label>
                             <input type="password" className={`form-control ${regErrors.password ? 'is-invalid' : ''}`} name="password" value={regForm.password} onChange={handleRegChange} placeholder="ন্যূনতম ৬ অক্ষর" />
                             {regErrors.password && <div className="invalid-feedback">{regErrors.password}</div>}
@@ -654,26 +709,30 @@ export default function RegisterAndApply() {
                           </div>
                           <div className="col-md-6">
                             <label className="form-label fw-medium">জন্ম তারিখ</label>
-                            <div className="row g-1">
-                              <div className="col-4">
-                                <select className={`form-select ${nidVerifyError ? 'is-invalid' : nidVerified ? 'is-valid' : ''}`} value={dobDay} onChange={e => handleDobChange('dobDay', e.target.value)}>
-                                  <option value="">দিন</option>
-                                  {DAYS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
-                                </select>
+                            {form.date_of_birth ? (
+                              <input className="form-control bg-light" value={form.date_of_birth} readOnly />
+                            ) : (
+                              <div className="row g-1">
+                                <div className="col-4">
+                                  <select className={`form-select ${nidVerifyError ? 'is-invalid' : nidVerified ? 'is-valid' : ''}`} value={dobDay} onChange={e => handleDobChange('dobDay', e.target.value)}>
+                                    <option value="">দিন</option>
+                                    {DAYS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
+                                  </select>
+                                </div>
+                                <div className="col-4">
+                                  <select className={`form-select ${nidVerifyError ? 'is-invalid' : nidVerified ? 'is-valid' : ''}`} value={dobMonth} onChange={e => handleDobChange('dobMonth', e.target.value)}>
+                                    <option value="">মাস</option>
+                                    {MONTHS.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
+                                  </select>
+                                </div>
+                                <div className="col-4">
+                                  <select className={`form-select ${nidVerifyError ? 'is-invalid' : nidVerified ? 'is-valid' : ''}`} value={dobYear} onChange={e => handleDobChange('dobYear', e.target.value)}>
+                                    <option value="">সাল</option>
+                                    {YEARS.map(y => <option key={y.value} value={y.value}>{y.label}</option>)}
+                                  </select>
+                                </div>
                               </div>
-                              <div className="col-4">
-                                <select className={`form-select ${nidVerifyError ? 'is-invalid' : nidVerified ? 'is-valid' : ''}`} value={dobMonth} onChange={e => handleDobChange('dobMonth', e.target.value)}>
-                                  <option value="">মাস</option>
-                                  {MONTHS.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
-                                </select>
-                              </div>
-                              <div className="col-4">
-                                <select className={`form-select ${nidVerifyError ? 'is-invalid' : nidVerified ? 'is-valid' : ''}`} value={dobYear} onChange={e => handleDobChange('dobYear', e.target.value)}>
-                                  <option value="">সাল</option>
-                                  {YEARS.map(y => <option key={y.value} value={y.value}>{y.label}</option>)}
-                                </select>
-                              </div>
-                            </div>
+                            )}
                             {nidVerifyError && <div className="invalid-feedback">{nidVerifyError}</div>}
                           </div>
                           <div className="col-md-6">

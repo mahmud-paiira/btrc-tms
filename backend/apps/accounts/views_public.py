@@ -79,6 +79,7 @@ def public_verify_otp(request):
     user.save(update_fields=['is_phone_verified'])
 
     refresh = RefreshToken.for_user(user)
+    dob = getattr(user.profile, 'date_of_birth', None) if hasattr(user, 'profile') else None
     return Response({
         'message': 'মোবাইল নিশ্চিতকরণ সফল হয়েছে',
         'access_token': str(refresh.access_token),
@@ -91,6 +92,7 @@ def public_verify_otp(request):
             'nid': user.nid,
             'email': user.email,
             'user_type': user.user_type,
+            'date_of_birth': dob.isoformat() if dob else None,
         },
     })
 
@@ -155,6 +157,7 @@ def public_login(request):
     LoginLog.objects.create(user=user, ip_address=ip, user_agent=ua, is_success=True)
 
     refresh = RefreshToken.for_user(user)
+    dob = getattr(user.profile, 'date_of_birth', None) if hasattr(user, 'profile') else None
     return Response({
         'access_token': str(refresh.access_token),
         'refresh_token': str(refresh),
@@ -166,5 +169,6 @@ def public_login(request):
             'nid': user.nid,
             'email': user.email,
             'user_type': user.user_type,
+            'date_of_birth': dob.isoformat() if dob else None,
         },
     })
