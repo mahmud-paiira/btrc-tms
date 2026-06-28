@@ -34,6 +34,7 @@ import TraineeAttendance from './pages/trainee/TraineeAttendance';
 import TraineeAssessment from './pages/trainee/TraineeAssessment';
 import TraineeCertificate from './pages/trainee/TraineeCertificate';
 import TraineeProfile from './pages/trainee/TraineeProfile';
+import TraineeApplications from './pages/trainee/TraineeApplications';
 import HoLayout from './components/layout/HoLayout';
 import HoDashboard from './pages/ho/HoDashboard';
 import HoCenterManagement from './pages/ho/HoCenterManagement';
@@ -183,6 +184,8 @@ function App() {
             <Route path="assessment" element={<TraineeAssessment />} />
             <Route path="certificate" element={<TraineeCertificate />} />
             <Route path="profile" element={<TraineeProfile />} />
+            <Route path="application" element={<TraineeApplications />} />
+            <Route path="applications" element={<TraineeApplications />} />
           </Route>
           <Route path="/checkin/:batchId/:sessionNo/:dateStr" element={<QRCheckin />} />
           <Route path="/verify/certificate/:certNo" element={<PublicVerify />} />

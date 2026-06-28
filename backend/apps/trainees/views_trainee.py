@@ -97,6 +97,26 @@ class TraineePortalViewSet(viewsets.ViewSet):
         })
 
     @action(detail=False, methods=['get'])
+    def my_applications(self, request):
+        apps = Application.objects.filter(user=request.user).select_related(
+            'circular', 'chosen_center',
+        ).order_by('-applied_at')
+        data = []
+        for a in apps:
+            data.append({
+                'id': a.id,
+                'application_no': a.application_no,
+                'status': a.status,
+                'status_display': a.get_status_display(),
+                'circular_title': a.circular.title_bn or a.circular.title_en,
+                'center_name': a.chosen_center.name_bn if a.chosen_center else None,
+                'applied_at': a.applied_at,
+                'merit_score': float(a.merit_score) if a.merit_score else None,
+                'waitlist_position': a.waitlist_position,
+            })
+        return Response(data)
+
+    @action(detail=False, methods=['get'])
     def schedule(self, request):
         trainee = self.get_trainee(request.user)
         if not trainee or not trainee.batch:

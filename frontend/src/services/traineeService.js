@@ -25,6 +25,10 @@ const traineeService = {
     return api.get('/trainee/me/my_application/');
   },
 
+  getMyApplications() {
+    return api.get('/trainee/me/my_applications/');
+  },
+
   updateProfile(data) {
     return api.put('/trainee/me/profile/', data, {
       headers: { 'Content-Type': 'multipart/form-data' },
