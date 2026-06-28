@@ -28,8 +28,9 @@ export default function Navbar({ breadcrumb, extra }) {
   const toggleSidebar = useStore(s => s.toggleSidebar);
 
   const handleLogout = () => {
+    const isTrainee = user?.user_type === 'trainee';
     logout();
-    navigate('/login');
+    navigate(isTrainee ? '/trainee/login' : '/login');
   };
 
   const currentPage = breadcrumb && breadcrumb.length > 0 ? breadcrumb[breadcrumb.length - 1] : null;
