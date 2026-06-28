@@ -10,6 +10,7 @@ from apps.assessments.models import Assessment
 from apps.certificates.models import Certificate
 from apps.batches.models import BatchWeekPlan
 from apps.accounts.models import UserProfile
+from apps.applications.models import Application
 
 
 class IsTraineeUser(permissions.BasePermission):
@@ -75,6 +76,24 @@ class TraineePortalViewSet(viewsets.ViewSet):
             'nominee_name': trainee.nominee_name,
             'nominee_relation': trainee.nominee_relation,
             'nominee_phone': trainee.nominee_phone,
+        })
+
+    @action(detail=False, methods=['get'])
+    def my_application(self, request):
+        app = Application.objects.filter(user=request.user).select_related(
+            'circular', 'chosen_center',
+        ).order_by('-created_at').first()
+        if not app:
+            return Response({'has_application': False, 'detail': 'কোনো আবেদন পাওয়া যায়নি।'})
+        return Response({
+            'has_application': True,
+            'application_no': app.application_no,
+            'status': app.status,
+            'status_display': app.get_status_display(),
+            'circular_title': app.circular.title_bn or app.circular.title_en,
+            'circular_no': app.circular.circular_no,
+            'chosen_center': app.chosen_center.name_bn if app.chosen_center else None,
+            'created_at': app.created_at,
         })
 
     @action(detail=False, methods=['get'])

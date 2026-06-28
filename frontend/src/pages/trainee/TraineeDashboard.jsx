@@ -21,18 +21,31 @@ function AttendanceRing({ pct }) {
   );
 }
 
+const STATUS_BADGE = {
+  pending: 'bg-warning text-dark', auto_rejected: 'bg-danger', selected: 'bg-success',
+  rejected: 'bg-danger', waitlisted: 'bg-info text-dark', enrolled: 'bg-primary',
+};
+
 export default function TraineeDashboard() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [data, setData] = useState(null);
+  const [application, setApplication] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const [errorMsg, setErrorMsg] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
-    traineeService.getMe()
-      .then(({ data: d }) => { if (!cancelled) setData(d); })
+    Promise.all([
+      traineeService.getMe(),
+      traineeService.getMyApplication().catch(() => null),
+    ])
+      .then(([meRes, appRes]) => {
+        if (cancelled) return;
+        setData(meRes.data);
+        if (appRes?.data?.has_application) setApplication(appRes.data);
+      })
       .catch((err) => {
         if (cancelled) return;
         if (err.response?.status === 401) {
@@ -149,6 +162,28 @@ export default function TraineeDashboard() {
                     className={`progress-bar ${warning ? 'bg-danger' : 'bg-success'}`}
                     style={{ width: `${Math.min(attPct, 100)}%`, transition: 'width 0.8s ease' }}
                   />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ──────── Application Status ──────── */}
+      {application && (
+        <div className="card border-0 shadow-sm mb-4" style={{ borderRadius: 20, background: 'linear-gradient(145deg, #ffffff, #f8f9fa)' }}>
+          <div className="card-body p-4">
+            <div className="d-flex flex-wrap align-items-center gap-3">
+              <div className="d-inline-flex align-items-center justify-content-center rounded-circle flex-shrink-0" style={{ width: 52, height: 52, background: 'linear-gradient(135deg, #fef3c7, #fde68a)' }}>
+                <i className="bi bi-file-text text-warning fs-4"></i>
+              </div>
+              <div className="flex-grow-1 min-width-0">
+                <div className="d-flex flex-wrap align-items-center gap-2 mb-1">
+                  <span className="fw-bold">{application.circular_title}</span>
+                  <span className={`badge ${STATUS_BADGE[application.status] || 'bg-secondary'}`}>{application.status_display}</span>
+                </div>
+                <div className="small text-muted">
+                  {application.application_no} &middot; {application.chosen_center || 'কেন্দ্র বাছাই করা হয়নি'}
                 </div>
               </div>
             </div>
