@@ -71,7 +71,12 @@ class BatchViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         self.assert_admin_or_ho(self.request)
-        serializer.save(created_by=self.request.user)
+        user = self.request.user
+        data = {}
+        if user.user_type == 'center_admin' and user.center:
+            data['center'] = user.center
+        data['created_by'] = user
+        serializer.save(**data)
 
     def perform_update(self, serializer):
         self.assert_admin_or_ho(self.request)

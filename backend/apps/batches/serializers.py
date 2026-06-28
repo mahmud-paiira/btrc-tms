@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.core.exceptions import ValidationError as DjangoValidationError
+from apps.centers.models import Center
 from .models import Batch, BatchWeekPlan, BatchEnrollment, Shift, Holiday, BatchCalendarDay
 from .validators import validate_no_trainer_overlap
 
@@ -52,6 +53,11 @@ class BatchDetailSerializer(serializers.ModelSerializer):
 
 
 class BatchWriteSerializer(serializers.ModelSerializer):
+    center = serializers.PrimaryKeyRelatedField(
+        queryset=Center.objects.all(), required=False,
+        label='প্রশিক্ষণ কেন্দ্র',
+    )
+
     class Meta:
         model = Batch
         fields = (
