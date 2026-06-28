@@ -82,7 +82,7 @@ class TraineePortalViewSet(viewsets.ViewSet):
     def my_application(self, request):
         app = Application.objects.filter(user=request.user).select_related(
             'circular', 'chosen_center',
-        ).order_by('-created_at').first()
+        ).order_by('-applied_at').first()
         if not app:
             return Response({'has_application': False, 'detail': 'কোনো আবেদন পাওয়া যায়নি।'})
         return Response({
@@ -93,7 +93,7 @@ class TraineePortalViewSet(viewsets.ViewSet):
             'circular_title': app.circular.title_bn or app.circular.title_en,
             'circular_no': app.circular.circular_no,
             'chosen_center': app.chosen_center.name_bn if app.chosen_center else None,
-            'created_at': app.created_at,
+            'applied_at': app.applied_at,
         })
 
     @action(detail=False, methods=['get'])

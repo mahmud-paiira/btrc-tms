@@ -222,7 +222,7 @@ export default function TraineeDashboard() {
                     </div>
                   </div>
                   <div className="flex-grow-1 min-width-0">
-                    <div className="fw-bold text-truncate">{application.circular_title}</div>
+                    <div className="fw-bold" style={{ wordBreak: 'break-word' }}>{application.circular_title}</div>
                     <div className="small text-muted">{application.application_no}</div>
                     <div className="mt-1">
                       <span className={`badge ${APP_STATUS_BADGE[application.status] || 'bg-secondary'} rounded-pill`}>{application.status_display}</span>
