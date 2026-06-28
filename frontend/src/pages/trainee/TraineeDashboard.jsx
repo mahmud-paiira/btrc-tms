@@ -11,7 +11,7 @@ const APP_STATUS_BADGE = {
   rejected: 'bg-danger', waitlisted: 'bg-info text-dark', enrolled: 'bg-primary',
 };
 
-const NAVY = '#1a5276';
+const BRAND = '#1b6b3b';
 
 function StatCard({ icon, label, value, color }) {
   return (
@@ -117,13 +117,13 @@ export default function TraineeDashboard() {
       {/* ──────── Header ──────── */}
       <div className="d-flex flex-wrap align-items-center justify-content-between mb-4">
         <div>
-          <h4 className="fw-bold mb-1" style={{ color: NAVY }}>প্রশিক্ষণার্থী ড্যাশবোর্ড</h4>
+          <h4 className="fw-bold mb-1" style={{ color: BRAND }}>প্রশিক্ষণার্থী ড্যাশবোর্ড</h4>
           <p className="text-muted mb-0 small">আপনার প্রশিক্ষণ সংক্রান্ত সকল তথ্য</p>
         </div>
       </div>
 
       {/* ──────── Hero Profile Card ──────── */}
-      <div className="card border-0 shadow-sm overflow-hidden mb-4" style={{ borderRadius: 24, background: `linear-gradient(135deg, ${NAVY} 0%, #1b3d5e 50%, #0f2940 100%)` }}>
+      <div className="card border-0 shadow-sm overflow-hidden mb-4" style={{ borderRadius: 24, background: `linear-gradient(135deg, ${BRAND} 0%, #145732 50%, #0e4024 100%)` }}>
         <div className="position-absolute top-0 end-0 w-50 h-100 opacity-10" style={{ background: 'radial-gradient(circle at 100% 50%, rgba(255,255,255,0.9) 0%, transparent 70%)' }} />
         <div className="card-body p-4 p-md-5 position-relative">
           <div className="d-flex align-items-center gap-3 gap-md-4">
@@ -162,7 +162,7 @@ export default function TraineeDashboard() {
       {/* ──────── Stats Row ──────── */}
       <div className="row g-3 mb-4">
         <div className="col-6 col-lg-3">
-          <StatCard icon="bi-layers" label="ব্যাচ" value={batch ? batch.batch_no : 'নথিভুক্ত নন'} color={NAVY} />
+          <StatCard icon="bi-layers" label="ব্যাচ" value={batch ? batch.batch_no : 'নথিভুক্ত নন'} color={BRAND} />
         </div>
         <div className="col-6 col-lg-3">
           <StatCard icon="bi-book" label="কোর্স" value={batch?.course_name || '—'} color="#16a34a" />
@@ -212,8 +212,8 @@ export default function TraineeDashboard() {
           <div className="card border-0 shadow-sm h-100" style={{ borderRadius: 20, background: 'linear-gradient(145deg, #ffffff, #f8f9fa)' }}>
             <div className="card-body p-4">
               <div className="d-flex align-items-center gap-2 mb-3">
-                <i className="bi bi-file-text" style={{ color: NAVY }}></i>
-                <span className="fw-bold small text-uppercase" style={{ color: NAVY, letterSpacing: '0.5px' }}>আবেদনের অবস্থা</span>
+                <i className="bi bi-file-text" style={{ color: BRAND }}></i>
+                <span className="fw-bold small text-uppercase" style={{ color: BRAND, letterSpacing: '0.5px' }}>আবেদনের অবস্থা</span>
               </div>
               {application ? (
                 <div className="d-flex align-items-center gap-3">
@@ -280,7 +280,7 @@ export default function TraineeDashboard() {
       </div>
 
       {/* ──────── Quick Links ──────── */}
-      <h6 className="mb-3 fw-bold" style={{ color: NAVY, letterSpacing: '0.5px' }}><i className="bi bi-grid-3x3-gap-fill me-2"></i>দ্রুত লিঙ্ক</h6>
+      <h6 className="mb-3 fw-bold" style={{ color: BRAND, letterSpacing: '0.5px' }}><i className="bi bi-grid-3x3-gap-fill me-2"></i>দ্রুত লিঙ্ক</h6>
       <div className="row g-3">
         <div className="col-6 col-md-4"><QuickLink to="/trainee/schedule" label="সময়সূচি" icon="bi-calendar-week" bg="linear-gradient(135deg, #dbeafe, #bfdbfe)" color="#2563eb" /></div>
         <div className="col-6 col-md-4"><QuickLink to="/trainee/attendance" label="উপস্থিতি" icon="bi-check-circle" bg="linear-gradient(135deg, #dcfce7, #bbf7d0)" color="#16a34a" /></div>
