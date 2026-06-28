@@ -81,7 +81,7 @@ class TraineePortalViewSet(viewsets.ViewSet):
     def schedule(self, request):
         trainee = self.get_trainee(request.user)
         if not trainee or not trainee.batch:
-            return Response({'detail': 'আপনি কোনো ব্যাচে নথিভুক্ত নন।'}, status=400)
+            return Response({'batch_name': None, 'batch_dates': None, 'sessions': []})
 
         plans = BatchWeekPlan.objects.filter(batch=trainee.batch).select_related(
             'lead_trainer__user', 'associate_trainer__user',
@@ -124,7 +124,10 @@ class TraineePortalViewSet(viewsets.ViewSet):
     def attendance(self, request):
         trainee = self.get_trainee(request.user)
         if not trainee or not trainee.batch:
-            return Response({'detail': 'আপনি কোনো ব্যাচে নথিভুক্ত নন।'}, status=400)
+            return Response({
+                'total_sessions': 0, 'present': 0, 'late': 0, 'absent': 0, 'leave': 0,
+                'attendance_percentage': 0, 'records': [], 'trend': [],
+            })
 
         year = request.query_params.get('year')
         month = request.query_params.get('month')
@@ -193,7 +196,7 @@ class TraineePortalViewSet(viewsets.ViewSet):
     def assessments(self, request):
         trainee = self.get_trainee(request.user)
         if not trainee or not trainee.batch:
-            return Response({'detail': 'আপনি কোনো ব্যাচে নথিভুক্ত নন।'}, status=400)
+            return Response({'batch_name': None, 'assessments': [], 'all_competent': False, 'has_final': False})
 
         assessments = Assessment.objects.filter(
             trainee=trainee, batch=trainee.batch,
@@ -229,7 +232,7 @@ class TraineePortalViewSet(viewsets.ViewSet):
     def certificate(self, request):
         trainee = self.get_trainee(request.user)
         if not trainee or not trainee.batch:
-            return Response({'detail': 'আপনি কোনো ব্যাচে নথিভুক্ত নন।'}, status=400)
+            return Response({'has_certificate': False, 'detail': 'আপনি কোনো ব্যাচে নথিভুক্ত নন।'})
 
         cert = Certificate.objects.filter(
             trainee=trainee, batch=trainee.batch,
