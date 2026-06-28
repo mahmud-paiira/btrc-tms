@@ -120,14 +120,14 @@ class Application(models.Model):
 
     # Address
     present_address = models.TextField(verbose_name='বর্তমান ঠিকানা')
-    permanent_address = models.TextField(verbose_name='স্থায়ী ঠিকানা')
+    permanent_address = models.TextField(blank=True, verbose_name='স্থায়ী ঠিকানা')
     present_division = models.ForeignKey(Demography, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name='বর্তমান বিভাগ')
     present_district = models.ForeignKey(Demography, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name='বর্তমান জেলা')
     permanent_division = models.ForeignKey(Demography, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name='স্থায়ী বিভাগ')
     permanent_district = models.ForeignKey(Demography, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name='স্থায়ী জেলা')
 
     # Education & Profession
-    education_qualification = models.TextField(verbose_name='শিক্ষাগত যোগ্যতা')
+    education_qualification = models.TextField(blank=True, verbose_name='শিক্ষাগত যোগ্যতা')
     education_level = models.ForeignKey(Education, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='শিক্ষাগত যোগ্যতা')
     profession = models.CharField(
         max_length=255, blank=True, verbose_name='পেশা',
