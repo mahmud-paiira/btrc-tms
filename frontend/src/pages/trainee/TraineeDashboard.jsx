@@ -124,8 +124,7 @@ export default function TraineeDashboard() {
 
       {/* ──────── Hero Profile Card ──────── */}
       <div className="card border-0 shadow-sm overflow-hidden mb-4" style={{ borderRadius: 24, background: BRAND }}>
-        <div className="position-absolute top-0 end-0 w-50 h-100 opacity-10" style={{ background: 'radial-gradient(circle at 100% 50%, rgba(255,255,255,0.9) 0%, transparent 70%)' }} />
-        <div className="card-body p-4 p-md-5 position-relative">
+        <div className="card-body p-4 p-md-5">
           <div className="d-flex align-items-center gap-3 gap-md-4">
             <div className="flex-shrink-0 position-relative">
               {data.profile_image ? (
