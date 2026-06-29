@@ -4,8 +4,6 @@ import { toast } from 'react-toastify';
 import { useTranslation } from '../../hooks/useTranslation';
 import traineeService from '../../services/traineeService';
 
-const STATUS_MAP = { scheduled: 'নির্ধারিত', running: 'চলমান', completed: 'সমাপ্ত', cancelled: 'বাতিল' };
-
 const APP_STATUS_BADGE = {
   pending: 'bg-warning text-dark', auto_rejected: 'bg-danger', selected: 'bg-success',
   rejected: 'bg-danger', waitlisted: 'bg-info text-dark', enrolled: 'bg-primary',
@@ -173,36 +171,6 @@ export default function TraineeDashboard() {
           <StatCard icon="bi-check-circle" label="উপস্থিতি" value={attPct !== null ? `${attPct}%` : '—'} color={warning ? '#dc3545' : '#198754'} />
         </div>
       </div>
-
-      {/* ──────── Batch Status Cards ──────── */}
-      {batch && (
-        <div className="row g-3 g-md-4 mb-4">
-          <div className="col-6">
-            <div className="card border-0 h-100 shadow-sm" style={{ borderRadius: 20, background: 'linear-gradient(145deg, #ffffff, #f8f9fa)' }}>
-              <div className="card-body p-3 p-md-4 d-flex flex-column align-items-center text-center gap-2">
-                <div className="d-inline-flex align-items-center justify-content-center rounded-circle mb-2" style={{ width: 64, height: 64, background: 'linear-gradient(135deg, #e8f0fe, #d2e3fc)' }}>
-                  <i className="bi bi-layers text-primary fs-3"></i>
-                </div>
-                <div className="text-muted small fw-medium text-uppercase tracking-wide" style={{ fontSize: '0.7rem', letterSpacing: '0.5px' }}>ব্যাচ নম্বর</div>
-                <h4 className="mb-0 fw-bold">{batch.batch_no}</h4>
-                <div className="small text-primary fw-medium">{batch.name_bn}</div>
-              </div>
-            </div>
-          </div>
-          <div className="col-6">
-            <div className="card border-0 h-100 shadow-sm" style={{ borderRadius: 20, background: 'linear-gradient(145deg, #ffffff, #f8f9fa)' }}>
-              <div className="card-body p-3 p-md-4 d-flex flex-column align-items-center text-center gap-2">
-                <div className="d-inline-flex align-items-center justify-content-center rounded-circle mb-2" style={{ width: 64, height: 64, background: 'linear-gradient(135deg, #e6f9ed, #c8f0d5)' }}>
-                  <i className="bi bi-check2-circle text-success fs-3"></i>
-                </div>
-                <div className="text-muted small fw-medium text-uppercase tracking-wide" style={{ fontSize: '0.7rem', letterSpacing: '0.5px' }}>স্ট্যাটাস</div>
-                <h4 className="mb-0 fw-bold">{t(`batch.status.${batch.status}`, STATUS_MAP[batch.status] || batch.status)}</h4>
-                <div className="small text-success fw-medium">{batch.start_date} - {batch.end_date}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ──────── Application + Attendance Row ──────── */}
       <div className="row g-4 mb-4">
