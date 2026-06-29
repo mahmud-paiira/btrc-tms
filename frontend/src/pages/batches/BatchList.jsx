@@ -267,17 +267,9 @@ export default function BatchList() {
                         {b.status !== 'completed' && b.status !== 'scheduled' && b.status !== 'running' && (
                           <span className="text-muted small py-1">কোন কর্ম উপলব্ধ নেই</span>
                         )}
-                        <div className="dropdown">
-                          <button className="btn btn-sm btn-outline-secondary border-0" data-bs-toggle="dropdown" data-bs-strategy="fixed" type="button">
-                            <i className="bi bi-three-dots-vertical"></i>
-                          </button>
-                          <ul className="dropdown-menu dropdown-menu-end" style={{ fontSize: 13 }}>
-                            {b.status === 'scheduled' && <li><button className="dropdown-item" onClick={() => navigate(`/center-admin/batches/${b.id}/edit`)}><i className="bi bi-pencil me-2"></i>সম্পাদনা</button></li>}
-                            {b.status === 'running' && <li><button className="dropdown-item text-danger" onClick={() => handleStatusChange(b.id, 'complete')}><i className="bi bi-check-lg me-2"></i>সমাপ্ত করুন</button></li>}
-                            <li><hr className="dropdown-divider" /></li>
-                            <li><button className="dropdown-item text-danger" onClick={() => handleDelete(b.id, b.batch_no)}><i className="bi bi-trash me-2"></i>মুছুন</button></li>
-                          </ul>
-                        </div>
+                        <button className="btn btn-sm btn-outline-danger border-0 ms-auto" onClick={() => handleDelete(b.id, b.batch_no)} title="মুছুন">
+                          <i className="bi bi-trash"></i>
+                        </button>
                       </div>
                     </div>
                   </div>
