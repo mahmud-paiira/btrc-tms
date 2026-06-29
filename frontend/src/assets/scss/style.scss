@@ -582,81 +582,91 @@ body {
   background: rgba(99, 102, 241, 0.02);
 }
 
-// ── b-table (modern data-table) ──────────────────────────────────────
-.b-table { border-collapse: collapse; }
+// ── b-table (government-style data-table) ────────────────────────────
+.b-table {
+  border-collapse: collapse;
+  width: 100%;
+  border: 2px solid #1b6b3b;
+  border-radius: 4px;
+}
 .b-table thead { position: sticky; top: 0; z-index: 2; }
 .b-table th {
-  padding: 14px 16px;
-  font-weight: 600;
-  font-size: 12px;
-  color: #64748b;
+  padding: 12px 14px;
+  font-weight: 700;
+  font-size: 13px;
+  color: #fff;
   text-transform: uppercase;
   letter-spacing: .5px;
-  background: #f8fafc;
-  border-bottom: 2px solid #e2e8f0;
+  background: #1b6b3b;
+  border: 1px solid #15532e;
+  white-space: nowrap;
 }
 .b-table td {
-  padding: 14px 16px;
-  border-bottom: 1px solid #f1f5f9;
+  padding: 11px 14px;
+  border: 1px solid #d4d4d4;
   font-size: 14px;
   vertical-align: middle;
+  background: #fff;
+  color: #1f2937;
 }
 .b-table tbody tr { transition: background .15s; }
-.b-table tbody tr:hover { background: #f8faff; }
-.b-table tbody tr:last-child td { border-bottom: none; }
+.b-table tbody tr:hover td { background: #f0f7f2; }
+.b-table tbody tr:last-child td { border-bottom: 1px solid #d4d4d4; }
 
 // Status dots
 .b-table .status-dot {
   display: inline-block;
-  width: 8px; height: 8px;
+  width: 9px; height: 9px;
   border-radius: 50%;
   margin-right: 6px;
   vertical-align: middle;
+  box-shadow: 0 0 0 1px rgba(0,0,0,.1);
 }
 .b-table .dot-scheduled { background: #94a3b8; }
-.b-table .dot-running { background: #22c55e; }
-.b-table .dot-completed { background: #3b82f6; }
-.b-table .dot-cancelled { background: #ef4444; }
-.b-table .dot-approved { background: #22c55e; }
-.b-table .dot-pending { background: #f59e0b; }
-.b-table .dot-rejected { background: #ef4444; }
-.b-table .dot-active { background: #22c55e; }
+.b-table .dot-running { background: #16a34a; }
+.b-table .dot-completed { background: #2563eb; }
+.b-table .dot-cancelled { background: #dc2626; }
+.b-table .dot-approved { background: #16a34a; }
+.b-table .dot-pending { background: #d97706; }
+.b-table .dot-rejected { background: #dc2626; }
+.b-table .dot-active { background: #16a34a; }
 .b-table .dot-inactive { background: #94a3b8; }
 .b-table .dot-draft { background: #94a3b8; }
-.b-table .dot-published { background: #22c55e; }
+.b-table .dot-published { background: #16a34a; }
 .b-table .dot-closed { background: #64748b; }
 
 // Expandable row
 .b-row { cursor: pointer; }
-.b-row--active td { background: #eef2ff !important; }
-.exp-row td { padding: 0 16px 16px 16px; }
+.b-row--active td { background: #e6f2ea !important; }
+.b-row--active + .exp-row td { background: #e6f2ea; }
+.exp-row td { padding: 0 14px 14px 14px; }
 .exp-panel {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 12px 16px;
+  background: #f6faf8;
+  border: 1px solid #c8e0d2;
+  border-radius: 6px;
+  padding: 10px 14px;
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
 }
 .exp-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 14px;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
+  padding: 7px 12px;
+  border-radius: 4px;
+  border: 1px solid #d4d4d4;
   background: #fff;
   font-size: 13px;
-  color: #334155;
+  color: #1f2937;
   cursor: pointer;
-  transition: all .15s;
+  transition: all .12s;
   text-decoration: none;
 }
-.exp-btn:hover { background: #f1f5f9; border-color: #cbd5e1; }
-.exp-btn--danger:hover { background: #fef2f2; border-color: #fca5a5; color: #dc2626; }
-.exp-btn--success:hover { background: #f0fdf4; border-color: #86efac; color: #16a34a; }
-.exp-btn--primary:hover { background: #eff6ff; border-color: #93c5fd; color: #2563eb; }
+.exp-btn:hover { background: #f0f7f2; border-color: #1b6b3b; color: #1b6b3b; }
+.exp-btn--danger:hover { background: #fef2f2; border-color: #dc2626; color: #dc2626; }
+.exp-btn--success:hover { background: #f0fdf4; border-color: #16a34a; color: #16a34a; }
+.exp-btn--primary:hover { background: #eff6ff; border-color: #2563eb; color: #2563eb; }
 
 // Action button (three-dots / eye)
 .act-btn {
@@ -664,67 +674,76 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  border: 1px solid #d4d4d4;
   background: #fff;
-  color: #64748b;
+  color: #4b5563;
   cursor: pointer;
-  transition: all .15s;
+  transition: all .12s;
 }
-.act-btn:hover { background: #f1f5f9; border-color: #cbd5e1; color: #334155; }
-.act-btn--active { background: #eef2ff; border-color: #c7d2fe; color: #4f46e5; }
+.act-btn:hover { background: #f0f7f2; border-color: #1b6b3b; color: #1b6b3b; }
+.act-btn--active { background: #e6f2ea; border-color: #1b6b3b; color: #1b6b3b; }
 
 // Form table (assessment / attendance with inputs)
-.b-form-table { border-collapse: collapse; width: 100%; }
+.b-form-table {
+  border-collapse: collapse;
+  width: 100%;
+  border: 2px solid #1b6b3b;
+}
 .b-form-table thead { position: sticky; top: 0; z-index: 2; }
 .b-form-table th {
-  padding: 12px 14px;
-  font-weight: 600;
-  font-size: 12px;
-  color: #64748b;
+  padding: 11px 14px;
+  font-weight: 700;
+  font-size: 13px;
+  color: #fff;
   text-transform: uppercase;
   letter-spacing: .5px;
-  background: #f8fafc;
-  border-bottom: 2px solid #e2e8f0;
+  background: #1b6b3b;
+  border: 1px solid #15532e;
   white-space: nowrap;
 }
 .b-form-table td {
   padding: 10px 14px;
   font-size: 14px;
-  border-bottom: 1px solid #f1f5f9;
+  border: 1px solid #d4d4d4;
   vertical-align: middle;
-  color: #334155;
+  background: #fff;
+  color: #1f2937;
 }
-.b-form-table tbody tr:hover { background: #f8faff; }
+.b-form-table tbody tr:hover td { background: #f0f7f2; }
 
 // Detail/info table (key-value pairs)
-.b-detail-table { border-collapse: collapse; width: 100%; }
+.b-detail-table {
+  border-collapse: collapse;
+  width: 100%;
+  border: 2px solid #1b6b3b;
+}
 .b-detail-table th {
   padding: 10px 14px;
-  font-weight: 600;
-  font-size: 12px;
-  color: #475569;
+  font-weight: 700;
+  font-size: 13px;
+  color: #fff;
   text-transform: uppercase;
   letter-spacing: .5px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: #1b6b3b;
+  border: 1px solid #15532e;
   white-space: nowrap;
   width: 200px;
 }
 .b-detail-table td {
   padding: 10px 14px;
   font-size: 14px;
-  color: #0f172a;
-  border: 1px solid #e2e8f0;
+  color: #1f2937;
+  border: 1px solid #d4d4d4;
   background: #fff;
 }
 .b-detail-table td:first-child {
   font-weight: 600;
-  color: #475569;
-  background: #fafafa;
+  color: #1f2937;
+  background: #f9fbfa;
 }
 .b-detail-table tbody tr:hover td {
-  background: #f8faff;
+  background: #f0f7f2;
 }
 
 // Pagination bar (b-table style)
@@ -732,25 +751,26 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  border-top: 1px solid #f1f5f9;
+  padding: 10px 14px;
+  border-top: 2px solid #1b6b3b;
+  background: #f9fbfa;
 }
-.b-pagination small { color: #64748b; }
+.b-pagination small { color: #4b5563; font-size: 13px; }
 .b-pagination .page-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px; height: 36px;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  width: 34px; height: 34px;
+  border: 1px solid #d4d4d4;
+  border-radius: 4px;
   background: #fff;
-  color: #64748b;
+  color: #4b5563;
   cursor: pointer;
-  transition: all .15s;
+  transition: all .12s;
 }
-.b-pagination .page-btn:hover:not(:disabled) { background: #f1f5f9; border-color: #cbd5e1; }
-.b-pagination .page-btn:disabled { opacity: .4; cursor: default; }
-.b-pagination .page-info { font-size: 13px; color: #64748b; padding: 0 8px; }
+.b-pagination .page-btn:hover:not(:disabled) { background: #f0f7f2; border-color: #1b6b3b; color: #1b6b3b; }
+.b-pagination .page-btn:disabled { opacity: .35; cursor: default; }
+.b-pagination .page-info { font-size: 13px; color: #4b5563; padding: 0 8px; font-weight: 600; }
 
 // ── Buttons ────────────────────────────────────────────────────────────
 .btn {
