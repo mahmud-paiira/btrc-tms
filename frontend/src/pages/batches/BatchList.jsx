@@ -347,7 +347,7 @@ export default function BatchList() {
                     </td>
                     <td className="text-center" style={{ width: 50 }}>
                       <div className="dropdown">
-                        <button className="btn btn-sm btn-outline-secondary border-0" data-bs-toggle="dropdown" type="button">
+                        <button className="btn btn-sm btn-outline-secondary border-0" data-bs-toggle="dropdown" data-bs-strategy="fixed" type="button">
                           <i className="bi bi-three-dots-vertical"></i>
                         </button>
                         <ul className="dropdown-menu dropdown-menu-end" style={{ fontSize: 13 }}>
