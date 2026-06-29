@@ -7,23 +7,16 @@ import circularService from '../../services/circularService';
 import { useTranslation } from '../../hooks/useTranslation';
 import { formatDate } from '../../utils/dateFormatter';
 
-const STATUS_BADGE = {
-  scheduled: 'secondary',
-  running: 'success',
-  completed: 'primary',
-  cancelled: 'danger',
+const STATUS_STYLE = {
+  scheduled: { bg: '#f3f4f6', color: '#6b7280', label: 'নির্ধারित', icon: 'bi-clock' },
+  running: { bg: '#ecfdf5', color: '#059669', label: 'চলমান', icon: 'bi-play-circle' },
+  completed: { bg: '#eff6ff', color: '#2563eb', label: 'সমাপ্ত', icon: 'bi-check-circle' },
+  cancelled: { bg: '#fef2f2', color: '#dc2626', label: 'বাতিল', icon: 'bi-x-circle' },
 };
 
 export default function BatchList() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-
-  const STATUS_MAP = {
-    scheduled: t('batch.status.scheduled', 'নির্ধারিত'),
-    running: t('batch.status.running', 'চলমান'),
-    completed: t('batch.status.completed', 'সমাপ্ত'),
-    cancelled: t('batch.status.cancelled', 'বাতিল'),
-  };
 
   const [batches, setBatches] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -32,7 +25,6 @@ export default function BatchList() {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const pageSize = 20;
-  const [selectedIds, setSelectedIds] = useState(new Set());
   const [showImport, setShowImport] = useState(false);
   const fileRef = useRef(null);
   const [importFile, setImportFile] = useState(null);
@@ -42,6 +34,7 @@ export default function BatchList() {
   const [circulars, setCirculars] = useState([]);
   const [selectedCircular, setSelectedCircular] = useState('');
   const [generating, setGenerating] = useState(false);
+  const [actionLoading, setActionLoading] = useState(null);
 
   const fetchBatches = useCallback(async () => {
     setLoading(true);
@@ -57,7 +50,7 @@ export default function BatchList() {
         setBatches(data);
         setTotal(data.length || 0);
       }
-    } catch (err) {
+    } catch {
       toast.error(t('batch.list.loadFailed', 'ব্যাচ তালিকা লোড করতে ব্যর্থ'));
     } finally {
       setLoading(false);
@@ -68,6 +61,7 @@ export default function BatchList() {
   useEffect(() => { setPage(1); }, [search, statusFilter]);
 
   const handleStatusChange = async (id, action) => {
+    setActionLoading(`${id}-${action}`);
     try {
       if (action === 'start') await batchService.start(id);
       else if (action === 'complete') await batchService.complete(id);
@@ -76,6 +70,8 @@ export default function BatchList() {
       fetchBatches();
     } catch (err) {
       toast.error(err.response?.data?.error || t('batch.list.updateFailed', 'স্ট্যাটাস পরিবর্তন ব্যর্থ'));
+    } finally {
+      setActionLoading(null);
     }
   };
 
@@ -91,97 +87,6 @@ export default function BatchList() {
   };
 
   const totalPages = Math.ceil(total / pageSize);
-
-  const handleSelectAll = (e) => {
-    if (e.target.checked) {
-      setSelectedIds(new Set(batches.map((b) => b.id)));
-    } else {
-      setSelectedIds(new Set());
-    }
-  };
-
-  const handleSelectOne = (id) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
-
-  const handleExport = async (fmt = 'xlsx') => {
-    try {
-      const params = { page_size: 9999, file_format: fmt };
-      if (selectedIds.size > 0) params.ids = [...selectedIds].join(',');
-      else if (search) params.search = search;
-      if (statusFilter) params.status = statusFilter;
-      const res = await api.get('/batches/export-list/', { params, responseType: 'blob' });
-      const blob = new Blob([res.data]);
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `batches_${new Date().toISOString().slice(0, 10)}.${fmt}`;
-      a.click();
-      window.URL.revokeObjectURL(url);
-      toast.success('এক্সপোর্ট সম্পন্ন');
-    } catch {
-      toast.error('এক্সপোর্ট ব্যর্থ');
-    }
-  };
-
-  const handlePrint = () => {
-    const items = selectedIds.size > 0
-      ? batches.filter((b) => selectedIds.has(b.id))
-      : batches;
-    const w = window.open('', '_blank');
-    if (!w) { toast.error('পপ-আপ ব্লকার অক্ষম করুন'); return; }
-    w.document.write(`
-      <html><head><title>ব্যাচ তালিকা</title>
-      <style>
-        body { font-family: 'NikoshBAN', 'SolaimanLipi', Arial, sans-serif; padding: 30px; color: #222; }
-        .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #1a56db; padding-bottom: 15px; }
-        .header h1 { font-size: 22px; margin: 0 0 5px; color: #1a56db; }
-        .header p { font-size: 13px; color: #666; margin: 0; }
-        .report-info { display: flex; justify-content: space-between; font-size: 12px; color: #888; margin-bottom: 15px; }
-        table { width: 100%; border-collapse: collapse; font-size: 12px; }
-        th { background: #1a56db; color: #fff; padding: 10px 8px; text-align: left; font-weight: bold; }
-        td { border: 1px solid #ddd; padding: 8px; }
-        tr:nth-child(even) { background: #f8fafc; }
-        tr:nth-child(odd) { background: #fff; }
-        .footer { text-align: center; margin-top: 20px; font-size: 11px; color: #aaa; border-top: 1px solid #eee; padding-top: 15px; }
-        @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
-      </style></head><body>
-      <div class="header">
-        <h1>ব্যাচ তালিকা</h1>
-        <p>প্রশিক্ষণ ব্যবস্থাপনা সিস্টেম</p>
-      </div>
-      <div class="report-info">
-        <span>মোট: ${items.length} টি</span>
-        <span>প্রিন্টের তারিখ: ${new Date().toLocaleDateString('bn-BD')}</span>
-      </div>
-      <table>
-        <tr><th>ক্রমিক</th><th>ব্যাচ নং</th><th>নাম</th><th>শিফট</th><th>কোর্স</th><th>শুরুর তারিখ</th><th>সমাপ্তির তারিখ</th><th>আসন</th><th>স্ট্যাটাস</th></tr>
-        ${items.map((b, i) => {
-          const shiftLabel = b.shift === 'shift_1' ? 'শিফট-১' : b.shift === 'shift_2' ? 'শিফট-২' : '—';
-          return `<tr>
-            <td style="text-align:center;width:40px;">${i + 1}</td>
-            <td><strong>${b.batch_no || '—'}</strong></td>
-            <td>${b.batch_name_bn || b.batch_name_en || '—'}</td>
-            <td>${shiftLabel}</td>
-            <td>${b.course_name || '—'}</td>
-            <td>${b.start_date || '—'}</td>
-            <td>${b.end_date || '—'}</td>
-            <td style="text-align:center;">${b.filled_seats || 0}/${b.total_seats || 0}</td>
-            <td>${STATUS_MAP[b.status] || b.status || '—'}</td>
-          </tr>`;
-        }).join('')}
-      </table>
-      <div class="footer">ব্যাচ তালিকা - ${new Date().toLocaleDateString('bn-BD')}</div>
-      <script>window.print();</script>
-      </body></html>
-    `);
-    w.document.close();
-  };
 
   const handleImportSubmit = async () => {
     if (!importFile) { toast.warning('ফাইল নির্বাচন করুন'); return; }
@@ -225,6 +130,9 @@ export default function BatchList() {
     setGenerating(false);
   };
 
+  const shiftLabel = (s) =>
+    s === 'shift_1' ? 'শিফট-১ (সকাল)' : s === 'shift_2' ? 'শিফট-২ (বিকাল)' : '—';
+
   return (
     <div>
       <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
@@ -245,9 +153,9 @@ export default function BatchList() {
       </div>
 
       <div className="card shadow-sm mb-3" style={{ borderRadius: 12, border: 'none' }}>
-        <div className="card-body">
-          <div className="row g-2">
-            <div className="col-md-6">
+        <div className="card-body py-3">
+          <div className="row g-2 align-items-center">
+            <div className="col-md-5">
               <input className="form-control form-control-sm"
                 placeholder={t('batch.list.searchPlaceholder', 'অনুসন্ধান (ব্যাচ নং, নাম)...')}
                 value={search}
@@ -258,138 +166,142 @@ export default function BatchList() {
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}>
                 <option value="">{t('batch.list.allStatus', 'সব স্ট্যাটাস')}</option>
-                {Object.entries(STATUS_MAP).map(([k, v]) => (
-                  <option key={k} value={k}>{v}</option>
+                {Object.entries(STATUS_STYLE).map(([k, v]) => (
+                  <option key={k} value={k}>{v.label}</option>
                 ))}
               </select>
             </div>
-            <div className="col-md-3 text-md-end">
+            <div className="col-md-4 text-md-end">
               <span className="text-secondary" style={{ fontSize: 13 }}>মোট: {total} টি</span>
             </div>
           </div>
         </div>
       </div>
 
-      {selectedIds.size > 0 && (
-        <div className="alert alert-info py-2 d-flex justify-content-between align-items-center mb-3">
-          <span><i className="bi bi-check-square me-1"></i>{selectedIds.size} টি নির্বাচিত</span>
-          <div className="d-flex gap-2">
-            <div className="btn-group btn-group-sm">
-              <button className="btn btn-sm btn-success" onClick={() => handleExport('xlsx')}>
-                <i className="bi bi-download me-1"></i>{t('batch.list.exportSelected', 'নির্বাচিত এক্সপোর্ট')}
-              </button>
-              <button className="btn btn-sm btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
-                <span className="visually-hidden">Toggle</span>
-              </button>
-              <ul className="dropdown-menu">
-                <li><button className="dropdown-item" onClick={() => handleExport('xlsx')}><i className="bi bi-file-earmark-excel me-2"></i>Excel (.xlsx)</button></li>
-                <li><button className="dropdown-item" onClick={() => handleExport('csv')}><i className="bi bi-filetype-csv me-2"></i>CSV</button></li>
-              </ul>
-            </div>
-            <button className="btn btn-sm btn-secondary" onClick={handlePrint}>
-              <i className="bi bi-printer me-1"></i>{t('batch.list.print', 'প্রিন্ট')}
-            </button>
-            <button className="btn btn-sm btn-outline-danger" onClick={() => setSelectedIds(new Set())}>
-              {t('batch.list.clear', 'নির্বাচন বাতিল')}
-            </button>
-          </div>
+      {loading ? (
+        <div className="text-center py-5">
+          <div className="spinner-border text-primary" role="status" />
+          <p className="mt-2 mb-0 text-muted">{t('batch.list.loading', 'লোড হচ্ছে...')}</p>
         </div>
-      )}
-
-      <div className="card shadow-sm table-card" style={{ borderRadius: 12, border: 'none' }}>
-        <div className="table-responsive">
-          <table className="table table-hover align-middle mb-0" style={{ fontSize: 13 }}>
-            <thead className="table-light">
-              <tr>
-                <th style={{ width: 36 }}>
-                  <input type="checkbox" className="form-check-input" onChange={handleSelectAll}
-                    checked={batches.length > 0 && selectedIds.size === batches.length} />
-                </th>
-                <th>{t('batch.list.colBatchNo', 'ব্যাচ নং')}</th>
-                <th>{t('batch.list.colName', 'নাম')}</th>
-                <th className="d-none d-xl-table-cell">{t('batch.list.colCourse', 'কোর্স')}</th>
-                <th className="d-none d-lg-table-cell">{t('batch.list.colStartDate', 'শুরুর তারিখ')}</th>
-                <th className="d-none d-xl-table-cell">{t('batch.list.colEndDate', 'সমাপ্তির তারিখ')}</th>
-                <th className="d-none d-lg-table-cell text-center">{t('batch.list.colSeats', 'আসন')}</th>
-                <th className="text-center">{t('batch.list.colStatus', 'স্ট্যাটাস')}</th>
-                <th className="text-center" style={{ width: 50 }}>{t('batch.list.colActions', 'কার্যক্রম')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr><td colSpan={10} className="text-center py-5">
-                  <div className="spinner-border text-primary" role="status" />
-                  <p className="mt-2 mb-0 text-muted">{t('batch.list.loading', 'লোড হচ্ছে...')}</p>
-                </td></tr>
-              ) : batches.length === 0 ? (
-                <tr><td colSpan={10} className="text-center py-5 text-muted">
-                  <i className="bi bi-inbox fs-1"></i>
-                  <p className="mt-2 mb-0">{t('batch.list.empty', 'কোন ব্যাচ পাওয়া যায়নি')}</p>
-                </td></tr>
-              ) : (
-                batches.map((b) => (
-                  <tr key={b.id} className={selectedIds.has(b.id) ? 'table-active' : ''}>
-                    <td><input type="checkbox" className="form-check-input" checked={selectedIds.has(b.id)} onChange={() => handleSelectOne(b.id)} /></td>
-                    <td>
-              <Link to={`/center-admin/batches/${b.id}`} className="text-decoration-none">
-                <strong>{b.batch_no}</strong>
-              </Link>
-            </td>
-                    <td style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 120 }}>{b.batch_name_bn || b.batch_name_en}</td>
-                    <td className="d-none d-xl-table-cell" style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 100 }}>{b.course_name}</td>
-                    <td className="d-none d-lg-table-cell" style={{ whiteSpace: 'nowrap' }}>{b.start_date ? formatDate(b.start_date) : '-'}</td>
-                    <td className="d-none d-xl-table-cell" style={{ whiteSpace: 'nowrap' }}>{b.end_date ? formatDate(b.end_date) : '-'}</td>
-                    <td className="d-none d-lg-table-cell text-center" style={{ whiteSpace: 'nowrap' }}>{b.filled_seats || 0}/{b.total_seats || 0}</td>
-                    <td className="text-center">
-                      <span className={`badge bg-${STATUS_BADGE[b.status]}`}>
-                        {STATUS_MAP[b.status] || b.status}
-                      </span>
-                    </td>
-                    <td className="text-center" style={{ width: 50 }}>
-                      <div className="dropdown">
-                        <button className="btn btn-sm btn-outline-secondary border-0" data-bs-toggle="dropdown" data-bs-strategy="fixed" type="button">
-                          <i className="bi bi-three-dots-vertical"></i>
-                        </button>
-                        <ul className="dropdown-menu dropdown-menu-end" style={{ fontSize: 13 }}>
-                          {b.status === 'scheduled' && <li><button className="dropdown-item" onClick={() => navigate(`/center-admin/batches/${b.id}/edit`)}><i className="bi bi-pencil me-2"></i>{t('batch.list.btnEdit', 'সম্পাদনা')}</button></li>}
-                          {b.status === 'scheduled' && <li><button className="dropdown-item text-success" onClick={() => handleStatusChange(b.id, 'start')}><i className="bi bi-play-fill me-2"></i>{t('batch.list.btnStart', 'শুরু করুন')}</button></li>}
-                          {(b.status === 'scheduled' || b.status === 'running') && <li><hr className="dropdown-divider" /></li>}
-                          {b.status === 'running' && <li><button className="dropdown-item" onClick={() => navigate(`/center-admin/attendance/batch/${b.id}`)}><i className="bi bi-calendar-check me-2"></i>{t('batch.list.btnAttendance', 'উপস্থিতি')}</button></li>}
-                          {b.status === 'running' && <li><button className="dropdown-item" onClick={() => navigate(`/assessor/assessment/batch/${b.id}`)}><i className="bi bi-clipboard-data me-2"></i>{t('batch.list.btnAssessment', 'মূল্যায়ন')}</button></li>}
-                          {(b.status === 'running' || b.status === 'scheduled') && <li><button className="dropdown-item text-primary" onClick={() => handleStatusChange(b.id, 'complete')}><i className="bi bi-check-lg me-2"></i>{t('batch.list.btnComplete', 'সমাপ্ত করুন')}</button></li>}
-                          {b.status === 'running' && <li><hr className="dropdown-divider" /></li>}
-                          {b.status === 'completed' && <li><button className="dropdown-item" onClick={() => navigate(`/center-admin/certificates/issue?batch=${b.id}`)}><i className="bi bi-award me-2"></i>{t('batch.list.btnCertificate', 'সার্টিফিকেট')}</button></li>}
-                          {b.status === 'completed' && <li><button className="dropdown-item" onClick={() => navigate(`/center-admin/jobs/add?batch=${b.id}`)}><i className="bi bi-briefcase me-2"></i>{t('batch.list.btnJob', 'চাকরি স্থাপন')}</button></li>}
-                          {b.status === 'completed' && <li><button className="dropdown-item" onClick={() => navigate(`/center-admin/jobs/tracking?batch=${b.id}`)}><i className="bi bi-graph-up me-2"></i>{t('batch.list.btnTracking', 'ট্র্যাকিং')}</button></li>}
-                          {b.status === 'completed' && <li><hr className="dropdown-divider" /></li>}
-                          {b.status !== 'scheduled' && b.status !== 'running' && b.status !== 'completed' && <li><hr className="dropdown-divider" /></li>}
-                          {b.status !== 'scheduled' && <li><button className="dropdown-item text-danger" onClick={() => handleStatusChange(b.id, 'cancel')}><i className="bi bi-x-lg me-2"></i>{t('batch.list.btnCancel', 'বাতিল')}</button></li>}
-                          <li><hr className="dropdown-divider" /></li>
-                          <li><button className="dropdown-item text-danger" onClick={() => handleDelete(b.id, b.batch_no)}><i className="bi bi-trash me-2"></i>মুছুন</button></li>
-                        </ul>
+      ) : batches.length === 0 ? (
+        <div className="text-center py-5 text-muted">
+          <i className="bi bi-inbox fs-1"></i>
+          <p className="mt-2 mb-0">{t('batch.list.empty', 'কোন ব্যাচ পাওয়া যায়নি')}</p>
+        </div>
+      ) : (
+        <>
+          <div className="row g-3">
+            {batches.map((b) => {
+              const st = STATUS_STYLE[b.status] || STATUS_STYLE.scheduled;
+              const isLoading = actionLoading === `${b.id}-start` || actionLoading === `${b.id}-complete` || actionLoading === `${b.id}-cancel`;
+              return (
+                <div className="col-12 col-md-6 col-xl-4" key={b.id}>
+                  <div className="card shadow-sm h-100" style={{ borderRadius: 12, border: 'none' }}>
+                    <div className="card-body d-flex flex-column">
+                      <div className="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                          <Link to={`/center-admin/batches/${b.id}`} className="text-decoration-none">
+                            <h6 className="fw-bold mb-1 text-dark">{b.batch_name_bn || b.batch_name_en || b.batch_no}</h6>
+                          </Link>
+                          <small className="text-secondary">{b.batch_no}</small>
+                        </div>
+                        <span className="badge rounded-pill" style={{
+                          background: st.bg, color: st.color, fontSize: 11,
+                        }}>
+                          <i className={`bi ${st.icon} me-1`}></i>{st.label}
+                        </span>
                       </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-        {totalPages > 1 && (
-          <div className="card-footer bg-white d-flex justify-content-between align-items-center py-2 px-3"
-            style={{ borderRadius: '0 0 12px 12px' }}>
-            <small className="text-secondary">মোট: {total}</small>
-            <div className="d-flex gap-1">
-              <button className="btn btn-sm btn-outline-secondary" disabled={page <= 1} onClick={() => setPage(page - 1)}>
-                <i className="bi bi-chevron-left"></i>
-              </button>
-              <button className="btn btn-sm btn-outline-secondary" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>
-                <i className="bi bi-chevron-right"></i>
-              </button>
-            </div>
+
+                      <div className="mb-2" style={{ fontSize: 12, lineHeight: 1.8 }}>
+                        <div><i className="bi bi-book me-1 text-secondary"></i>{b.course_name || '—'}</div>
+                        <div><i className="bi bi-clock me-1 text-secondary"></i>{shiftLabel(b.shift)}</div>
+                        <div className="d-flex gap-3 flex-wrap">
+                          <span><i className="bi bi-calendar me-1 text-secondary"></i>শুরু: {b.start_date || '—'}</span>
+                          <span><i className="bi bi-calendar-check me-1 text-secondary"></i>শেষ: {b.end_date || '—'}</span>
+                        </div>
+                        <div>
+                          <i className="bi bi-people me-1 text-secondary"></i>আসন: <strong>{b.filled_seats || 0}</strong>/{b.total_seats || 0}
+                        </div>
+                      </div>
+
+                      <div className="mt-auto pt-2 border-top d-flex flex-wrap gap-1">
+                        {b.status === 'scheduled' && (
+                          <>
+                            <Link to={`/center-admin/batches/${b.id}/edit`} className="btn btn-sm btn-outline-secondary flex-fill">
+                              <i className="bi bi-pencil me-1"></i>সম্পাদনা
+                            </Link>
+                            <button className="btn btn-sm btn-success flex-fill" onClick={() => handleStatusChange(b.id, 'start')} disabled={isLoading}>
+                              {isLoading ? <span className="spinner-border spinner-border-sm" /> : <><i className="bi bi-play-fill me-1"></i>শুরু</>}
+                            </button>
+                            <button className="btn btn-sm btn-outline-primary flex-fill" onClick={() => handleStatusChange(b.id, 'complete')} disabled={isLoading}>
+                              {isLoading ? <span className="spinner-border spinner-border-sm" /> : <><i className="bi bi-check-lg me-1"></i>সমাপ্ত</>}
+                            </button>
+                          </>
+                        )}
+                        {b.status === 'running' && (
+                          <>
+                            <button className="btn btn-sm btn-outline-success flex-fill" onClick={() => navigate(`/center-admin/attendance/batch/${b.id}`)}>
+                              <i className="bi bi-calendar-check me-1"></i>উপস্থিতি
+                            </button>
+                            <button className="btn btn-sm btn-outline-warning flex-fill" onClick={() => navigate(`/assessor/assessment/batch/${b.id}`)}>
+                              <i className="bi bi-clipboard-data me-1"></i>মূল্যায়ন
+                            </button>
+                            <button className="btn btn-sm btn-primary flex-fill" onClick={() => handleStatusChange(b.id, 'complete')} disabled={isLoading}>
+                              {isLoading ? <span className="spinner-border spinner-border-sm" /> : <><i className="bi bi-check-lg me-1"></i>সমাপ্ত</>}
+                            </button>
+                          </>
+                        )}
+                        {b.status === 'completed' && (
+                          <>
+                            <button className="btn btn-sm btn-outline-info flex-fill" onClick={() => navigate(`/center-admin/certificates/issue?batch=${b.id}`)}>
+                              <i className="bi bi-award me-1"></i>সার্টিফিকেট
+                            </button>
+                            <button className="btn btn-sm btn-outline-secondary flex-fill" onClick={() => navigate(`/center-admin/jobs/add?batch=${b.id}`)}>
+                              <i className="bi bi-briefcase me-1"></i>চাকরি
+                            </button>
+                            <button className="btn btn-sm btn-outline-secondary flex-fill" onClick={() => navigate(`/center-admin/jobs/tracking?batch=${b.id}`)}>
+                              <i className="bi bi-graph-up me-1"></i>ট্র্যাকিং
+                            </button>
+                          </>
+                        )}
+                        {b.status !== 'completed' && b.status !== 'scheduled' && b.status !== 'running' && (
+                          <span className="text-muted small py-1">কোন কর্ম উপলব্ধ নেই</span>
+                        )}
+                        <div className="dropdown">
+                          <button className="btn btn-sm btn-outline-secondary border-0" data-bs-toggle="dropdown" data-bs-strategy="fixed" type="button">
+                            <i className="bi bi-three-dots-vertical"></i>
+                          </button>
+                          <ul className="dropdown-menu dropdown-menu-end" style={{ fontSize: 13 }}>
+                            {b.status === 'scheduled' && <li><button className="dropdown-item" onClick={() => navigate(`/center-admin/batches/${b.id}/edit`)}><i className="bi bi-pencil me-2"></i>সম্পাদনা</button></li>}
+                            {b.status === 'running' && <li><button className="dropdown-item text-danger" onClick={() => handleStatusChange(b.id, 'complete')}><i className="bi bi-check-lg me-2"></i>সমাপ্ত করুন</button></li>}
+                            <li><hr className="dropdown-divider" /></li>
+                            <li><button className="dropdown-item text-danger" onClick={() => handleDelete(b.id, b.batch_no)}><i className="bi bi-trash me-2"></i>মুছুন</button></li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        )}
-      </div>
+
+          {totalPages > 1 && (
+            <div className="d-flex justify-content-between align-items-center mt-3 py-2 px-3 bg-white rounded shadow-sm">
+              <small className="text-secondary">মোট: {total} টি</small>
+              <div className="d-flex gap-1">
+                <button className="btn btn-sm btn-outline-secondary" disabled={page <= 1} onClick={() => setPage(page - 1)}>
+                  <i className="bi bi-chevron-left"></i>
+                </button>
+                <span className="px-2 d-flex align-items-center small">{page} / {totalPages}</span>
+                <button className="btn btn-sm btn-outline-secondary" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>
+                  <i className="bi bi-chevron-right"></i>
+                </button>
+              </div>
+            </div>
+          )}
+        </>
+      )}
 
       {showImport && (
         <div className="modal d-block" style={{ background: 'rgba(0,0,0,.5)' }}>
@@ -446,7 +358,6 @@ export default function BatchList() {
         </div>
       )}
 
-      {/* Generate Batches Modal */}
       {showGenerate && (
         <div className="modal d-block" style={{ background: 'rgba(0,0,0,0.5)' }}>
           <div className="modal-dialog modal-dialog-centered">
