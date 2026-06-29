@@ -146,8 +146,8 @@ export default function ApplicationDetail() {
                       </tr>
                       <tr><th>অটো স্ক্রিন</th>
                         <td>
-                          {app.auto_screen_pass === true ? <span className="status-dot dot-success" /> :
-                           app.auto_screen_pass === false ? <span className="status-dot dot-danger" /> : '—'}
+                          {app.auto_screen_pass === true ? <><span className="status-dot dot-success"></span>হ্যাঁ</> :
+                           app.auto_screen_pass === false ? <><span className="status-dot dot-danger"></span>না</> : '—'}
                           {app.auto_screen_score != null && ` (${app.auto_screen_score})`}
                         </td>
                       </tr>

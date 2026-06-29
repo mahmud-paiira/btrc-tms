@@ -275,8 +275,7 @@ export default function CircularDetail() {
                       <h6 className="fw-bold mb-2">আবেদনের অবস্থা</h6>
                       <div className="d-flex flex-wrap gap-2">
                         {Object.entries(analytics.status_breakdown).map(([k, v]) => (
-                          <span key={k} className={`status-dot dot-${APP_STATUS_BG[k] || 'secondary'}`} />
-                            {k}: {v}
+                          <span key={k}><span className={`status-dot dot-${APP_STATUS_BG[k] || 'secondary'}`}></span>{k}: {v}</span>
                         ))}
                       </div>
                     </div>
@@ -288,7 +287,7 @@ export default function CircularDetail() {
                         <h6 className="fw-bold mb-2">লিঙ্গ অনুযায়ী</h6>
                         <div className="d-flex flex-wrap gap-2">
                           {Object.entries(analytics.applications_by_gender).map(([k, v]) => (
-                            <span key={k} className="status-dot dot-info" />{k === 'male' ? 'পুরুষ' : k === 'female' ? 'মহিলা' : k}: {v}
+                            <span key={k}><span className="status-dot dot-info"></span>{k === 'male' ? 'পুরুষ' : k === 'female' ? 'মহিলা' : k}: {v}</span>
                           ))}
                         </div>
                       </div>

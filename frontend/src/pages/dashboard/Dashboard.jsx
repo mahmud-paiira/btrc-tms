@@ -251,12 +251,12 @@ export default function Dashboard() {
                     <Link to="/center-admin/applications" className="list-group-item list-group-item-action py-3 d-flex justify-content-between align-items-center">
                       <span><i className="bi bi-file-earmark-text me-2 text-warning"></i>{t('dashboard.quickActions.reviewApplications', 'আবেদন পর্যালোচনা')}</span>
                       {actions?.pending_applications > 0 && (
-                        <span className="status-dot dot-danger" />{actions.pending_applications}
+                        <span><span className="status-dot dot-danger"></span>{actions.pending_applications}</span>
                       )}
                     </Link>
                     <Link to="/center-admin/certificates/issue" className="list-group-item list-group-item-action py-3 d-flex justify-content-between align-items-center">
                       <span><i className="bi bi-award me-2 text-info"></i>{t('dashboard.quickActions.issueCertificate', 'সার্টিফিকেট ইস্যু')}</span>
-                      {actions?.eligible_certificates > 0 && <span className="status-dot dot-success" />}{actions.eligible_certificates}
+                      {actions?.eligible_certificates > 0 && <span className="status-dot dot-success"></span>}{actions.eligible_certificates}
                     </Link>
                   </div>
                 </div>
@@ -272,11 +272,11 @@ export default function Dashboard() {
                     <div className="d-grid gap-3">
                       <div className="d-flex justify-content-between align-items-center p-2 rounded bg-light">
                         <span className="small"><i className="bi bi-person-badge me-2 text-primary"></i>{t('dashboard.activity.pendingTrainers', 'পেন্ডিং প্রশিক্ষক')}</span>
-                        <span className="status-dot dot-primary" />{activity.pending_trainers}
+                        <span><span className="status-dot dot-primary"></span>{activity.pending_trainers}</span>
                       </div>
                       <div className="d-flex justify-content-between align-items-center p-2 rounded bg-light">
                         <span className="small"><i className="bi bi-person-check me-2 text-success"></i>{t('dashboard.activity.pendingAssessors', 'পেন্ডিং মূল্যায়নকারী')}</span>
-                        <span className="status-dot dot-success" />{activity.pending_assessors}
+                        <span><span className="status-dot dot-success"></span>{activity.pending_assessors}</span>
                       </div>
                     </div>
                   ) : (

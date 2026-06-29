@@ -116,7 +116,7 @@ export default function TrainerDetail() {
                   {trainer.mappings?.length > 0 ? trainer.mappings.map(m => (
                     <tr key={m.id}>
                       <td>{m.center_code} - {m.center?.name_bn || ''}</td>
-                      <td><span className={`status-dot dot-${STATUS_BG[m.status]}`} />{m.status}</td>
+                      <td><span className={`status-dot dot-${STATUS_BG[m.status]}`}></span>{m.status}</td>
                     </tr>
                   )) : (
                     <tr><td colSpan={2} className="text-center text-muted py-4">কোনো কেন্দ্র ম্যাপ করা হয়নি</td></tr>
@@ -136,7 +136,7 @@ export default function TrainerDetail() {
                     <tr key={m.id}>
                       <td>{m.course_code} - {m.course?.name_bn || ''}</td>
                       <td>{m.is_primary ? <span className="status-dot dot-info" /> : 'না'}</td>
-                      <td><span className={`status-dot dot-${STATUS_BG[m.status]}`} />{m.status}</td>
+                      <td><span className={`status-dot dot-${STATUS_BG[m.status]}`}></span>{m.status}</td>
                     </tr>
                   )) : (
                     <tr><td colSpan={3} className="text-center text-muted py-4">কোনো কোর্স ম্যাপ করা হয়নি</td></tr>

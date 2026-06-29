@@ -168,10 +168,10 @@ export default function JobTrackingForm() {
                       <td className="text-center">
                         {dueMonths.length > 0 ? (
                           dueMonths.map((dm) => (
-                            <span key={dm.value} className="status-dot dot-warning" />{dm.label}
+                            <span key={dm.value}><span className="status-dot dot-warning"></span>{dm.label}</span>
                           ))
                         ) : (
-                          <span className="status-dot dot-success" />{t('job.tracking.complete', 'সম্পূর্ণ')}
+                          <><span className="status-dot dot-success"></span>{t('job.tracking.complete', 'সম্পূর্ণ')}</>
                         )}
                       </td>
                       <td className="text-center">

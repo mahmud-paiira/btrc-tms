@@ -377,19 +377,19 @@ export default function HoDashboard() {
             <div className="card-body">
               <div className="d-flex justify-content-between align-items-center mb-3 p-2 bg-light rounded">
                 <span><i className="bi bi-upc-scan me-2 text-primary"></i>{t('hoDashboard.apiStatus', 'API স্ট্যাটাস')}</span>
-                <span className="status-dot dot-success" />{t('hoDashboard.online', 'অনলাইন')}
+                <span><span className="status-dot dot-success"></span>{t('hoDashboard.online', 'অনলাইন')}</span>
               </div>
               <div className="d-flex justify-content-between align-items-center mb-3 p-2 bg-light rounded">
                 <span><i className="bi bi-database me-2 text-success"></i>{t('hoDashboard.dbStatus', 'ডাটাবেস')}</span>
-                <span className="status-dot dot-success" />{t('hoDashboard.online', 'অনলাইন')}
+                <span><span className="status-dot dot-success"></span>{t('hoDashboard.online', 'অনলাইন')}</span>
               </div>
               <div className="d-flex justify-content-between align-items-center mb-3 p-2 bg-light rounded">
                 <span><i className="bi bi bi-speedometer2 me-2 text-info"></i>{t('hoDashboard.attendanceRate', 'আজকের উপস্থিতি')}</span>
-                <span className={`status-dot dot-${attColor}`} />{attRate}%
+                <span><span className={`status-dot dot-${attColor}`}></span>{attRate}%</span>
               </div>
               <div className="d-flex justify-content-between align-items-center p-2 bg-light rounded">
                 <span><i className="bi bi-people me-2 text-warning"></i>{t('hoDashboard.ocrStatus', 'OCR স্ট্যাটাস')}</span>
-                <span className="status-dot dot-info" />{t('hoDashboard.ready', 'প্রস্তুত')}
+                <span><span className="status-dot dot-info"></span>{t('hoDashboard.ready', 'প্রস্তুত')}</span>
               </div>
             </div>
           </div>
