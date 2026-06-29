@@ -177,8 +177,8 @@ export default function QRCheckin() {
           </div>
 
           <div className="table-responsive">
-            <table className="table table-hover table-bordered">
-              <thead className="table-dark">
+            <table className="b-form-table w-100">
+              <thead>
                 <tr>
                   <th>#</th>
                   <th>{t('attendance.qr.colTrainee', 'প্রশিক্ষণার্থী')}</th>

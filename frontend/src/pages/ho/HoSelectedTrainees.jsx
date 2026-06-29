@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import hoService from '../../services/hoService';
 import { useTranslation } from '../../hooks/useTranslation';
 import { formatDate } from '../../utils/dateFormatter';
 
-const STATUS_BG = { enrolled: 'success', completed: 'primary', dropped: 'danger', failed: 'warning' };
-
 export default function HoSelectedTrainees() {
+  const navigate = useNavigate();
   const { t } = useTranslation();
   const [trainees, setTrainees] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -18,6 +18,7 @@ export default function HoSelectedTrainees() {
   const pageSize = 25;
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [centers, setCenters] = useState([]);
+  const [expandedId, setExpandedId] = useState(null);
 
   useEffect(() => {
     hoService.listCenters({ page_size: 9999 })
@@ -208,10 +209,10 @@ export default function HoSelectedTrainees() {
 
       <div className="card shadow-sm table-card" style={{ borderRadius: 12, border: 'none' }}>
         <div className="table-responsive">
-          <table className="table table-hover align-middle mb-0" style={{ fontSize: 13 }}>
-            <thead className="table-light">
+          <table className="b-table w-100">
+            <thead>
               <tr>
-                <th style={{ width: 36 }}>
+                <th>
                   <input type="checkbox" className="form-check-input" onChange={handleSelectAll}
                     checked={trainees.length > 0 && selectedIds.size === trainees.length} />
                 </th>
@@ -223,43 +224,71 @@ export default function HoSelectedTrainees() {
                 <th>ব্যাচ</th>
                 <th>অবস্থা</th>
                 <th className="d-none d-lg-table-cell">নথিভুক্তির তারিখ</th>
+                <th className="text-center">অ্যাকশন</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={9} className="text-center py-4"><div className="spinner-border spinner-border-sm me-2" />লোড হচ্ছে...</td></tr>
+                <tr><td colSpan={10} className="text-center py-4"><div className="spinner-border spinner-border-sm me-2" />লোড হচ্ছে...</td></tr>
               ) : trainees.length === 0 ? (
-                <tr><td colSpan={9} className="text-center text-secondary py-4">কোনো প্রশিক্ষণার্থী পাওয়া যায়নি</td></tr>
+                <tr><td colSpan={10} className="text-center text-secondary py-4">কোনো প্রশিক্ষণার্থী পাওয়া যায়নি</td></tr>
               ) : (
-                trainees.map(t => (
-                  <tr key={t.id} className={selectedIds.has(t.id) ? 'table-active' : ''}>
-                    <td><input type="checkbox" className="form-check-input" checked={selectedIds.has(t.id)} onChange={() => handleSelectOne(t.id)} /></td>
-                    <td className="fw-semibold">{t.registration_no || '-'}</td>
-                    <td style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 100 }}>{t.user_name || '-'}</td>
-                    <td className="d-none d-xl-table-cell" style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 100 }}>{t.user_name_en || '-'}</td>
-                    <td className="d-none d-md-table-cell" style={{ whiteSpace: 'nowrap' }}>{t.user_phone || '-'}</td>
-                    <td className="d-none d-lg-table-cell" style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 100 }}>{t.center_name || '-'}</td>
-                    <td style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 100 }}>{t.batch_name || '-'}</td>
-                    <td style={{ whiteSpace: 'nowrap' }}>
-                      <span className={`badge bg-${STATUS_BG[t.status] || 'secondary'}`}>
-                        {t.status_display || t.status}
-                      </span>
-                    </td>
-                    <td className="d-none d-lg-table-cell">{t.enrollment_date ? formatDate(t.enrollment_date) : '-'}</td>
-                  </tr>
-                ))
+                trainees.flatMap(t => {
+                  const isOpen = expandedId === t.id;
+                  const rows = [
+                    <tr key={t.id} className={`b-row ${isOpen ? 'b-row--active' : ''} ${selectedIds.has(t.id) ? 'table-active' : ''}`} onClick={() => navigate(`/ho/trainees/${t.id}`)}>
+                      <td onClick={e => e.stopPropagation()}><input type="checkbox" className="form-check-input" checked={selectedIds.has(t.id)} onChange={() => handleSelectOne(t.id)} /></td>
+                      <td className="fw-semibold">{t.registration_no || '-'}</td>
+                      <td>{t.user_name || '-'}</td>
+                      <td className="d-none d-xl-table-cell">{t.user_name_en || '-'}</td>
+                      <td className="d-none d-md-table-cell">{t.user_phone || '-'}</td>
+                      <td className="d-none d-lg-table-cell">{t.center_name || '-'}</td>
+                      <td>{t.batch_name || '-'}</td>
+                      <td>
+                        <span className={`status-dot dot-${t.status}`}></span>
+                        <span>{t.status_display || t.status}</span>
+                      </td>
+                      <td className="d-none d-lg-table-cell">{t.enrollment_date ? formatDate(t.enrollment_date) : '-'}</td>
+                      <td className="text-center" onClick={e => e.stopPropagation()}>
+                        <div className="d-flex gap-1 justify-content-end">
+                          <button className="act-btn" title="বিস্তারিত" onClick={() => navigate(`/ho/trainees/${t.id}`)}>
+                            <i className="bi bi-eye"></i>
+                          </button>
+                          <button className={`act-btn ${isOpen ? 'act-btn--active' : ''}`} title="কার্যক্রম" onClick={() => setExpandedId(isOpen ? null : t.id)}>
+                            <i className={`bi ${isOpen ? 'bi-chevron-up' : 'bi-three-dots-vertical'}`}></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ];
+                  if (isOpen) {
+                    rows.push(
+                      <tr key={`${t.id}-exp`} className="exp-row">
+                        <td colSpan={10}>
+                          <div className="exp-panel">
+                            <button className="exp-btn" onClick={() => navigate(`/ho/trainees/${t.id}`)}>
+                              <i className="bi bi-eye"></i>বিস্তারিত
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  }
+                  return rows;
+                })
               )}
             </tbody>
           </table>
         </div>
         {totalPages > 1 && (
-          <div className="card-footer bg-white d-flex justify-content-between align-items-center py-2">
-            <small className="text-secondary">দেখানো হচ্ছে {Math.min((page-1)*pageSize+1, total)}-{Math.min(page*pageSize, total)} এর {total}</small>
-            <div className="d-flex gap-1">
-              <button className="btn btn-sm btn-outline-secondary" disabled={page <= 1} onClick={() => setPage(page - 1)}>
+          <div className="b-pagination">
+            <small>দেখানো হচ্ছে {Math.min((page-1)*pageSize+1, total)}-{Math.min(page*pageSize, total)} এর {total}</small>
+            <div className="d-flex gap-1 align-items-center">
+              <button className="page-btn" disabled={page <= 1} onClick={() => setPage(page - 1)}>
                 <i className="bi bi-chevron-left"></i>
               </button>
-              <button className="btn btn-sm btn-outline-secondary" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>
+              <span className="page-info">{page} / {totalPages}</span>
+              <button className="page-btn" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>
                 <i className="bi bi-chevron-right"></i>
               </button>
             </div>

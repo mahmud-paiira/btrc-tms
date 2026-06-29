@@ -5,8 +5,6 @@ import api from '../../services/api';
 import AssessorFormModal from './AssessorFormModal';
 
 const API_URL = '/api';
-const STATUS_BG = { pending: 'warning', active: 'success', suspended: 'danger', inactive: 'secondary' };
-const APPROVAL_BG = { pending: 'warning', approved: 'success', rejected: 'danger' };
 const STATUS_MAP = { pending: 'পেন্ডিং', active: 'সক্রিয়', suspended: 'স্থগিত', inactive: 'নিষ্ক্রিয়' };
 const APPROVAL_MAP = { pending: 'পেন্ডিং', approved: 'অনুমোদিত', rejected: 'প্রত্যাখ্যাত' };
 
@@ -28,6 +26,7 @@ export default function AssessorList() {
   const [showForm, setShowForm] = useState(false);
   const [editData, setEditData] = useState(null);
   const [selectedIds, setSelectedIds] = useState(new Set());
+  const [expandedId, setExpandedId] = useState(null);
   const [showImport, setShowImport] = useState(false);
   const fileRef = useRef(null);
   const [importFile, setImportFile] = useState(null);
@@ -238,10 +237,10 @@ export default function AssessorList() {
         </div>
       )}
 
-      <div className="card shadow-sm table-card" style={{ borderRadius: 12, border: 'none' }}>
-        <div className="table-responsive">
-        <table className="table table-hover align-middle mb-0" style={{ fontSize: 13 }}>
-            <thead className="table-light">
+      <div className="card" style={{ borderRadius: 12, border: '1px solid #e2e8f0', overflow: 'visible', boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}>
+        <div className="card-body p-0" style={{ overflowX: 'auto', overflowY: 'visible' }}>
+        <table className="b-table w-100" style={{ minWidth: 640 }}>
+            <thead>
               <tr>
                 <th style={{ width: 36 }}>
                   <input type="checkbox" className="form-check-input" onChange={handleSelectAll}
@@ -264,61 +263,83 @@ export default function AssessorList() {
               ) : items.length === 0 ? (
                 <tr><td colSpan={10} className="text-center text-secondary py-4">কোনো মূল্যায়নকারী পাওয়া যায়নি</td></tr>
               ) : (
-                items.map(a => {
+                items.flatMap(a => {
                   const seq = a.assessor_no ? a.assessor_no.split('-').pop() : '-';
-                  return (
-                  <tr key={a.id} className={selectedIds.has(a.id) ? 'table-active' : ''}>
-                    <td><input type="checkbox" className="form-check-input" checked={selectedIds.has(a.id)} onChange={() => handleSelectOne(a.id)} /></td>
-                    <td className="d-none d-lg-table-cell">
-                      {a.profile_image ? (
-                        <img src={imageUrl(a.profile_image)} alt="ছবি" className="rounded-circle"
-                          style={{ width: 36, height: 36, objectFit: 'cover' }}
-                          onError={(e) => { e.target.style.display = 'none'; }} />
-                      ) : (
-                        <div className="rounded-circle bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center text-secondary"
-                          style={{ width: 36, height: 36, fontSize: 14 }}>
-                          <i className="bi bi-person"></i>
+                  const isOpen = expandedId === a.id;
+                  const rows = [
+                    <tr key={a.id} className={`b-row ${isOpen ? 'b-row--active' : ''} ${selectedIds.has(a.id) ? 'selected' : ''}`}>
+                      <td><input type="checkbox" className="form-check-input" checked={selectedIds.has(a.id)} onChange={() => handleSelectOne(a.id)} /></td>
+                      <td className="d-none d-lg-table-cell">
+                        {a.profile_image ? (
+                          <img src={imageUrl(a.profile_image)} alt="ছবি" className="rounded-circle"
+                            style={{ width: 36, height: 36, objectFit: 'cover' }}
+                            onError={(e) => { e.target.style.display = 'none'; }} />
+                        ) : (
+                          <div className="rounded-circle bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center text-secondary"
+                            style={{ width: 36, height: 36, fontSize: 14 }}>
+                            <i className="bi bi-person"></i>
+                          </div>
+                        )}
+                      </td>
+                      <td className="fw-semibold"><span className="badge bg-secondary bg-opacity-10 text-dark">{seq}</span></td>
+                      <td className="fw-semibold" style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 120 }}>{a.user_full_name_bn || '-'}</td>
+                      <td className="d-none d-xl-table-cell" style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 100 }}>{a.user_full_name_en || '-'}</td>
+                      <td className="d-none d-lg-table-cell" style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 120 }}>{a.user_email || '-'}</td>
+                      <td className="d-none d-md-table-cell" style={{ whiteSpace: 'nowrap' }}>{a.user_phone || '-'}</td>
+                      <td className="d-none d-xl-table-cell" style={{ whiteSpace: 'nowrap' }}>{a.years_of_experience ? `${a.years_of_experience} বছর` : '-'}</td>
+                      <td style={{ whiteSpace: 'nowrap' }}>
+                        <span className={`status-dot dot-${a.status}`}></span>
+                        <span style={{ fontSize: 13, color: '#334155' }}>{STATUS_MAP[a.status] || a.status}</span>
+                        <br />
+                        <span className={`status-dot dot-${a.approval_status}`}></span>
+                        <span style={{ fontSize: 13, color: '#334155' }}>{APPROVAL_MAP[a.approval_status] || a.approval_status}</span>
+                      </td>
+                      <td onClick={e => e.stopPropagation()}>
+                        <div className="d-flex gap-1 justify-content-end">
+                          <button className="act-btn" title="বিস্তারিত" onClick={() => navigate(`/center-admin/assessors/${a.id}`)}>
+                            <i className="bi bi-eye" style={{ fontSize: 14 }}></i>
+                          </button>
+                          <button className={`act-btn ${isOpen ? 'act-btn--active' : ''}`} title="কার্যক্রম"
+                            onClick={() => setExpandedId(isOpen ? null : a.id)}>
+                            <i className={`bi ${isOpen ? 'bi-chevron-up' : 'bi-three-dots-vertical'}`} style={{ fontSize: 14 }}></i>
+                          </button>
                         </div>
-                      )}
-                    </td>
-                    <td className="fw-semibold"><span className="badge bg-secondary bg-opacity-10 text-dark">{seq}</span></td>
-                    <td className="fw-semibold" style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 120 }}>{a.user_full_name_bn || '-'}</td>
-                    <td className="d-none d-xl-table-cell" style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 100 }}>{a.user_full_name_en || '-'}</td>
-                    <td className="d-none d-lg-table-cell" style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 120 }}>{a.user_email || '-'}</td>
-                    <td className="d-none d-md-table-cell" style={{ whiteSpace: 'nowrap' }}>{a.user_phone || '-'}</td>
-                    <td className="d-none d-xl-table-cell" style={{ whiteSpace: 'nowrap' }}>{a.years_of_experience ? `${a.years_of_experience} বছর` : '-'}</td>
-                    <td style={{ fontSize: 10, whiteSpace: 'nowrap' }}>
-                      <span className={`badge bg-${STATUS_BG[a.status] || 'secondary'} d-block mb-1`} style={{ fontSize: 10 }}>{STATUS_MAP[a.status] || a.status}</span>
-                      <span className={`badge bg-${APPROVAL_BG[a.approval_status] || 'secondary'} d-block`} style={{ fontSize: 10 }}>{APPROVAL_MAP[a.approval_status] || a.approval_status}</span>
-                    </td>
-                    <td className="text-center" style={{ width: 50 }}>
-                      <div className="dropdown">
-                        <button className="btn btn-sm btn-outline-secondary border-0" data-bs-toggle="dropdown" type="button">
-                          <i className="bi bi-three-dots-vertical"></i>
-                        </button>
-                        <ul className="dropdown-menu dropdown-menu-end" style={{ fontSize: 13 }}>
-                          <li><button className="dropdown-item" onClick={() => navigate(`/center-admin/assessors/${a.id}`)}><i className="bi bi-eye me-2"></i>বিস্তারিত</button></li>
-                          <li><button className="dropdown-item" onClick={async () => { try { const r = await api.get(`/assessors/${a.id}/`); setEditData(r.data); setShowForm(true); } catch { toast.error('তথ্য লোড করতে ব্যর্থ'); } }}><i className="bi bi-pencil me-2"></i>সম্পাদনা</button></li>
-                          <li><hr className="dropdown-divider" /></li>
-                          <li><button className="dropdown-item text-danger" onClick={() => handleDelete(a.id, a.assessor_no)}><i className="bi bi-trash me-2"></i>মুছুন</button></li>
-                        </ul>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })
+                      </td>
+                    </tr>
+                  ];
+                  if (isOpen) {
+                    rows.push(
+                      <tr key={`${a.id}-exp`} className="exp-row">
+                        <td colSpan={10}>
+                          <div className="exp-panel">
+                            <button className="exp-btn" onClick={async () => { try { const r = await api.get(`/assessors/${a.id}/`); setEditData(r.data); setShowForm(true); } catch { toast.error('তথ্য লোড করতে ব্যর্থ'); } }}>
+                              <i className="bi bi-pencil"></i>সম্পাদনা
+                            </button>
+                            <button className="exp-btn exp-btn--danger" onClick={() => handleDelete(a.id, a.assessor_no)}>
+                              <i className="bi bi-trash"></i>মুছুন
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  }
+                  return rows;
+                })
               )}
             </tbody>
           </table>
         </div>
         {totalPages > 1 && (
-          <div className="card-footer bg-white d-flex justify-content-between align-items-center py-2">
-            <small className="text-secondary">দেখানো হচ্ছে {Math.min((page-1)*pageSize+1, total)}-{Math.min(page*pageSize, total)} এর {total}</small>
-            <div className="d-flex gap-1">
-              <button className="btn btn-sm btn-outline-secondary" disabled={page <= 1} onClick={() => setPage(page - 1)}>
+          <div className="d-flex justify-content-between align-items-center px-3 py-3" style={{ borderTop: '1px solid #f1f5f9' }}>
+            <small style={{ color: '#64748b' }}>মোট {total} জন মূল্যায়নকারী</small>
+            <div className="d-flex gap-1 align-items-center">
+              <button className="btn btn-sm" onClick={() => setPage(page - 1)} disabled={page <= 1}
+                style={{ border: '1px solid #e2e8f0', borderRadius: 8, color: page <= 1 ? '#cbd5e1' : '#64748b', background: '#fff' }}>
                 <i className="bi bi-chevron-left"></i>
               </button>
-              <button className="btn btn-sm btn-outline-secondary" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>
+              <span style={{ fontSize: 13, color: '#64748b', padding: '0 8px' }}>{page} / {totalPages}</span>
+              <button className="btn btn-sm" onClick={() => setPage(page + 1)} disabled={page >= totalPages}
+                style={{ border: '1px solid #e2e8f0', borderRadius: 8, color: page >= totalPages ? '#cbd5e1' : '#64748b', background: '#fff' }}>
                 <i className="bi bi-chevron-right"></i>
               </button>
             </div>

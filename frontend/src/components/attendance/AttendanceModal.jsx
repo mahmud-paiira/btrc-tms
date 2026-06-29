@@ -233,8 +233,8 @@ export default function AttendanceModal({
 
                 {/* Trainee table */}
                 <div className="table-responsive">
-                  <table className="table table-hover table-bordered mb-0">
-                    <thead className="table-dark">
+                  <table className="b-form-table w-100">
+                    <thead>
                       <tr>
                         <th style={{ width: 40 }}>#</th>
                         <th>প্রশিক্ষণার্থী</th>
@@ -272,13 +272,9 @@ export default function AttendanceModal({
                               </td>
                               <td className="text-center align-middle">
                                 {pct > 0 ? (
-                                  <span
-                                    className={`badge ${isLow ? 'bg-danger' : 'bg-success'} fs-6`}
-                                  >
-                                    {formatPercentage(pct, 'bn')}
-                                  </span>
+                                  <span><span className={`status-dot ${isLow ? 'dot-danger' : 'dot-success'}`}></span> {formatPercentage(pct, 'bn')}</span>
                                 ) : (
-                                  <span className="badge bg-secondary">—</span>
+                                  <span><span className="status-dot dot-secondary"></span> —</span>
                                 )}
                               </td>
                               <td>

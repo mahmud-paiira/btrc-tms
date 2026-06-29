@@ -92,7 +92,7 @@ export default function HoCenterDetail() {
           <div className="text-muted small">কেন্দ্র কোড: {center.code}</div>
         </div>
         <div className="ms-auto">
-           <span className={`badge bg-${STATUS_BG[center.status] || 'secondary'} fs-6 px-3 py-2`}>
+           <span className={`status-dot dot-${STATUS_BG[center.status] || 'secondary'}`}>
              {STATUS_MAP[center.status] || center.status}
            </span>
         </div>
@@ -121,24 +121,24 @@ export default function HoCenterDetail() {
             <div className="row g-4">
               <div className="col-md-6">
                 <h6 className="fw-bold mb-3 text-muted text-uppercase small">মূল তথ্য</h6>
-                <table className="table table-bordered align-middle">
+                <table className="b-detail-table w-100">
                   <tbody>
-                    <tr><th className="bg-light" style={{ width: 160 }}>কোড</th><td>{center.code}</td></tr>
-                    <tr><th className="bg-light">নাম (বাংলা)</th><td>{center.name_bn}</td></tr>
-                    <tr><th className="bg-light">নাম (ইংরেজি)</th><td>{center.name_en || '—'}</td></tr>
-                    <tr><th className="bg-light">ফোন</th><td>{center.phone || '—'}</td></tr>
-                    <tr><th className="bg-light">ইমেইল</th><td>{center.email || '—'}</td></tr>
+                    <tr><th >কোড</th><td>{center.code}</td></tr>
+                    <tr><th >নাম (বাংলা)</th><td>{center.name_bn}</td></tr>
+                    <tr><th >নাম (ইংরেজি)</th><td>{center.name_en || '—'}</td></tr>
+                    <tr><th >ফোন</th><td>{center.phone || '—'}</td></tr>
+                    <tr><th >ইমেইল</th><td>{center.email || '—'}</td></tr>
                   </tbody>
                 </table>
               </div>
               <div className="col-md-6">
                 <h6 className="fw-bold mb-3 text-muted text-uppercase small">যোগাযোগ ও স্থিতি</h6>
-                <table className="table table-bordered align-middle">
+                <table className="b-detail-table w-100">
                   <tbody>
-                    <tr><th className="bg-light" style={{ width: 160 }}>ঠিকানা</th><td>{center.address || '—'}</td></tr>
-                    <tr><th className="bg-light">যোগাযোগ ব্যক্তি</th><td>{center.contact_person_name || '—'}</td></tr>
-                    <tr><th className="bg-light">যোগাযোগ মোবাইল</th><td>{center.contact_person_phone || '—'}</td></tr>
-                    <tr><th className="bg-light">তৈরির তারিখ</th><td>{center.created_at ? new Date(center.created_at).toLocaleDateString('bn-BD') : '—'}</td></tr>
+                    <tr><th >ঠিকানা</th><td>{center.address || '—'}</td></tr>
+                    <tr><th >যোগাযোগ ব্যক্তি</th><td>{center.contact_person_name || '—'}</td></tr>
+                    <tr><th >যোগাযোগ মোবাইল</th><td>{center.contact_person_phone || '—'}</td></tr>
+                    <tr><th >তৈরির তারিখ</th><td>{center.created_at ? new Date(center.created_at).toLocaleDateString('bn-BD') : '—'}</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -147,8 +147,8 @@ export default function HoCenterDetail() {
 
           {tab === 'infrastructure' && (
             <div className="table-responsive">
-              <table className="table table-hover table-bordered align-middle">
-                <thead className="table-light">
+              <table className="b-detail-table w-100">
+                <thead >
                   <tr><th>কক্ষ নং</th><th>অবস্থান</th><th>ধারণক্ষমতা</th><th>সরঞ্জাম</th><th>স্ট্যাটাস</th></tr>
                 </thead>
                 <tbody>
@@ -160,7 +160,7 @@ export default function HoCenterDetail() {
                       <td>{r.location_bn || r.location_en || '—'}</td>
                       <td>{r.capacity} জন</td>
                       <td style={{ maxWidth: 300 }}>{r.equipment || '—'}</td>
-                      <td><span className={`badge bg-${r.status === 'available' ? 'success' : r.status === 'maintenance' ? 'warning' : 'danger'}`}>{r.status}</span></td>
+                      <td><span className={`status-dot dot-${r.status === 'available' ? 'success' : r.status === 'maintenance' ? 'warning' : 'danger'}`}>{r.status}</span></td>
                     </tr>
                   ))}
                 </tbody>
@@ -170,8 +170,8 @@ export default function HoCenterDetail() {
 
           {tab === 'employees' && (
             <div className="table-responsive">
-              <table className="table table-hover table-bordered align-middle">
-                <thead className="table-light">
+              <table className="b-detail-table w-100">
+                <thead >
                   <tr><th>কর্মচারী নং</th><th>নাম</th><th>পদবী</th><th>যোগাযোগ</th><th>স্ট্যাটাস</th></tr>
                 </thead>
                 <tbody>
@@ -183,7 +183,7 @@ export default function HoCenterDetail() {
                       <td>{e.user_full_name_bn || e.user_email || '—'}</td>
                       <td>{e.designation_bn || '—'}</td>
                       <td>{e.user_email || '—'}</td>
-                      <td><span className={`badge bg-${e.status === 'active' ? 'success' : 'secondary'}`}>{e.status}</span></td>
+                      <td><span className={`status-dot dot-${e.status === 'active' ? 'success' : 'secondary'}`}>{e.status}</span></td>
                     </tr>
                   ))}
                 </tbody>

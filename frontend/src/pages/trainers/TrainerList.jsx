@@ -33,6 +33,7 @@ export default function TrainerList() {
   const [importFile, setImportFile] = useState(null);
   const [importLoading, setImportLoading] = useState(false);
   const [importResults, setImportResults] = useState(null);
+  const [expandedId, setExpandedId] = useState(null);
 
   const fetchTrainers = useCallback(async () => {
     setLoading(true);
@@ -240,22 +241,22 @@ export default function TrainerList() {
 
       <div className="card shadow-sm table-card" style={{ borderRadius: 12, border: 'none' }}>
         <div className="table-responsive">
-        <table className="table table-hover align-middle mb-0" style={{ fontSize: 13 }}>
-            <thead className="table-light">
+        <table className="b-table w-100">
+            <thead>
               <tr>
-                <th style={{ width: 36 }}>
+                <th>
                   <input type="checkbox" className="form-check-input" onChange={handleSelectAll}
                     checked={trainers.length > 0 && selectedIds.size === trainers.length} />
                 </th>
-                <th className="d-none d-lg-table-cell" style={{ width: 50 }}>ছবি</th>
-                <th style={{ width: 80 }}>প্রশিক্ষক নং</th>
+                <th className="d-none d-lg-table-cell">ছবি</th>
+                <th>প্রশিক্ষক নং</th>
                 <th>নাম (বাংলা)</th>
                 <th className="d-none d-xl-table-cell">নাম (ইংরেজি)</th>
                 <th className="d-none d-lg-table-cell">ইমেইল</th>
                 <th className="d-none d-md-table-cell">ফোন</th>
-                <th className="d-none d-xl-table-cell" style={{ width: 70 }}>অভিজ্ঞতা</th>
-                <th style={{ width: 100 }}>স্ট্যাটাস</th>
-                <th className="text-center" style={{ width: 50 }}>অ্যাকশন</th>
+                <th className="d-none d-xl-table-cell">অভিজ্ঞতা</th>
+                <th>স্ট্যাটাস</th>
+                <th className="text-center">অ্যাকশন</th>
               </tr>
             </thead>
             <tbody>
@@ -264,55 +265,68 @@ export default function TrainerList() {
               ) : trainers.length === 0 ? (
                 <tr><td colSpan={10} className="text-center text-secondary py-4">কোনো প্রশিক্ষক পাওয়া যায়নি</td></tr>
               ) : (
-                trainers.map(t => {
+                trainers.flatMap(t => {
                   const seq = t.trainer_no ? t.trainer_no.split('-').pop() : '-';
-                  return (
-                  <tr key={t.id} className={selectedIds.has(t.id) ? 'table-active' : ''}>
-                    <td><input type="checkbox" className="form-check-input" checked={selectedIds.has(t.id)} onChange={() => handleSelectOne(t.id)} /></td>
-                    <td className="d-none d-lg-table-cell">
-                      {t.profile_image ? (
-                        <img src={imageUrl(t.profile_image)} alt="ছবি" className="rounded-circle"
-                          style={{ width: 36, height: 36, objectFit: 'cover' }}
-                          onError={(e) => { e.target.style.display = 'none'; }} />
-                      ) : (
-                        <div className="rounded-circle bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center text-secondary"
-                          style={{ width: 36, height: 36, fontSize: 14 }}>
-                          <i className="bi bi-person"></i>
-                        </div>
-                      )}
-                    </td>
-                    <td className="fw-semibold"><span className="badge bg-secondary bg-opacity-10 text-dark">{seq}</span></td>
-                    <td className="fw-semibold" style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 120 }}>{t.user_full_name_bn || '-'}</td>
-                    <td className="d-none d-xl-table-cell" style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 100 }}>{t.user_full_name_en || '-'}</td>
-                    <td className="d-none d-lg-table-cell" style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 120 }}>{t.user_email || '-'}</td>
-                    <td className="d-none d-md-table-cell" style={{ whiteSpace: 'nowrap' }}>{t.user_phone || '-'}</td>
-                    <td className="d-none d-xl-table-cell" style={{ whiteSpace: 'nowrap' }}>{t.years_of_experience ? `${t.years_of_experience} বছর` : '-'}</td>
-                    <td style={{ fontSize: 10, whiteSpace: 'nowrap' }}>
-                      <span className={`badge bg-${STATUS_BG[t.status] || 'secondary'} d-block mb-1`} style={{ fontSize: 10 }}>{STATUS_MAP[t.status] || t.status}</span>
-                      <span className={`badge bg-${APPROVAL_BG[t.approval_status] || 'secondary'} d-block`} style={{ fontSize: 10 }}>{APPROVAL_MAP[t.approval_status] || t.approval_status}</span>
-                    </td>
-                    <td className="text-center" style={{ width: 50 }}>
-                      <div className="dropdown">
-                        <button className="btn btn-sm btn-outline-secondary border-0" data-bs-toggle="dropdown" type="button">
+                  const isExpanded = expandedId === t.id;
+                  return [
+                    <tr key={t.id} className={selectedIds.has(t.id) ? 'b-row--active' : 'b-row'}>
+                      <td><input type="checkbox" className="form-check-input" checked={selectedIds.has(t.id)} onChange={() => handleSelectOne(t.id)} /></td>
+                      <td className="d-none d-lg-table-cell">
+                        {t.profile_image ? (
+                          <img src={imageUrl(t.profile_image)} alt="ছবি" className="rounded-circle"
+                            style={{ width: 36, height: 36, objectFit: 'cover' }}
+                            onError={(e) => { e.target.style.display = 'none'; }} />
+                        ) : (
+                          <div className="rounded-circle bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center text-secondary"
+                            style={{ width: 36, height: 36, fontSize: 14 }}>
+                            <i className="bi bi-person"></i>
+                          </div>
+                        )}
+                      </td>
+                      <td className="fw-semibold"><span className="badge bg-secondary bg-opacity-10 text-dark">{seq}</span></td>
+                      <td className="fw-semibold">{t.user_full_name_bn || '-'}</td>
+                      <td className="d-none d-xl-table-cell">{t.user_full_name_en || '-'}</td>
+                      <td className="d-none d-lg-table-cell">{t.user_email || '-'}</td>
+                      <td className="d-none d-md-table-cell">{t.user_phone || '-'}</td>
+                      <td className="d-none d-xl-table-cell">{t.years_of_experience ? `${t.years_of_experience} বছর` : '-'}</td>
+                      <td>
+                        <span className={`status-dot dot-${t.status}`}></span>
+                        <span style={{fontSize:13,color:'#334155'}}>{STATUS_MAP[t.status] || t.status}</span>
+                        <br />
+                        <span className={`status-dot dot-${t.approval_status}`}></span>
+                        <span style={{fontSize:13,color:'#334155'}}>{APPROVAL_MAP[t.approval_status] || t.approval_status}</span>
+                      </td>
+                      <td className="text-center">
+                        <button className="btn btn-sm btn-outline-secondary border-0 me-1" onClick={() => navigate(`/center-admin/trainers/${t.id}`)}>
+                          <i className="bi bi-eye"></i>
+                        </button>
+                        <button className="btn btn-sm btn-outline-secondary border-0" onClick={() => setExpandedId(isExpanded ? null : t.id)}>
                           <i className="bi bi-three-dots-vertical"></i>
                         </button>
-                        <ul className="dropdown-menu dropdown-menu-end" style={{ fontSize: 13 }}>
-                          <li><button className="dropdown-item" onClick={() => navigate(`/center-admin/trainers/${t.id}`)}><i className="bi bi-eye me-2"></i>বিস্তারিত</button></li>
-                          <li><button className="dropdown-item" onClick={async () => { try { const r = await api.get(`/trainers/${t.id}/`); setEditData(r.data); setShowForm(true); } catch { toast.error('তথ্য লোড করতে ব্যর্থ'); } }}><i className="bi bi-pencil me-2"></i>সম্পাদনা</button></li>
-                          <li><hr className="dropdown-divider" /></li>
-                          <li><button className="dropdown-item text-danger" onClick={() => handleDelete(t.id, t.trainer_no)}><i className="bi bi-trash me-2"></i>মুছুন</button></li>
-                        </ul>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })
+                      </td>
+                    </tr>,
+                    isExpanded && (
+                      <tr key={`exp-${t.id}`} className="exp-row">
+                        <td colSpan={10}>
+                          <div className="exp-panel">
+                            <button className="exp-btn" onClick={async () => { try { const r = await api.get(`/trainers/${t.id}/`); setEditData(r.data); setShowForm(true); } catch { toast.error('তথ্য লোড করতে ব্যর্থ'); } }}>
+                              <i className="bi bi-pencil me-1"></i>সম্পাদনা
+                            </button>
+                            <button className="exp-btn text-danger" onClick={() => handleDelete(t.id, t.trainer_no)}>
+                              <i className="bi bi-trash me-1"></i>মুছুন
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  ];
+                })
               )}
             </tbody>
           </table>
         </div>
         {totalPages > 1 && (
-          <div className="card-footer bg-white d-flex justify-content-between align-items-center py-2">
+          <div className="b-pagination d-flex justify-content-between align-items-center py-2">
             <small className="text-secondary">দেখানো হচ্ছে {Math.min((page-1)*pageSize+1, total)}-{Math.min(page*pageSize, total)} এর {total}</small>
             <div className="d-flex gap-1">
               <button className="btn btn-sm btn-outline-secondary" disabled={page <= 1} onClick={() => setPage(page - 1)}>

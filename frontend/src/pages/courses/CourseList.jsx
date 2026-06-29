@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from '../../services/api';
 import { formatDate } from '../../utils/dateFormatter';
@@ -20,6 +21,8 @@ export default function CourseList() {
   const [importFile, setImportFile] = useState(null);
   const [importLoading, setImportLoading] = useState(false);
   const [importResults, setImportResults] = useState(null);
+  const [expandedId, setExpandedId] = useState(null);
+  const navigate = useNavigate();
 
   const fetchCourses = useCallback(async () => {
     setLoading(true);
@@ -228,8 +231,8 @@ export default function CourseList() {
 
       <div className="card shadow-sm table-card" style={{ borderRadius: 12, border: 'none' }}>
         <div className="table-responsive">
-          <table className="table table-hover align-middle mb-0" style={{ fontSize: 13 }}>
-            <thead className="table-light">
+          <table className="b-table w-100">
+            <thead>
               <tr>
                 <th style={{ width: 36 }}>
                   <input type="checkbox" className="form-check-input" onChange={handleSelectAll}
@@ -251,40 +254,46 @@ export default function CourseList() {
               ) : courses.length === 0 ? (
                 <tr><td colSpan={9} className="text-center text-secondary py-4">কোনো কোর্স পাওয়া যায়নি</td></tr>
               ) : (
-                courses.map(c => (
-                  <tr key={c.id} className={selectedIds.has(c.id) ? 'table-active' : ''}>
+                courses.flatMap(c => [
+                  <tr key={c.id} className={`b-row${selectedIds.has(c.id) ? ' b-row--active' : ''}`}>
                     <td><input type="checkbox" className="form-check-input" checked={selectedIds.has(c.id)} onChange={() => handleSelectOne(c.id)} /></td>
                     <td className="fw-semibold">{c.code || '-'}</td>
-                    <td style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 120 }}>{c.name_bn}</td>
-                    <td className="d-none d-xl-table-cell" style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 100 }}>{c.name_en}</td>
+                    <td>{c.name_bn}</td>
+                    <td className="d-none d-xl-table-cell">{c.name_en}</td>
                     <td><span className={`badge bg-${TYPE_BG[c.course_type] || 'secondary'}`}>{c.course_type_display || c.course_type}</span></td>
-                    <td className="d-none d-md-table-cell" style={{ whiteSpace: 'nowrap' }}>{c.duration_months ? `${c.duration_months} মাস` : '-'}</td>
-                    <td className="d-none d-md-table-cell" style={{ whiteSpace: 'nowrap' }}>{c.fee ? `৳${c.fee.toLocaleString('bn-BD')}` : '-'}</td>
-                    <td style={{ whiteSpace: 'nowrap' }}><span className={`badge bg-${STATUS_BG[c.status] || 'secondary'}`}>{c.status_display || c.status}</span></td>
-                    <td className="text-center" style={{ width: 50 }}>
-                      <div className="dropdown">
-                        <button className="btn btn-sm btn-outline-secondary border-0" data-bs-toggle="dropdown" type="button">
-                          <i className="bi bi-three-dots-vertical"></i>
-                        </button>
-                        <ul className="dropdown-menu dropdown-menu-end" style={{ fontSize: 13 }}>
-                          <li><button className="dropdown-item text-danger" onClick={() => handleDelete(c.id, c.code)}><i className="bi bi-trash me-2"></i>মুছুন</button></li>
-                        </ul>
-                      </div>
+                    <td className="d-none d-md-table-cell">{c.duration_months ? `${c.duration_months} মাস` : '-'}</td>
+                    <td className="d-none d-md-table-cell">{c.fee ? `৳${c.fee.toLocaleString('bn-BD')}` : '-'}</td>
+                    <td><span className={`status-dot dot-${c.status}`}></span> <span style={{fontSize:13,color:'#334155'}}>{c.status_display || c.status}</span></td>
+                    <td className="text-center">
+                      <button className="btn btn-sm btn-outline-secondary border-0 me-1" onClick={() => navigate(`/courses/${c.id}`)} title="বিস্তারিত"><i className="bi bi-eye"></i></button>
+                      <button className={`btn btn-sm btn-outline-secondary border-0 exp-btn${expandedId === c.id ? ' act-btn--active' : ''}`} onClick={() => setExpandedId(expandedId === c.id ? null : c.id)}>
+                        <i className="bi bi-three-dots-vertical"></i>
+                      </button>
                     </td>
-                  </tr>
-                ))
+                  </tr>,
+                  expandedId === c.id && (
+                    <tr key={`${c.id}-exp`} className="exp-row">
+                      <td colSpan={9}>
+                        <div className="exp-panel">
+                          <button className="act-btn" onClick={() => navigate(`/courses/${c.id}/edit`)}><i className="bi bi-pencil me-1"></i>সম্পাদনা</button>
+                          <button className="act-btn" onClick={() => handleDelete(c.id, c.code)}><i className="bi bi-trash me-1"></i>মুছুন</button>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                ])
               )}
             </tbody>
           </table>
         </div>
         {totalPages > 1 && (
-          <div className="card-footer bg-white d-flex justify-content-between align-items-center py-2">
-            <small className="text-secondary">দেখানো হচ্ছে {Math.min((page-1)*pageSize+1, total)}-{Math.min(page*pageSize, total)} এর {total}</small>
+          <div className="b-pagination">
+            <span className="page-info">দেখানো হচ্ছে {Math.min((page-1)*pageSize+1, total)}-{Math.min(page*pageSize, total)} এর {total}</span>
             <div className="d-flex gap-1">
-              <button className="btn btn-sm btn-outline-secondary" disabled={page <= 1} onClick={() => setPage(page - 1)}>
+              <button className="page-btn" disabled={page <= 1} onClick={() => setPage(page - 1)}>
                 <i className="bi bi-chevron-left"></i>
               </button>
-              <button className="btn btn-sm btn-outline-secondary" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>
+              <button className="page-btn" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>
                 <i className="bi bi-chevron-right"></i>
               </button>
             </div>

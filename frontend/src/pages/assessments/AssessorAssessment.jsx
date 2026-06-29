@@ -342,8 +342,8 @@ export default function AssessorAssessment() {
         </div>
         <div className="card-body p-0">
           <div className="table-responsive">
-            <table className="table table-bordered table-hover mb-0 align-middle">
-              <thead className="table-dark">
+            <table className="b-form-table w-100">
+              <thead>
                 <tr>
                   <th style={{ width: 40 }}>#</th>
                   <th>প্রশিক্ষণার্থী</th>

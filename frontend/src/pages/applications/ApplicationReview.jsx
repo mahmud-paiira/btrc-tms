@@ -17,13 +17,13 @@ const PAGE_SIZES = [10, 20, 50, 100];
 
 const statusBadge = (status) => {
   const map = {
-    pending: { cls: 'bg-warning text-dark', label: 'পেন্ডিং' },
-    selected: { cls: 'bg-success', label: 'নির্বাচিত' },
-    rejected: { cls: 'bg-danger', label: 'বাতিল' },
-    waitlisted: { cls: 'bg-info text-dark', label: 'অপেক্ষমাণ' },
+    pending: { dot: 'warning', label: 'পেন্ডিং' },
+    selected: { dot: 'success', label: 'নির্বাচিত' },
+    rejected: { dot: 'danger', label: 'বাতিল' },
+    waitlisted: { dot: 'info', label: 'অপেক্ষমাণ' },
   };
-  const s = map[status] || { cls: 'bg-secondary', label: status };
-  return <span className={`badge ${s.cls} rounded-pill`}>{s.label}</span>;
+  const s = map[status] || { dot: 'secondary', label: status };
+  return <><span className={`status-dot dot-${s.dot}`}></span>{s.label}</>;
 };
 
 export default function ApplicationReview() {
@@ -48,6 +48,7 @@ export default function ApplicationReview() {
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
   const [pendingStatus, setPendingStatus] = useState({});
+  const [expandedId, setExpandedId] = useState(null);
 
   const fetchCirculars = useCallback(async () => {
     try {
@@ -348,13 +349,13 @@ export default function ApplicationReview() {
           ) : (
             <>
               <div className="table-responsive">
-                <table className="table table-hover align-middle mb-0">
-                  <thead className="table-light">
+                <table className="b-table w-100">
+                  <thead>
                     <tr>
-                      <th style={{ width: 36 }}>
+                      <th>
                         <input type="checkbox" className="form-check-input" checked={selectAll} onChange={handleSelectAll} />
                       </th>
-                      <th style={{ width: 40 }}>#</th>
+                      <th>#</th>
                       <th className="sortable" onClick={() => handleSort('application_no')}>
                         আবেদন নং <SortIcon field="application_no" />
                       </th>
@@ -368,71 +369,87 @@ export default function ApplicationReview() {
                       <th className="sortable" onClick={() => handleSort('applied_at')}>
                         তারিখ <SortIcon field="applied_at" />
                       </th>
-                      <th style={{ width: 140 }}>অবস্থা</th>
-                      <th style={{ width: 160 }} className="text-center">কার্যক্রম</th>
+                      <th>অবস্থা</th>
+                      <th className="text-center">কার্যক্রম</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {applications.map((app, idx) => (
-                      <tr key={app.id} className={selectedIds.includes(app.id) ? 'table-active' : ''}>
-                        <td>
-                          <input type="checkbox" className="form-check-input"
-                            checked={selectedIds.includes(app.id)} onChange={() => handleSelectOne(app.id)} />
-                        </td>
-                        <td className="text-muted small">{idx + 1}</td>
-                        <td className="fw-semibold">{app.application_no}</td>
-                        <td>
-                          <span className="d-inline-block text-truncate" style={{ maxWidth: 160 }} title={app.name_bn}>
-                            {app.name_bn}
-                          </span>
-                        </td>
-                        <td className="text-nowrap small">{app.nid}</td>
-                        <td className="text-nowrap small">{app.phone}</td>
-                        <td className="text-nowrap small">{app.applied_at ? new Date(app.applied_at).toLocaleDateString('bn-BD') : '—'}</td>
-                        <td>
-                          <select className={`form-select form-select-sm border-0 bg-transparent fw-semibold status-select-${app.status}`}
-                            value={pendingStatus[app.id] ?? app.status}
-                            onChange={e => setPendingStatus(prev => ({ ...prev, [app.id]: e.target.value }))}
-                            onBlur={e => {
-                              const newStatus = pendingStatus[app.id];
-                              if (newStatus && newStatus !== app.status) {
-                                if (window.confirm(`আবেদন #${app.id} এর অবস্থা "${STATUS_OPTIONS.find(s => s.value === newStatus)?.label}"-এ পরিবর্তন করবেন?`)) {
-                                  handleSingleReview(app.id, newStatus);
-                                }
-                              }
-                              setPendingStatus(prev => { const p = { ...prev }; delete p[app.id]; return p; });
-                            }}
-                          >
-                            {STATUS_OPTIONS.filter(s => s.value).map(s => (
-                              <option key={s.value} value={s.value}>{s.label}</option>
-                            ))}
-                          </select>
-                        </td>
-                        <td>
-                          <div className="d-flex gap-1 justify-content-center">
-                            <button className="btn btn-sm btn-outline-primary" onClick={() => navigate(`/center-admin/applications/${app.id}`)}
-                              title="বিস্তারিত দেখুন / সম্পাদনা">
-                              <i className="bi bi-eye"></i>
-                            </button>
-                            <button className="btn btn-sm btn-outline-secondary" onClick={() => handlePrint(app)}
-                              title="প্রিন্ট">
-                              <i className="bi bi-printer"></i>
-                            </button>
-                            <button className="btn btn-sm btn-outline-danger" onClick={() => setShowDeleteConfirm(app)}
-                              title="মুছে ফেলুন">
-                              <i className="bi bi-trash"></i>
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
+                    {applications.flatMap((app, idx) => {
+                      const isExpanded = expandedId === app.id;
+                      const row = (
+                        <tr key={app.id} className={`b-row${isExpanded ? ' b-row--active' : ''}${selectedIds.includes(app.id) ? ' table-active' : ''}`}>
+                          <td>
+                            <input type="checkbox" className="form-check-input"
+                              checked={selectedIds.includes(app.id)} onChange={() => handleSelectOne(app.id)} />
+                          </td>
+                          <td className="text-muted small">{idx + 1}</td>
+                          <td className="fw-semibold">{app.application_no}</td>
+                          <td>
+                            <span className="d-inline-block text-truncate" style={{ maxWidth: 160 }} title={app.name_bn}>
+                              {app.name_bn}
+                            </span>
+                          </td>
+                          <td className="text-nowrap small">{app.nid}</td>
+                          <td className="text-nowrap small">{app.phone}</td>
+                          <td className="text-nowrap small">{app.applied_at ? new Date(app.applied_at).toLocaleDateString('bn-BD') : '—'}</td>
+                          <td>{statusBadge(pendingStatus[app.id] ?? app.status)}</td>
+                          <td>
+                            <div className="d-flex gap-1 justify-content-center">
+                              <button className="btn btn-sm btn-outline-primary act-btn" onClick={() => navigate(`/center-admin/applications/${app.id}`)}
+                                title="বিস্তারিত দেখুন / সম্পাদনা">
+                                <i className="bi bi-eye"></i>
+                              </button>
+                              <button className={`btn btn-sm btn-outline-secondary exp-btn${isExpanded ? ' act-btn--active' : ''}`}
+                                onClick={() => setExpandedId(isExpanded ? null : app.id)}>
+                                <i className="bi bi-three-dots"></i>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                      const expRow = isExpanded ? (
+                        <tr key={`${app.id}-exp`} className="exp-row">
+                          <td colSpan={9}>
+                            <div className="exp-panel">
+                              <div className="d-flex flex-wrap gap-2 align-items-center">
+                                <span className="fw-medium small">অবস্থা পরিবর্তন:</span>
+                                <select className="form-select form-select-sm" style={{ width: 140 }}
+                                  value={pendingStatus[app.id] ?? app.status}
+                                  onChange={e => setPendingStatus(prev => ({ ...prev, [app.id]: e.target.value }))}
+                                  onBlur={e => {
+                                    const newStatus = pendingStatus[app.id];
+                                    if (newStatus && newStatus !== app.status) {
+                                      if (window.confirm(`আবেদন #${app.id} এর অবস্থা "${STATUS_OPTIONS.find(s => s.value === newStatus)?.label}"-এ পরিবর্তন করবেন?`)) {
+                                        handleSingleReview(app.id, newStatus);
+                                      }
+                                    }
+                                    setPendingStatus(prev => { const p = { ...prev }; delete p[app.id]; return p; });
+                                  }}
+                                >
+                                  {STATUS_OPTIONS.filter(s => s.value).map(s => (
+                                    <option key={s.value} value={s.value}>{s.label}</option>
+                                  ))}
+                                </select>
+                                <button className="btn btn-sm btn-outline-secondary" onClick={() => handlePrint(app)} title="প্রিন্ট">
+                                  <i className="bi bi-printer"></i>
+                                </button>
+                                <button className="btn btn-sm btn-outline-danger" onClick={() => setShowDeleteConfirm(app)} title="মুছে ফেলুন">
+                                  <i className="bi bi-trash"></i>
+                                </button>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      ) : null;
+                      return expRow ? [row, expRow] : [row];
+                    })}
                   </tbody>
                 </table>
               </div>
 
               {/* Pagination + Page Info */}
-              <div className="d-flex flex-wrap justify-content-between align-items-center px-3 py-2 border-top bg-light">
-                <div className="d-flex align-items-center gap-2">
+              <div className="d-flex flex-wrap justify-content-between align-items-center px-3 py-2 border-top bg-light b-pagination">
+                <div className="d-flex align-items-center gap-2 page-info">
                   <small className="text-muted">{totalPages > 0 ? `পাতা ${page} / ${totalPages}` : 'পাতা -'}</small>
                   <small className="text-muted">| মোট {total} টি</small>
                   <select className="form-select form-select-sm" style={{ width: 80 }}
@@ -442,34 +459,30 @@ export default function ApplicationReview() {
                   <small className="text-muted">/পাতা</small>
                 </div>
                 <nav>
-                  <ul className="pagination pagination-sm mb-0">
-                    <li className={`page-item ${page <= 1 ? 'disabled' : ''}`}>
-                      <button className="page-link" onClick={() => setPage(1)}><i className="bi bi-chevron-double-left"></i></button>
-                    </li>
-                    <li className={`page-item ${page <= 1 ? 'disabled' : ''}`}>
-                      <button className="page-link" onClick={() => setPage(p => Math.max(1, p - 1))}><i className="bi bi-chevron-left"></i></button>
-                    </li>
-                    {Array.from({ length: totalPages }, (_, i) => {
-                      const p = i + 1;
-                      if (p === 1 || p === totalPages || Math.abs(p - page) <= 1) {
-                        return (
-                          <li key={p} className={`page-item ${p === page ? 'active' : ''}`}>
-                            <button className="page-link" onClick={() => setPage(p)}>{p}</button>
-                          </li>
-                        );
-                      }
-                      if (p === 2 || p === totalPages - 1) {
-                        return <li key={p} className="page-item disabled"><span className="page-link">...</span></li>;
-                      }
-                      return null;
-                    })}
-                    <li className={`page-item ${page >= totalPages ? 'disabled' : ''}`}>
-                      <button className="page-link" onClick={() => setPage(p => Math.min(totalPages, p + 1))}><i className="bi bi-chevron-right"></i></button>
-                    </li>
-                    <li className={`page-item ${page >= totalPages ? 'disabled' : ''}`}>
-                      <button className="page-link" onClick={() => setPage(totalPages)}><i className="bi bi-chevron-double-right"></i></button>
-                    </li>
-                  </ul>
+                  <button className="page-btn" disabled={page <= 1} onClick={() => setPage(1)}>
+                    <i className="bi bi-chevron-double-left"></i>
+                  </button>
+                  <button className="page-btn" disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}>
+                    <i className="bi bi-chevron-left"></i>
+                  </button>
+                  {Array.from({ length: totalPages }, (_, i) => {
+                    const p = i + 1;
+                    if (p === 1 || p === totalPages || Math.abs(p - page) <= 1) {
+                      return (
+                        <button key={p} className={`page-btn${p === page ? ' active' : ''}`} onClick={() => setPage(p)}>{p}</button>
+                      );
+                    }
+                    if (p === 2 || p === totalPages - 1) {
+                      return <span key={p} className="page-btn disabled">...</span>;
+                    }
+                    return null;
+                  })}
+                  <button className="page-btn" disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}>
+                    <i className="bi bi-chevron-right"></i>
+                  </button>
+                  <button className="page-btn" disabled={page >= totalPages} onClick={() => setPage(totalPages)}>
+                    <i className="bi bi-chevron-double-right"></i>
+                  </button>
                 </nav>
               </div>
             </>

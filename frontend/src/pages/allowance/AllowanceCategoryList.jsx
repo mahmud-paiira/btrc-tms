@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import allowanceService from '../../services/allowanceService';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -9,7 +10,9 @@ export default function AllowanceCategoryList() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [expandedId, setExpandedId] = useState(null);
   const [form, setForm] = useState({ name_bn: '', name_en: '', amount_per_session: '', is_active: true });
+  const navigate = useNavigate();
 
   const fetch = useCallback(async () => {
     setLoading(true);
@@ -70,33 +73,49 @@ export default function AllowanceCategoryList() {
 
       <div className="card">
         <div className="card-body p-0">
-          <table className="table table-bordered align-middle mb-0">
-            <thead className="bg-light">
+          <table className="b-table w-100">
+            <thead>
               <tr>
                 <th>#</th>
                 <th>নাম (বাংলা)</th>
                 <th>নাম (ইংরেজি)</th>
                 <th>প্রতি সেশনে ভাতা</th>
                 <th>সক্রিয়</th>
-                <th>কর্ম</th>
+                <th className="text-center">কর্ম</th>
               </tr>
             </thead>
             <tbody>
-              {categories.map((c, i) => (
-                <tr key={c.id}>
-                  <td>{i + 1}</td>
-                  <td>{c.name_bn}</td>
-                  <td>{c.name_en}</td>
-                  <td>{c.amount_per_session} টাকা</td>
-                  <td>{c.is_active ? <span className="badge bg-success">হ্যাঁ</span> : <span className="badge bg-secondary">না</span>}</td>
-                  <td>
-                    <button className="btn btn-sm btn-outline-primary me-1" onClick={() => openEdit(c)}><i className="bi bi-pencil"></i></button>
-                    <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(c.id)}><i className="bi bi-trash"></i></button>
-                  </td>
-                </tr>
-              ))}
-              {categories.length === 0 && (
-                <tr><td colSpan={6} className="text-center text-muted py-4">কোন ভাতার শ্রেণী পাওয়া যায়নি</td></tr>
+              {categories.length === 0 ? (
+                <tr><td colSpan={6} className="text-center text-secondary py-4">কোন ভাতার শ্রেণী পাওয়া যায়নি</td></tr>
+              ) : (
+                categories.flatMap((c, i) => [
+                  <tr key={c.id} className="b-row">
+                    <td>{i + 1}</td>
+                    <td>{c.name_bn}</td>
+                    <td>{c.name_en}</td>
+                    <td>{c.amount_per_session} টাকা</td>
+                    <td>
+                      <span className={`status-dot dot-${c.is_active ? 'active' : 'inactive'}`}></span>
+                      <span>{c.is_active ? 'হ্যাঁ' : 'না'}</span>
+                    </td>
+                    <td className="text-center">
+                      <button className="btn btn-sm btn-outline-secondary border-0 me-1" onClick={() => navigate(`/allowance-categories/${c.id}`)} title="বিস্তারিত"><i className="bi bi-eye"></i></button>
+                      <button className={`btn btn-sm btn-outline-secondary border-0 exp-btn${expandedId === c.id ? ' act-btn--active' : ''}`} onClick={() => setExpandedId(expandedId === c.id ? null : c.id)}>
+                        <i className="bi bi-three-dots-vertical"></i>
+                      </button>
+                    </td>
+                  </tr>,
+                  expandedId === c.id && (
+                    <tr key={`${c.id}-exp`} className="exp-row">
+                      <td colSpan={6}>
+                        <div className="exp-panel">
+                          <button className="act-btn" onClick={() => openEdit(c)}><i className="bi bi-pencil me-1"></i>সম্পাদনা</button>
+                          <button className="act-btn" onClick={() => handleDelete(c.id)}><i className="bi bi-trash me-1"></i>মুছুন</button>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                ])
               )}
             </tbody>
           </table>

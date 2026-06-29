@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import hoService from '../../services/hoService';
 import { formatDate } from '../../utils/dateFormatter';
@@ -17,6 +18,8 @@ export default function ReportList() {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [form, setForm] = useState({ report_type: 'trainee_list', date_from: '', date_to: '' });
+  const [expandedId, setExpandedId] = useState(null);
+  const navigate = useNavigate();
 
   const fetchReports = useCallback(async () => {
     setLoading(true);
@@ -65,6 +68,16 @@ export default function ReportList() {
     }
   };
 
+  const handleRegenerate = async (id) => {
+    try {
+      await hoService.regenerateReport(id);
+      toast.success('প্রতিবেদন পুনরায় তৈরি শুরু হয়েছে');
+      fetchReports();
+    } catch {
+      toast.error('পুনরায় তৈরি ব্যর্থ');
+    }
+  };
+
   return (
     <div>
       <h4 className="mb-3 fw-bold"><i className="bi bi-file-earmark-bar-graph me-2"></i>প্রতিবেদন</h4>
@@ -105,14 +118,14 @@ export default function ReportList() {
       <div className="card shadow-sm table-card">
         <div className="card-header bg-white fw-semibold">পূর্ববর্তী প্রতিবেদন</div>
         <div className="table-responsive">
-          <table className="table table-hover align-middle mb-0" style={{ fontSize: 13 }}>
-            <thead className="table-light">
+          <table className="b-table w-100">
+            <thead>
               <tr>
                 <th>শিরোনাম</th>
                 <th>ধরণ</th>
                 <th>অবস্থা</th>
                 <th>তৈরির তারিখ</th>
-                <th>অ্যাকশন</th>
+                <th className="text-center">অ্যাকশন</th>
               </tr>
             </thead>
             <tbody>
@@ -121,29 +134,34 @@ export default function ReportList() {
               ) : reports.length === 0 ? (
                 <tr><td colSpan={5} className="text-center text-secondary py-4">কোনো প্রতিবেদন নেই</td></tr>
               ) : (
-                reports.map(r => (
-                  <tr key={r.id}>
+                reports.flatMap(r => [
+                  <tr key={r.id} className="b-row">
                     <td className="fw-semibold">{r.title || '-'}</td>
                     <td><span className="badge bg-info">{r.report_type}</span></td>
                     <td>
-                      {r.is_ready ? (
-                        <span className="badge bg-success">প্রস্তুত</span>
-                      ) : r.error_message ? (
-                        <span className="badge bg-danger" title={r.error_message}>ব্যর্থ</span>
-                      ) : (
-                        <span className="badge bg-warning">নির্মাণাধীন</span>
-                      )}
+                      <span className={`status-dot dot-${r.is_ready ? 'success' : r.error_message ? 'danger' : 'warning'}`}></span>
+                      <span>{r.is_ready ? 'প্রস্তুত' : r.error_message ? 'ব্যর্থ' : 'নির্মাণাধীন'}</span>
                     </td>
                     <td>{r.created_at ? formatDate(r.created_at) : '-'}</td>
-                    <td>
-                      {r.is_ready && (
-                        <button className="btn btn-sm btn-outline-primary" onClick={() => handleDownload(r.id)}>
-                          <i className="bi bi-download"></i>
-                        </button>
-                      )}
+                    <td className="text-center">
+                      <button className="btn btn-sm btn-outline-secondary border-0 me-1" onClick={() => handleDownload(r.id)} title="ডাউনলোড"><i className="bi bi-download"></i></button>
+                      <button className={`btn btn-sm btn-outline-secondary border-0 exp-btn${expandedId === r.id ? ' act-btn--active' : ''}`} onClick={() => setExpandedId(expandedId === r.id ? null : r.id)}>
+                        <i className="bi bi-three-dots-vertical"></i>
+                      </button>
                     </td>
-                  </tr>
-                ))
+                  </tr>,
+                  expandedId === r.id && (
+                    <tr key={`${r.id}-exp`} className="exp-row">
+                      <td colSpan={5}>
+                        <div className="exp-panel">
+                          {r.is_ready && (
+                            <button className="act-btn" onClick={() => handleRegenerate(r.id)}><i className="bi bi-arrow-repeat me-1"></i>পুনরায় তৈরি</button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                ])
               )}
             </tbody>
           </table>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import allowanceService from '../../services/allowanceService';
 import batchService from '../../services/batchService';
@@ -19,6 +20,8 @@ export default function AllowanceList() {
   const [selectedBatch, setSelectedBatch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
+  const [expandedId, setExpandedId] = useState(null);
+  const navigate = useNavigate();
 
   const fetchBatches = useCallback(async () => {
     try {
@@ -126,8 +129,8 @@ export default function AllowanceList() {
 
       <div className="card">
         <div className="card-body p-0">
-          <table className="table table-bordered align-middle mb-0">
-            <thead className="bg-light">
+          <table className="b-table w-100">
+            <thead>
               <tr>
                 <th>#</th>
                 <th>প্রশিক্ষণার্থী</th>
@@ -138,33 +141,51 @@ export default function AllowanceList() {
                 <th>গণনাকৃত</th>
                 <th>অনুমোদিত</th>
                 <th>অবস্থা</th>
-                <th>কর্ম</th>
+                <th className="text-center">কর্ম</th>
               </tr>
             </thead>
             <tbody>
-              {allowances.map((a, i) => (
-                <tr key={a.id}>
-                  <td>{i + 1}</td>
-                  <td>{a.trainee_name}</td>
-                  <td>{a.registration_no}</td>
-                  <td>{a.batch}</td>
-                  <td>{a.category_name}</td>
-                  <td>{a.attended_sessions}/{a.total_sessions}</td>
-                  <td>{a.calculated_amount} টাকা</td>
-                  <td>{a.approved_amount ? `${a.approved_amount} টাকা` : '-'}</td>
-                  <td><span className={`badge bg-${STATUS_BADGE[a.status] || 'secondary'}`}>{a.status}</span></td>
-                  <td>
-                    {a.status === 'calculated' && (
-                      <button className="btn btn-sm btn-outline-success me-1" onClick={() => handleApprove(a.id)}><i className="bi bi-check-lg"></i></button>
-                    )}
-                    {a.status === 'approved' && (
-                      <button className="btn btn-sm btn-outline-primary" onClick={() => handleDisburse(a.id)}><i className="bi bi-cash"></i></button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-              {allowances.length === 0 && (
-                <tr><td colSpan={10} className="text-center text-muted py-4">কোন ভাতা পাওয়া যায়নি</td></tr>
+              {loading ? (
+                <tr><td colSpan={10} className="text-center py-4"><div className="spinner-border spinner-border-sm me-2" />লোড হচ্ছে...</td></tr>
+              ) : allowances.length === 0 ? (
+                <tr><td colSpan={10} className="text-center text-secondary py-4">কোন ভাতা পাওয়া যায়নি</td></tr>
+              ) : (
+                allowances.flatMap((a, i) => [
+                  <tr key={a.id} className="b-row">
+                    <td>{i + 1}</td>
+                    <td>{a.trainee_name}</td>
+                    <td>{a.registration_no}</td>
+                    <td>{a.batch}</td>
+                    <td>{a.category_name}</td>
+                    <td>{a.attended_sessions}/{a.total_sessions}</td>
+                    <td>{a.calculated_amount} টাকা</td>
+                    <td>{a.approved_amount ? `${a.approved_amount} টাকা` : '-'}</td>
+                    <td>
+                      <span className={`status-dot dot-${a.status}`}></span>
+                      <span>{a.status_display || a.status}</span>
+                    </td>
+                    <td className="text-center">
+                      <button className="btn btn-sm btn-outline-secondary border-0 me-1" onClick={() => navigate(`/allowances/${a.id}`)} title="বিস্তারিত"><i className="bi bi-eye"></i></button>
+                      <button className={`btn btn-sm btn-outline-secondary border-0 exp-btn${expandedId === a.id ? ' act-btn--active' : ''}`} onClick={() => setExpandedId(expandedId === a.id ? null : a.id)}>
+                        <i className="bi bi-three-dots-vertical"></i>
+                      </button>
+                    </td>
+                  </tr>,
+                  expandedId === a.id && (
+                    <tr key={`${a.id}-exp`} className="exp-row">
+                      <td colSpan={10}>
+                        <div className="exp-panel">
+                          {a.status === 'calculated' && (
+                            <button className="act-btn" onClick={() => handleApprove(a.id)}><i className="bi bi-check-lg me-1"></i>অনুমোদন</button>
+                          )}
+                          {a.status === 'approved' && (
+                            <button className="act-btn" onClick={() => handleDisburse(a.id)}><i className="bi bi-cash me-1"></i>বিতরণ</button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                ])
               )}
             </tbody>
           </table>

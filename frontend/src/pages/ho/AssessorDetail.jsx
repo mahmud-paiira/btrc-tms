@@ -82,12 +82,10 @@ export default function AssessorDetail() {
           <div className="text-muted small">মূল্যায়নকারী নং: {assessor.assessor_no}</div>
         </div>
         <div className="ms-auto d-flex gap-2">
-          <span className={`badge bg-${STATUS_BG[assessor.status] || 'secondary'} fs-6 px-3 py-2`}>
-            {assessor.status_display || assessor.status}
-          </span>
-          <span className={`badge bg-${assessor.approval_status === 'approved' ? 'success' : assessor.approval_status === 'rejected' ? 'danger' : 'warning'} fs-6 px-3 py-2`}>
-            {assessor.approval_status_display || assessor.approval_status}
-          </span>
+          <span className={`status-dot dot-${STATUS_BG[assessor.status] || 'secondary'}`} />
+          {assessor.status_display || assessor.status}
+          <span className={`status-dot dot-${assessor.approval_status === 'approved' ? 'success' : assessor.approval_status === 'rejected' ? 'danger' : 'warning'}`} />
+          {assessor.approval_status_display || assessor.approval_status}
         </div>
       </div>
 
@@ -107,31 +105,31 @@ export default function AssessorDetail() {
             <div className="row g-4">
               <div className="col-md-6">
                 <h6 className="fw-bold mb-3 text-muted text-uppercase small">ব্যক্তিগত তথ্য</h6>
-                <table className="table table-bordered align-middle">
+                <table className="b-detail-table align-middle">
                   <tbody>
-                    <tr><th className="bg-light" style={{ width: 160 }}>মূল্যায়নকারী নং</th><td>{assessor.assessor_no}</td></tr>
-                    <tr><th className="bg-light">নাম (ইংরেজি)</th><td>{user.full_name_en || '-'}</td></tr>
-                    <tr><th className="bg-light">নাম (বাংলা)</th><td>{nameBn}</td></tr>
-                    <tr><th className="bg-light">ইমেইল</th><td>{user.email || '-'}</td></tr>
-                    <tr><th className="bg-light">ফোন</th><td>{user.phone || '-'}</td></tr>
-                    <tr><th className="bg-light">এনআইডি</th><td>{assessor.nid}</td></tr>
-                    <tr><th className="bg-light">জন্ম নিবন্ধন</th><td>{assessor.birth_certificate_no || '-'}</td></tr>
-                    <tr><th className="bg-light">জন্ম তারিখ</th><td>{assessor.date_of_birth || '-'}</td></tr>
+                    <tr><th>মূল্যায়নকারী নং</th><td>{assessor.assessor_no}</td></tr>
+                    <tr><th>নাম (ইংরেজি)</th><td>{user.full_name_en || '-'}</td></tr>
+                    <tr><th>নাম (বাংলা)</th><td>{nameBn}</td></tr>
+                    <tr><th>ইমেইল</th><td>{user.email || '-'}</td></tr>
+                    <tr><th>ফোন</th><td>{user.phone || '-'}</td></tr>
+                    <tr><th>এনআইডি</th><td>{assessor.nid}</td></tr>
+                    <tr><th>জন্ম নিবন্ধন</th><td>{assessor.birth_certificate_no || '-'}</td></tr>
+                    <tr><th>জন্ম তারিখ</th><td>{assessor.date_of_birth || '-'}</td></tr>
                   </tbody>
                 </table>
               </div>
               <div className="col-md-6">
                 <h6 className="fw-bold mb-3 text-muted text-uppercase small">পেশাগত তথ্য</h6>
-                <table className="table table-bordered align-middle">
+                <table className="b-detail-table align-middle">
                   <tbody>
-                    <tr><th className="bg-light" style={{ width: 160 }}>পিতার নাম</th><td>{assessor.father_name_bn}</td></tr>
-                    <tr><th className="bg-light">মাতার নাম</th><td>{assessor.mother_name_bn}</td></tr>
-                    <tr><th className="bg-light">শিক্ষাগত যোগ্যতা</th><td>{assessor.education_qualification}</td></tr>
-                    <tr><th className="bg-light">অভিজ্ঞতা</th><td>{`${assessor.years_of_experience} বছর`}</td></tr>
-                    <tr><th className="bg-light">দক্ষতার ক্ষেত্র</th><td>{assessor.expertise_area}</td></tr>
-                    <tr><th className="bg-light">সার্টিফিকেশন</th><td>{assessor.certification || '-'}</td></tr>
-                    <tr><th className="bg-light">ব্যাংক একাউন্ট</th><td>{assessor.bank_account_no || '-'}</td></tr>
-                    <tr><th className="bg-light">ব্যাংকের নাম</th><td>{assessor.bank_name || '-'}</td></tr>
+                    <tr><th>পিতার নাম</th><td>{assessor.father_name_bn}</td></tr>
+                    <tr><th>মাতার নাম</th><td>{assessor.mother_name_bn}</td></tr>
+                    <tr><th>শিক্ষাগত যোগ্যতা</th><td>{assessor.education_qualification}</td></tr>
+                    <tr><th>অভিজ্ঞতা</th><td>{`${assessor.years_of_experience} বছর`}</td></tr>
+                    <tr><th>দক্ষতার ক্ষেত্র</th><td>{assessor.expertise_area}</td></tr>
+                    <tr><th>সার্টিফিকেশন</th><td>{assessor.certification || '-'}</td></tr>
+                    <tr><th>ব্যাংক একাউন্ট</th><td>{assessor.bank_account_no || '-'}</td></tr>
+                    <tr><th>ব্যাংকের নাম</th><td>{assessor.bank_name || '-'}</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -139,15 +137,15 @@ export default function AssessorDetail() {
           )}
           {activeTab === 'mapped_institutes' && (
             <div className="table-responsive">
-              <table className="table table-hover table-bordered align-middle">
-                <thead className="table-light">
+              <table className="b-table align-middle">
+                <thead>
                   <tr><th>কেন্দ্র</th><th>অবস্থা</th></tr>
                 </thead>
                 <tbody>
                   {assessor.mappings?.length > 0 ? assessor.mappings.map(m => (
                     <tr key={m.id}>
                       <td>{m.center_code} - {m.center?.name_bn || ''}</td>
-                      <td><span className={`badge bg-${STATUS_BG[m.status]}`}>{m.status}</span></td>
+                      <td><span className={`status-dot dot-${STATUS_BG[m.status]}`} />{m.status}</td>
                     </tr>
                   )) : (
                     <tr><td colSpan={2} className="text-center text-muted py-4">কোনো কেন্দ্র ম্যাপ করা হয়নি</td></tr>
@@ -158,16 +156,16 @@ export default function AssessorDetail() {
           )}
           {activeTab === 'mapped_courses' && (
             <div className="table-responsive">
-              <table className="table table-hover table-bordered align-middle">
-                <thead className="table-light">
+              <table className="b-table align-middle">
+                <thead>
                   <tr><th>কোর্স</th><th>প্রাথমিক</th><th>অবস্থা</th></tr>
                 </thead>
                 <tbody>
                   {assessor.mappings?.length > 0 ? assessor.mappings.map(m => (
                     <tr key={m.id}>
                       <td>{m.course_code} - {m.course?.name_bn || ''}</td>
-                      <td>{m.is_primary ? <span className="badge bg-info">হ্যাঁ</span> : 'না'}</td>
-                      <td><span className={`badge bg-${STATUS_BG[m.status]}`}>{m.status}</span></td>
+                      <td>{m.is_primary ? <span className="status-dot dot-info" /> : 'না'}</td>
+                      <td><span className={`status-dot dot-${STATUS_BG[m.status]}`} />{m.status}</td>
                     </tr>
                   )) : (
                     <tr><td colSpan={3} className="text-center text-muted py-4">কোনো কোর্স ম্যাপ করা হয়নি</td></tr>
@@ -178,8 +176,8 @@ export default function AssessorDetail() {
           )}
           {activeTab === 'batch_history' && (
             <div className="table-responsive">
-              <table className="table table-hover table-bordered align-middle">
-                <thead className="table-light">
+              <table className="b-table align-middle">
+                <thead>
                   <tr><th>ব্যাচ নং</th><th>ব্যাচের নাম</th><th>কেন্দ্র</th><th>কোর্স</th><th>শুরুর তারিখ</th><th>শেষের তারিখ</th><th>অবস্থা</th><th>মোট মূল্যায়ন</th></tr>
                 </thead>
                 <tbody>
@@ -195,7 +193,7 @@ export default function AssessorDetail() {
                       <td>{b.course_code} - {b.course_name}</td>
                       <td>{b.start_date}</td>
                       <td>{b.end_date}</td>
-                      <td><span className={`badge bg-${STATUS_BG[b.status] || 'secondary'}`}>{b.status}</span></td>
+                      <td><span className={`status-dot dot-${STATUS_BG[b.status] || 'secondary'}`} />{b.status}</td>
                       <td className="text-center fw-bold">{b.assessments_count}</td>
                     </tr>
                   ))}
@@ -205,8 +203,8 @@ export default function AssessorDetail() {
           )}
           {activeTab === 'assessment_history' && (
             <div className="table-responsive">
-              <table className="table table-hover table-bordered align-middle">
-                <thead className="table-light">
+              <table className="b-table align-middle">
+                <thead>
                   <tr><th>তারিখ</th><th>প্রশিক্ষণার্থী</th><th>রেজি. নং</th><th>ব্যাচ</th><th>ধরণ</th><th>প্রাপ্ত নম্বর</th><th>পূর্ণ নম্বর</th><th>শতাংশ</th><th>দক্ষতা</th></tr>
                 </thead>
                 <tbody>
@@ -224,7 +222,7 @@ export default function AssessorDetail() {
                       <td>{a.marks_obtained}</td>
                       <td>{a.total_marks}</td>
                       <td>{a.percentage?.toFixed(1)}%</td>
-                      <td><span className={`badge bg-${a.competency_status === 'competent' ? 'success' : a.competency_status === 'not_competent' ? 'danger' : 'secondary'}`}>{a.competency_status_display}</span></td>
+                      <td><span className={`status-dot dot-${a.competency_status === 'competent' ? 'success' : a.competency_status === 'not_competent' ? 'danger' : 'secondary'}`} />{a.competency_status_display}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -234,12 +232,12 @@ export default function AssessorDetail() {
           {activeTab === 'tracking' && (
             <div className="row g-4">
               <div className="col-md-6">
-                <table className="table table-bordered align-middle">
+                <table className="b-table align-middle">
                   <tbody>
-                    <tr><th className="bg-light" style={{ width: 160 }}>মূল্যায়নকারী নং</th><td>{assessor.assessor_no}</td></tr>
-                    <tr><th className="bg-light">এনআইডি</th><td>{assessor.nid}</td></tr>
-                    <tr><th className="bg-light">মোবাইল</th><td>{user.phone || '-'}</td></tr>
-                    <tr><th className="bg-light">জন্ম নিবন্ধন</th><td>{assessor.birth_certificate_no || '-'}</td></tr>
+                    <tr><th>মূল্যায়নকারী নং</th><td>{assessor.assessor_no}</td></tr>
+                    <tr><th>এনআইডি</th><td>{assessor.nid}</td></tr>
+                    <tr><th>মোবাইল</th><td>{user.phone || '-'}</td></tr>
+                    <tr><th>জন্ম নিবন্ধন</th><td>{assessor.birth_certificate_no || '-'}</td></tr>
                   </tbody>
                 </table>
               </div>

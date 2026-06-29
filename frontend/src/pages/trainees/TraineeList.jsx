@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import { formatDate } from '../../utils/dateFormatter';
 
 const STATUS_BG = { enrolled: 'success', completed: 'primary', withdrawn: 'danger', suspended: 'warning' };
 
 export default function TraineeList() {
+  const navigate = useNavigate();
   const [trainees, setTrainees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -14,6 +16,7 @@ export default function TraineeList() {
   const [total, setTotal] = useState(0);
   const pageSize = 25;
   const [selectedIds, setSelectedIds] = useState(new Set());
+  const [expandedId, setExpandedId] = useState(null);
   const [showImport, setShowImport] = useState(false);
   const fileRef = useRef(null);
   const [importFile, setImportFile] = useState(null);
@@ -231,16 +234,16 @@ export default function TraineeList() {
         </div>
       )}
 
-      <div className="card shadow-sm table-card" style={{ borderRadius: 12, border: 'none' }}>
-        <div className="table-responsive">
-          <table className="table table-hover align-middle mb-0" style={{ fontSize: 13 }}>
-            <thead className="table-light">
+      <div className="card shadow-sm table-card" style={{ borderRadius: 12, border: '1px solid #e2e8f0' }}>
+        <div className="card-body p-0" style={{ overflowX: 'auto' }}>
+          <table className="b-table w-100">
+            <thead>
               <tr>
-                <th style={{ width: 36 }}>
+                <th>
                   <input type="checkbox" className="form-check-input" onChange={handleSelectAll}
                     checked={trainees.length > 0 && selectedIds.size === trainees.length} />
                 </th>
-                <th className="d-none d-lg-table-cell" style={{ width: 42 }}>ছবি</th>
+                <th className="d-none d-lg-table-cell">ছবি</th>
                 <th>রেজি. নং</th>
                 <th>নাম</th>
                 <th className="d-none d-xl-table-cell">নাম (ইংরেজি)</th>
@@ -248,7 +251,7 @@ export default function TraineeList() {
                 <th className="d-none d-xl-table-cell">কেন্দ্র</th>
                 <th>ব্যাচ</th>
                 <th>অবস্থা</th>
-                <th className="text-center" style={{ width: 50 }}>অ্যাকশন</th>
+                <th className="text-center">অ্যাকশন</th>
               </tr>
             </thead>
             <tbody>
@@ -257,56 +260,78 @@ export default function TraineeList() {
               ) : trainees.length === 0 ? (
                 <tr><td colSpan={10} className="text-center text-secondary py-4">কোনো প্রশিক্ষণার্থী পাওয়া যায়নি</td></tr>
               ) : (
-                trainees.map(t => (
-                  <tr key={t.id} className={selectedIds.has(t.id) ? 'table-active' : ''}>
-                    <td><input type="checkbox" className="form-check-input" checked={selectedIds.has(t.id)} onChange={() => handleSelectOne(t.id)} /></td>
-                    <td className="d-none d-lg-table-cell">
-                      {t.profile_image ? (
-                        <img src={imgUrl(t.profile_image)} alt="" className="rounded-circle"
-                          style={{ width: 36, height: 36, objectFit: 'cover' }}
-                          onError={e => { e.target.style.display = 'none'; }} />
-                      ) : (
-                        <div className="rounded-circle bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center"
-                          style={{ width: 36, height: 36 }}>
-                          <i className="bi bi-person text-secondary" style={{ fontSize: 16 }}></i>
+                trainees.flatMap(t => {
+                  const isOpen = expandedId === t.id;
+                  const rows = [
+                    <tr key={t.id} className={`b-row ${isOpen ? 'b-row--active' : ''} ${selectedIds.has(t.id) ? 'table-active' : ''}`} onClick={() => navigate(`/center-admin/trainees/${t.id}`)}>
+                      <td onClick={e => e.stopPropagation()}><input type="checkbox" className="form-check-input" checked={selectedIds.has(t.id)} onChange={() => handleSelectOne(t.id)} /></td>
+                      <td className="d-none d-lg-table-cell" onClick={e => e.stopPropagation()}>
+                        {t.profile_image ? (
+                          <img src={imgUrl(t.profile_image)} alt="" className="rounded-circle"
+                            style={{ width: 36, height: 36, objectFit: 'cover' }}
+                            onError={e => { e.target.style.display = 'none'; }} />
+                        ) : (
+                          <div className="rounded-circle bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center"
+                            style={{ width: 36, height: 36 }}>
+                            <i className="bi bi-person text-secondary" style={{ fontSize: 16 }}></i>
+                          </div>
+                        )}
+                      </td>
+                      <td className="fw-semibold">{t.registration_no || '-'}</td>
+                      <td style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 100 }}>{t.user_name || '-'}</td>
+                      <td className="d-none d-xl-table-cell" style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 100 }}>{t.user_name_en || '-'}</td>
+                      <td className="d-none d-md-table-cell" style={{ whiteSpace: 'nowrap' }}>{t.user_phone || '-'}</td>
+                      <td className="d-none d-xl-table-cell" style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 100 }}>{t.center_name || '-'}</td>
+                      <td style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 100 }}>{t.batch_name || '-'}</td>
+                      <td style={{ whiteSpace: 'nowrap' }}>
+                        <><span className={`status-dot dot-${t.status}`}></span><span style={{fontSize:13,color:'#334155'}}>{t.status_display || t.status}</span></>
+                      </td>
+                      <td className="text-center" onClick={e => e.stopPropagation()}>
+                        <div className="d-flex gap-1 justify-content-end">
+                          <button className="act-btn" title="বিস্তারিত" onClick={() => navigate(`/center-admin/trainees/${t.id}`)}>
+                            <i className="bi bi-eye" style={{fontSize:14}}></i>
+                          </button>
+                          <button className={`act-btn ${isOpen ? 'act-btn--active' : ''}`} title="কার্যক্রম" onClick={() => setExpandedId(isOpen ? null : t.id)}>
+                            <i className={`bi ${isOpen ? 'bi-chevron-up' : 'bi-three-dots-vertical'}`} style={{fontSize:14}}></i>
+                          </button>
                         </div>
-                      )}
-                    </td>
-                    <td className="fw-semibold">{t.registration_no || '-'}</td>
-                    <td style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 100 }}>{t.user_name || '-'}</td>
-                    <td className="d-none d-xl-table-cell" style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 100 }}>{t.user_name_en || '-'}</td>
-                    <td className="d-none d-md-table-cell" style={{ whiteSpace: 'nowrap' }}>{t.user_phone || '-'}</td>
-                    <td className="d-none d-xl-table-cell" style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 100 }}>{t.center_name || '-'}</td>
-                    <td style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 100 }}>{t.batch_name || '-'}</td>
-                    <td style={{ whiteSpace: 'nowrap' }}>
-                      <span className={`badge bg-${STATUS_BG[t.status] || 'secondary'}`}>
-                        {t.status_display || t.status}
-                      </span>
-                    </td>
-                    <td className="text-center" style={{ width: 50 }}>
-                      <div className="dropdown">
-                        <button className="btn btn-sm btn-outline-secondary border-0" data-bs-toggle="dropdown" type="button">
-                          <i className="bi bi-three-dots-vertical"></i>
-                        </button>
-                        <ul className="dropdown-menu dropdown-menu-end" style={{ fontSize: 13 }}>
-                          <li><button className="dropdown-item text-danger" onClick={() => handleDelete(t.id, t.user_name)}><i className="bi bi-trash me-2"></i>মুছুন</button></li>
-                        </ul>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                      </td>
+                    </tr>
+                  ];
+                  if (isOpen) {
+                    rows.push(
+                      <tr key={`${t.id}-exp`} className="exp-row">
+                        <td colSpan={10}>
+                          <div className="exp-panel">
+                            <button className="exp-btn" onClick={() => navigate(`/center-admin/trainees/${t.id}`)}>
+                              <i className="bi bi-eye"></i>বিস্তারিত
+                            </button>
+                            <button className="exp-btn exp-btn--primary" onClick={() => navigate(`/center-admin/trainees/${t.id}/edit`)}>
+                              <i className="bi bi-pencil"></i>সম্পাদনা
+                            </button>
+                            <button className="exp-btn exp-btn--danger" onClick={() => handleDelete(t.id, t.user_name)}>
+                              <i className="bi bi-trash"></i>মুছুন
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  }
+                  return rows;
+                })
               )}
             </tbody>
           </table>
         </div>
         {totalPages > 1 && (
-          <div className="card-footer bg-white d-flex justify-content-between align-items-center py-2">
-            <small className="text-secondary">দেখানো হচ্ছে {Math.min((page-1)*pageSize+1, total)}-{Math.min(page*pageSize, total)} এর {total}</small>
-            <div className="d-flex gap-1">
-              <button className="btn btn-sm btn-outline-secondary" disabled={page <= 1} onClick={() => setPage(page - 1)}>
+          <div className="b-pagination">
+            <small>দেখানো হচ্ছে {Math.min((page-1)*pageSize+1, total)}-{Math.min(page*pageSize, total)} এর {total}</small>
+            <div className="d-flex gap-1 align-items-center">
+              <button className="page-btn" disabled={page <= 1} onClick={() => setPage(page - 1)}>
                 <i className="bi bi-chevron-left"></i>
               </button>
-              <button className="btn btn-sm btn-outline-secondary" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>
+              <span className="page-info">{page} / {totalPages}</span>
+              <button className="page-btn" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>
                 <i className="bi bi-chevron-right"></i>
               </button>
             </div>
