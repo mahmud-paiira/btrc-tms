@@ -7,11 +7,18 @@ import circularService from '../../services/circularService';
 import { useTranslation } from '../../hooks/useTranslation';
 import { formatDate } from '../../utils/dateFormatter';
 
-const STATUS_STYLE = {
-  scheduled: { bg: '#f3f4f6', color: '#6b7280', label: 'নির্ধারित', icon: 'bi-clock' },
-  running: { bg: '#ecfdf5', color: '#059669', label: 'চলমান', icon: 'bi-play-circle' },
-  completed: { bg: '#eff6ff', color: '#2563eb', label: 'সমাপ্ত', icon: 'bi-check-circle' },
-  cancelled: { bg: '#fef2f2', color: '#dc2626', label: 'বাতিল', icon: 'bi-x-circle' },
+const STATUS_BADGE = {
+  scheduled: 'secondary',
+  running: 'success',
+  completed: 'primary',
+  cancelled: 'danger',
+};
+
+const STATUS_MAP = {
+  scheduled: 'নির্ধারিত',
+  running: 'চলমান',
+  completed: 'সমাপ্ত',
+  cancelled: 'বাতিল',
 };
 
 export default function BatchList() {
@@ -130,9 +137,6 @@ export default function BatchList() {
     setGenerating(false);
   };
 
-  const shiftLabel = (s) =>
-    s === 'shift_1' ? 'শিফট-১ (সকাল)' : s === 'shift_2' ? 'শিফট-২ (বিকাল)' : '—';
-
   return (
     <div>
       <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
@@ -166,8 +170,8 @@ export default function BatchList() {
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}>
                 <option value="">{t('batch.list.allStatus', 'সব স্ট্যাটাস')}</option>
-                {Object.entries(STATUS_STYLE).map(([k, v]) => (
-                  <option key={k} value={k}>{v.label}</option>
+                {Object.entries(STATUS_MAP).map(([k, v]) => (
+                  <option key={k} value={k}>{v}</option>
                 ))}
               </select>
             </div>
@@ -178,122 +182,102 @@ export default function BatchList() {
         </div>
       </div>
 
-      {loading ? (
-        <div className="text-center py-5">
-          <div className="spinner-border text-primary" role="status" />
-          <p className="mt-2 mb-0 text-muted">{t('batch.list.loading', 'লোড হচ্ছে...')}</p>
-        </div>
-      ) : batches.length === 0 ? (
-        <div className="text-center py-5 text-muted">
-          <i className="bi bi-inbox fs-1"></i>
-          <p className="mt-2 mb-0">{t('batch.list.empty', 'কোন ব্যাচ পাওয়া যায়নি')}</p>
-        </div>
-      ) : (
-        <>
-          <div className="row g-3">
-            {batches.map((b) => {
-              const st = STATUS_STYLE[b.status] || STATUS_STYLE.scheduled;
-              const isLoading = actionLoading === `${b.id}-start` || actionLoading === `${b.id}-complete` || actionLoading === `${b.id}-cancel`;
-              return (
-                <div className="col-12 col-md-6 col-xl-4" key={b.id}>
-                  <div className="card shadow-sm h-100" style={{ borderRadius: 12, border: 'none' }}>
-                    <div className="card-body d-flex flex-column">
-                      <div className="d-flex justify-content-between align-items-start mb-2">
-                        <div>
-                          <Link to={`/center-admin/batches/${b.id}`} className="text-decoration-none">
-                            <h6 className="fw-bold mb-1 text-dark">{b.batch_name_bn || b.batch_name_en || b.batch_no}</h6>
-                          </Link>
-                          <small className="text-secondary">{b.batch_no}</small>
-                        </div>
-                        <span className="badge rounded-pill" style={{
-                          background: st.bg, color: st.color, fontSize: 11,
-                        }}>
-                          <i className={`bi ${st.icon} me-1`}></i>{st.label}
+      <div className="card shadow-sm" style={{ borderRadius: 12, border: 'none' }}>
+        <div className="table-responsive" style={{ overflow: 'auto' }}>
+          <table className="table table-hover align-middle mb-0" style={{ fontSize: 13, minWidth: 650 }}>
+            <thead className="table-light">
+              <tr>
+                <th>ব্যাচ নং</th>
+                <th>নাম</th>
+                <th className="d-none d-lg-table-cell">কোর্স</th>
+                <th className="d-none d-md-table-cell">শিফট</th>
+                <th className="d-none d-md-table-cell">শুরুর তারিখ</th>
+                <th className="text-center">স্ট্যাটাস</th>
+                <th className="text-center">কার্যক্রম</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr><td colSpan={7} className="text-center py-5">
+                  <div className="spinner-border text-primary" role="status" />
+                  <p className="mt-2 mb-0 text-muted">{t('batch.list.loading', 'লোড হচ্ছে...')}</p>
+                </td></tr>
+              ) : batches.length === 0 ? (
+                <tr><td colSpan={7} className="text-center py-5 text-muted">
+                  <i className="bi bi-inbox fs-1"></i>
+                  <p className="mt-2 mb-0">{t('batch.list.empty', 'কোন ব্যাচ পাওয়া যায়নি')}</p>
+                </td></tr>
+              ) : (
+                batches.map((b) => {
+                  const isLoading = actionLoading === `${b.id}-start` || actionLoading === `${b.id}-complete` || actionLoading === `${b.id}-cancel`;
+                  return (
+                    <tr key={b.id}>
+                      <td>
+                        <Link to={`/center-admin/batches/${b.id}`} className="text-decoration-none fw-semibold">
+                          {b.batch_no}
+                        </Link>
+                      </td>
+                      <td style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>{b.batch_name_bn || b.batch_name_en || '—'}</td>
+                      <td className="d-none d-lg-table-cell" style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>{b.course_name || '—'}</td>
+                      <td className="d-none d-md-table-cell">{b.shift === 'shift_1' ? 'সকাল' : b.shift === 'shift_2' ? 'বিকাল' : '—'}</td>
+                      <td className="d-none d-md-table-cell" style={{ whiteSpace: 'nowrap' }}>{b.start_date ? formatDate(b.start_date) : '—'}</td>
+                      <td className="text-center">
+                        <span className={`badge bg-${STATUS_BADGE[b.status]}`}>
+                          {STATUS_MAP[b.status] || b.status}
                         </span>
-                      </div>
-
-                      <div className="mb-2" style={{ fontSize: 12, lineHeight: 1.8 }}>
-                        <div><i className="bi bi-book me-1 text-secondary"></i>{b.course_name || '—'}</div>
-                        <div><i className="bi bi-clock me-1 text-secondary"></i>{shiftLabel(b.shift)}</div>
-                        <div className="d-flex gap-3 flex-wrap">
-                          <span><i className="bi bi-calendar me-1 text-secondary"></i>শুরু: {b.start_date || '—'}</span>
-                          <span><i className="bi bi-calendar-check me-1 text-secondary"></i>শেষ: {b.end_date || '—'}</span>
+                      </td>
+                      <td className="text-center">
+                        <div className="dropdown d-inline-block">
+                          <button className="btn btn-sm btn-outline-secondary border-0" data-bs-toggle="dropdown" data-bs-strategy="fixed" type="button">
+                            <i className="bi bi-three-dots-vertical"></i>
+                          </button>
+                          <ul className="dropdown-menu dropdown-menu-end" style={{ fontSize: 13 }}>
+                            {b.status === 'scheduled' && <>
+                              <li><button className="dropdown-item" onClick={() => navigate(`/center-admin/batches/${b.id}/edit`)}><i className="bi bi-pencil me-2"></i>সম্পাদনা</button></li>
+                              <li><button className="dropdown-item text-success" onClick={() => handleStatusChange(b.id, 'start')} disabled={isLoading}><i className="bi bi-play-fill me-2"></i>শুরু করুন</button></li>
+                              <li><hr className="dropdown-divider" /></li>
+                              <li><button className="dropdown-item text-primary" onClick={() => handleStatusChange(b.id, 'complete')} disabled={isLoading}><i className="bi bi-check-lg me-2"></i>সমাপ্ত করুন</button></li>
+                              <li><hr className="dropdown-divider" /></li>
+                            </>}
+                            {b.status === 'running' && <>
+                              <li><button className="dropdown-item" onClick={() => navigate(`/center-admin/attendance/batch/${b.id}`)}><i className="bi bi-calendar-check me-2"></i>উপস্থিতি</button></li>
+                              <li><button className="dropdown-item" onClick={() => navigate(`/assessor/assessment/batch/${b.id}`)}><i className="bi bi-clipboard-data me-2"></i>মূল্যায়ন</button></li>
+                              <li><hr className="dropdown-divider" /></li>
+                              <li><button className="dropdown-item text-primary" onClick={() => handleStatusChange(b.id, 'complete')} disabled={isLoading}><i className="bi bi-check-lg me-2"></i>সমাপ্ত করুন</button></li>
+                              <li><hr className="dropdown-divider" /></li>
+                            </>}
+                            {b.status === 'completed' && <>
+                              <li><button className="dropdown-item" onClick={() => navigate(`/center-admin/certificates/issue?batch=${b.id}`)}><i className="bi bi-award me-2"></i>সার্টিফিকেট</button></li>
+                              <li><button className="dropdown-item" onClick={() => navigate(`/center-admin/jobs/add?batch=${b.id}`)}><i className="bi bi-briefcase me-2"></i>চাকরি স্থাপন</button></li>
+                              <li><button className="dropdown-item" onClick={() => navigate(`/center-admin/jobs/tracking?batch=${b.id}`)}><i className="bi bi-graph-up me-2"></i>ট্র্যাকিং</button></li>
+                              <li><hr className="dropdown-divider" /></li>
+                            </>}
+                            <li><button className="dropdown-item text-danger" onClick={() => handleDelete(b.id, b.batch_no)}><i className="bi bi-trash me-2"></i>মুছুন</button></li>
+                          </ul>
                         </div>
-                        <div>
-                          <i className="bi bi-people me-1 text-secondary"></i>আসন: <strong>{b.filled_seats || 0}</strong>/{b.total_seats || 0}
-                        </div>
-                      </div>
-
-                      <div className="mt-auto pt-2 border-top d-flex flex-wrap gap-1">
-                        {b.status === 'scheduled' && (
-                          <>
-                            <Link to={`/center-admin/batches/${b.id}/edit`} className="btn btn-sm btn-outline-secondary flex-fill">
-                              <i className="bi bi-pencil me-1"></i>সম্পাদনা
-                            </Link>
-                            <button className="btn btn-sm btn-success flex-fill" onClick={() => handleStatusChange(b.id, 'start')} disabled={isLoading}>
-                              {isLoading ? <span className="spinner-border spinner-border-sm" /> : <><i className="bi bi-play-fill me-1"></i>শুরু</>}
-                            </button>
-                            <button className="btn btn-sm btn-outline-primary flex-fill" onClick={() => handleStatusChange(b.id, 'complete')} disabled={isLoading}>
-                              {isLoading ? <span className="spinner-border spinner-border-sm" /> : <><i className="bi bi-check-lg me-1"></i>সমাপ্ত</>}
-                            </button>
-                          </>
-                        )}
-                        {b.status === 'running' && (
-                          <>
-                            <button className="btn btn-sm btn-outline-success flex-fill" onClick={() => navigate(`/center-admin/attendance/batch/${b.id}`)}>
-                              <i className="bi bi-calendar-check me-1"></i>উপস্থিতি
-                            </button>
-                            <button className="btn btn-sm btn-outline-warning flex-fill" onClick={() => navigate(`/assessor/assessment/batch/${b.id}`)}>
-                              <i className="bi bi-clipboard-data me-1"></i>মূল্যায়ন
-                            </button>
-                            <button className="btn btn-sm btn-primary flex-fill" onClick={() => handleStatusChange(b.id, 'complete')} disabled={isLoading}>
-                              {isLoading ? <span className="spinner-border spinner-border-sm" /> : <><i className="bi bi-check-lg me-1"></i>সমাপ্ত</>}
-                            </button>
-                          </>
-                        )}
-                        {b.status === 'completed' && (
-                          <>
-                            <button className="btn btn-sm btn-outline-info flex-fill" onClick={() => navigate(`/center-admin/certificates/issue?batch=${b.id}`)}>
-                              <i className="bi bi-award me-1"></i>সার্টিফিকেট
-                            </button>
-                            <button className="btn btn-sm btn-outline-secondary flex-fill" onClick={() => navigate(`/center-admin/jobs/add?batch=${b.id}`)}>
-                              <i className="bi bi-briefcase me-1"></i>চাকরি
-                            </button>
-                            <button className="btn btn-sm btn-outline-secondary flex-fill" onClick={() => navigate(`/center-admin/jobs/tracking?batch=${b.id}`)}>
-                              <i className="bi bi-graph-up me-1"></i>ট্র্যাকিং
-                            </button>
-                          </>
-                        )}
-                        {b.status !== 'completed' && b.status !== 'scheduled' && b.status !== 'running' && (
-                          <span className="text-muted small py-1">কোন কর্ম উপলব্ধ নেই</span>
-                        )}
-                        <button className="btn btn-sm btn-outline-danger border-0 ms-auto" onClick={() => handleDelete(b.id, b.batch_no)} title="মুছুন">
-                          <i className="bi bi-trash"></i>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {totalPages > 1 && (
-            <div className="d-flex justify-content-between align-items-center mt-3 py-2 px-3 bg-white rounded shadow-sm">
-              <small className="text-secondary">মোট: {total} টি</small>
-              <div className="d-flex gap-1">
-                <button className="btn btn-sm btn-outline-secondary" disabled={page <= 1} onClick={() => setPage(page - 1)}>
-                  <i className="bi bi-chevron-left"></i>
-                </button>
-                <span className="px-2 d-flex align-items-center small">{page} / {totalPages}</span>
-                <button className="btn btn-sm btn-outline-secondary" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>
-                  <i className="bi bi-chevron-right"></i>
-                </button>
-              </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+        {totalPages > 1 && (
+          <div className="d-flex justify-content-between align-items-center py-2 px-3">
+            <small className="text-secondary">মোট: {total}</small>
+            <div className="d-flex gap-1">
+              <button className="btn btn-sm btn-outline-secondary" disabled={page <= 1} onClick={() => setPage(page - 1)}>
+                <i className="bi bi-chevron-left"></i>
+              </button>
+              <span className="px-2 d-flex align-items-center small">{page} / {totalPages}</span>
+              <button className="btn btn-sm btn-outline-secondary" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>
+                <i className="bi bi-chevron-right"></i>
+              </button>
             </div>
-          )}
-        </>
-      )}
+          </div>
+        )}
+      </div>
 
       {showImport && (
         <div className="modal d-block" style={{ background: 'rgba(0,0,0,.5)' }}>
