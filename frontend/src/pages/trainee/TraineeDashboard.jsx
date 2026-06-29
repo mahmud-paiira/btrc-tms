@@ -237,8 +237,8 @@ export default function TraineeDashboard() {
                   <i className="bi bi-check-circle text-muted fs-5"></i>
                 </div>
                 <div>
-                  <div className="fw-bold small text-uppercase" style={{ letterSpacing: '0.5px' }}>উপস্থিতির হার</div>
-                  <div className="small text-muted">ব্যাচে নথিভুক্ত নন</div>
+                  <div className="fw-bold small text-uppercase" style={{ letterSpacing: '0.5px' }}>উপস্থিতি</div>
+                  <div className="small text-muted">ব্যাচে নথিভুক্ত হলে উপস্থিতির তথ্য দেখা যাবে</div>
                 </div>
               </div>
             </div>
