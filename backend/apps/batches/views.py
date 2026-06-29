@@ -294,6 +294,7 @@ class BatchViewSet(viewsets.ModelViewSet):
                 defaults={'status': BatchEnrollment.EnrollmentStatus.ACTIVE},
             )
             if was_created:
+                Trainee.objects.filter(id=tid).update(batch=batch)
                 created.append(tid)
             else:
                 skipped.append(tid)
@@ -332,6 +333,7 @@ class BatchViewSet(viewsets.ModelViewSet):
             batch=batch,
             status=BatchEnrollment.EnrollmentStatus.ACTIVE,
         )
+        Trainee.objects.filter(id=trainee.id).update(batch=batch)
         batch.filled_seats = BatchEnrollment.objects.filter(
             batch=batch, status=BatchEnrollment.EnrollmentStatus.ACTIVE
         ).count()
