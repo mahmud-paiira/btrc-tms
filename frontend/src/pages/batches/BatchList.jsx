@@ -182,28 +182,26 @@ export default function BatchList() {
         </div>
       </div>
 
-      <div className="card shadow-sm" style={{ borderRadius: 12, border: 'none' }}>
-        <div className="table-responsive" style={{ overflow: 'auto' }}>
-          <table className="table table-hover align-middle mb-0" style={{ fontSize: 13, minWidth: 650 }}>
+      <div className="card shadow-sm" style={{ borderRadius: 12, border: 'none', overflow: 'visible' }}>
+        <div style={{ overflowX: 'auto', overflowY: 'visible' }}>
+          <table className="table table-hover align-middle mb-0" style={{ fontSize: 13, minWidth: 600 }}>
             <thead className="table-light">
               <tr>
-                <th>ব্যাচ নং</th>
-                <th>নাম</th>
-                <th className="d-none d-lg-table-cell">কোর্স</th>
-                <th className="d-none d-md-table-cell">শিফট</th>
-                <th className="d-none d-md-table-cell">শুরুর তারিখ</th>
-                <th className="text-center">স্ট্যাটাস</th>
-                <th className="text-center">কার্যক্রম</th>
+                <th style={{ width: '26%' }}>ব্যাচ নং</th>
+                <th style={{ width: '30%' }}>নাম</th>
+                <th className="d-none d-sm-table-cell" style={{ width: '18%' }}>শুরুর তারিখ</th>
+                <th className="text-center" style={{ width: '12%' }}>স্ট্যাটাস</th>
+                <th className="text-center" style={{ width: '14%' }}>কার্যক্রম</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={7} className="text-center py-5">
+                <tr><td colSpan={5} className="text-center py-5">
                   <div className="spinner-border text-primary" role="status" />
                   <p className="mt-2 mb-0 text-muted">{t('batch.list.loading', 'লোড হচ্ছে...')}</p>
                 </td></tr>
               ) : batches.length === 0 ? (
-                <tr><td colSpan={7} className="text-center py-5 text-muted">
+                <tr><td colSpan={5} className="text-center py-5 text-muted">
                   <i className="bi bi-inbox fs-1"></i>
                   <p className="mt-2 mb-0">{t('batch.list.empty', 'কোন ব্যাচ পাওয়া যায়নি')}</p>
                 </td></tr>
@@ -216,11 +214,10 @@ export default function BatchList() {
                         <Link to={`/center-admin/batches/${b.id}`} className="text-decoration-none fw-semibold">
                           {b.batch_no}
                         </Link>
+                        <div className="d-sm-none text-muted" style={{ fontSize: 11 }}>{b.course_name || ''}</div>
                       </td>
                       <td style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>{b.batch_name_bn || b.batch_name_en || '—'}</td>
-                      <td className="d-none d-lg-table-cell" style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>{b.course_name || '—'}</td>
-                      <td className="d-none d-md-table-cell">{b.shift === 'shift_1' ? 'সকাল' : b.shift === 'shift_2' ? 'বিকাল' : '—'}</td>
-                      <td className="d-none d-md-table-cell" style={{ whiteSpace: 'nowrap' }}>{b.start_date ? formatDate(b.start_date) : '—'}</td>
+                      <td className="d-none d-sm-table-cell" style={{ whiteSpace: 'nowrap' }}>{b.start_date ? formatDate(b.start_date) : '—'}</td>
                       <td className="text-center">
                         <span className={`badge bg-${STATUS_BADGE[b.status]}`}>
                           {STATUS_MAP[b.status] || b.status}
@@ -228,10 +225,10 @@ export default function BatchList() {
                       </td>
                       <td className="text-center">
                         <div className="dropdown d-inline-block">
-                          <button className="btn btn-sm btn-outline-secondary border-0" data-bs-toggle="dropdown" data-bs-strategy="fixed" type="button">
+                          <button className="btn btn-sm btn-outline-secondary border-0" data-bs-toggle="dropdown" type="button">
                             <i className="bi bi-three-dots-vertical"></i>
                           </button>
-                          <ul className="dropdown-menu dropdown-menu-end" style={{ fontSize: 13 }}>
+                          <ul className="dropdown-menu dropdown-menu-start" style={{ fontSize: 13 }}>
                             {b.status === 'scheduled' && <>
                               <li><button className="dropdown-item" onClick={() => navigate(`/center-admin/batches/${b.id}/edit`)}><i className="bi bi-pencil me-2"></i>সম্পাদনা</button></li>
                               <li><button className="dropdown-item text-success" onClick={() => handleStatusChange(b.id, 'start')} disabled={isLoading}><i className="bi bi-play-fill me-2"></i>শুরু করুন</button></li>
