@@ -223,6 +223,10 @@ export default function AssessorAssessment() {
                 <small className="text-muted d-block">{t('assessment.conduct.eligibleCount', 'প্রশিক্ষণার্থী')}</small>
                 <strong className="text-success">{trainees.length} জন</strong>
               </div>
+              <div className="col-md-3">
+                <small className="text-muted d-block">মূল্যায়নকারী</small>
+                <strong className="text-primary">{user?.full_name_bn || user?.email || '—'}</strong>
+              </div>
             </div>
           </div>
         </div>

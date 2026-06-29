@@ -72,6 +72,7 @@ export default function TraineeAssessment() {
             <tr>
               <th>মূল্যায়নের ধরণ</th>
               <th>তারিখ</th>
+              <th>মূল্যায়নকারী</th>
               <th>ফলাফল</th>
               <th>প্রাপ্ত নম্বর</th>
               <th>মোট নম্বর</th>
@@ -81,12 +82,13 @@ export default function TraineeAssessment() {
           </thead>
           <tbody>
             {data.assessments.length === 0 ? (
-              <tr><td colSpan={7} className="text-center text-muted py-4">কোন মূল্যায়ন পাওয়া যায়নি</td></tr>
+              <tr><td colSpan={8} className="text-center text-muted py-4">কোন মূল্যায়ন পাওয়া যায়নি</td></tr>
             ) : (
               data.assessments.map((a) => (
                 <tr key={a.id}>
                   <td><strong>{a.assessment_type_display}</strong></td>
                   <td>{a.assessment_date}</td>
+                  <td>{a.assessor_name || a.assessed_by_name || '—'}</td>
                   <td>
                     <span className={`badge bg-${STATUS_BADGE[a.competency_status]}`}>
                       {a.competency_status_display}
