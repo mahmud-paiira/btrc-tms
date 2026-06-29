@@ -42,6 +42,7 @@ export default function BatchList() {
   const [selectedCircular, setSelectedCircular] = useState('');
   const [generating, setGenerating] = useState(false);
   const [actionLoading, setActionLoading] = useState(null);
+  const [expandedId, setExpandedId] = useState(null);
 
   const fetchBatches = useCallback(async () => {
     setLoading(true);
@@ -187,9 +188,10 @@ export default function BatchList() {
         .b-table thead { position: sticky; top: 0; z-index: 2; }
         .b-table th { padding: 14px 16px; font-weight: 600; font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: .5px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
         .b-table td { padding: 14px 16px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
-        .b-table tbody tr { transition: background .15s; }
-        .b-table tbody tr:hover { background: #f8faff; }
-        .b-table tbody tr:last-child td { border-bottom: none; }
+        .b-table tbody tr.b-row { transition: background .15s; cursor: pointer; }
+        .b-table tbody tr.b-row:hover { background: #f8faff; }
+        .b-table tbody tr.b-row.b-row--active { background: #eef2ff; }
+        .b-table tbody tr.b-row:last-child td { border-bottom: none; }
         .b-table .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
         .b-table .dot-scheduled { background: #94a3b8; }
         .b-table .dot-running { background: #22c55e; }
@@ -197,6 +199,15 @@ export default function BatchList() {
         .b-table .dot-cancelled { background: #ef4444; }
         .act-btn { width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; border: 1px solid #e2e8f0; background: #fff; color: #64748b; cursor: pointer; transition: all .15s; }
         .act-btn:hover { background: #f1f5f9; border-color: #cbd5e1; color: #334155; }
+        .act-btn--active { background: #eef2ff; border-color: #c7d2fe; color: #4f46e5; }
+        .exp-row td { padding: 0 16px 16px 16px; border-bottom: 1px solid #f1f5f9; }
+        .exp-row:last-child td { border-bottom: none; }
+        .exp-panel { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 16px; display: flex; flex-wrap: wrap; gap: 8px; }
+        .exp-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 8px; border: 1px solid #e2e8f0; background: #fff; font-size: 13px; color: #334155; cursor: pointer; transition: all .15s; text-decoration: none; }
+        .exp-btn:hover { background: #f1f5f9; border-color: #cbd5e1; }
+        .exp-btn--danger:hover { background: #fef2f2; border-color: #fca5a5; color: #dc2626; }
+        .exp-btn--success:hover { background: #f0fdf4; border-color: #86efac; color: #16a34a; }
+        .exp-btn--primary:hover { background: #eff6ff; border-color: #93c5fd; color: #2563eb; }
       `}</style>
       <div className="card" style={{ borderRadius: 12, border: '1px solid #e2e8f0', overflow: 'visible', boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}>
         <div className="card-body p-0" style={{ overflowX: 'auto', overflowY: 'visible' }}>
@@ -222,10 +233,11 @@ export default function BatchList() {
                   <p className="mt-2 mb-0">{t('batch.list.empty', 'কোন ব্যাচ পাওয়া যায়নি')}</p>
                 </td></tr>
               ) : (
-                batches.map((b) => {
+                batches.flatMap((b) => {
+                  const isOpen = expandedId === b.id;
                   const isLoading = actionLoading === `${b.id}-start` || actionLoading === `${b.id}-complete` || actionLoading === `${b.id}-cancel`;
-                  return (
-                    <tr key={b.id}>
+                  const rows = [
+                    <tr key={b.id} className={`b-row ${isOpen ? 'b-row--active' : ''}`} onClick={() => navigate(`/center-admin/batches/${b.id}`)}>
                       <td>
                         <div style={{ fontWeight: 600, color: '#0f172a' }}>{b.batch_no}</div>
                       </td>
@@ -235,41 +247,72 @@ export default function BatchList() {
                         <span className={`status-dot dot-${b.status}`}></span>
                         <span style={{ fontSize: 13, color: '#334155' }}>{STATUS_MAP[b.status] || b.status}</span>
                       </td>
-                      <td>
+                      <td onClick={e => e.stopPropagation()}>
                         <div className="d-flex gap-1 justify-content-end">
                           <button className="act-btn" title="বিস্তারিত" onClick={() => navigate(`/center-admin/batches/${b.id}`)}>
                             <i className="bi bi-eye" style={{ fontSize: 14 }}></i>
                           </button>
-                          <div className="dropdown d-inline-block">
-                            <button className="act-btn" data-bs-toggle="dropdown" type="button" title="আরো">
-                              <i className="bi bi-three-dots-vertical" style={{ fontSize: 14 }}></i>
-                            </button>
-                            <ul className="dropdown-menu dropdown-menu-end" style={{ fontSize: 13, borderRadius: 10, border: '1px solid #e2e8f0', boxShadow: '0 4px 24px rgba(0,0,0,.1)', padding: 6, minWidth: 180 }}>
-                              {b.status === 'scheduled' && <>
-                                <li><button className="dropdown-item rounded-2 py-2" onClick={() => navigate(`/center-admin/batches/${b.id}/edit`)}><i className="bi bi-pencil me-2 text-secondary"></i>সম্পাদনা</button></li>
-                                <li><button className="dropdown-item rounded-2 py-2" onClick={() => handleStatusChange(b.id, 'start')} disabled={isLoading}><i className="bi bi-play-fill me-2 text-success"></i>শুরু করুন</button></li>
-                                <li><hr className="dropdown-divider my-1" /></li>
-                                <li><button className="dropdown-item rounded-2 py-2" onClick={() => handleStatusChange(b.id, 'complete')} disabled={isLoading}><i className="bi bi-check-lg me-2 text-primary"></i>সমাপ্ত করুন</button></li>
-                              </>}
-                              {b.status === 'running' && <>
-                                <li><button className="dropdown-item rounded-2 py-2" onClick={() => navigate(`/center-admin/attendance/batch/${b.id}`)}><i className="bi bi-calendar-check me-2 text-secondary"></i>উপস্থিতি</button></li>
-                                <li><button className="dropdown-item rounded-2 py-2" onClick={() => navigate(`/assessor/assessment/batch/${b.id}`)}><i className="bi bi-clipboard-data me-2 text-secondary"></i>মূল্যায়ন</button></li>
-                                <li><hr className="dropdown-divider my-1" /></li>
-                                <li><button className="dropdown-item rounded-2 py-2" onClick={() => handleStatusChange(b.id, 'complete')} disabled={isLoading}><i className="bi bi-check-lg me-2 text-primary"></i>সমাপ্ত করুন</button></li>
-                              </>}
-                              {b.status === 'completed' && <>
-                                <li><button className="dropdown-item rounded-2 py-2" onClick={() => navigate(`/center-admin/certificates/issue?batch=${b.id}`)}><i className="bi bi-award me-2 text-secondary"></i>সার্টিফিকেট</button></li>
-                                <li><button className="dropdown-item rounded-2 py-2" onClick={() => navigate(`/center-admin/jobs/add?batch=${b.id}`)}><i className="bi bi-briefcase me-2 text-secondary"></i>চাকরি স্থাপন</button></li>
-                                <li><button className="dropdown-item rounded-2 py-2" onClick={() => navigate(`/center-admin/jobs/tracking?batch=${b.id}`)}><i className="bi bi-graph-up me-2 text-secondary"></i>ট্র্যাকিং</button></li>
-                              </>}
-                              <li><hr className="dropdown-divider my-1" /></li>
-                              <li><button className="dropdown-item rounded-2 py-2 text-danger" onClick={() => handleDelete(b.id, b.batch_no)}><i className="bi bi-trash me-2"></i>মুছুন</button></li>
-                            </ul>
-                          </div>
+                          <button className={`act-btn ${isOpen ? 'act-btn--active' : ''}`} title="কার্যক্রম"
+                            onClick={() => setExpandedId(isOpen ? null : b.id)}>
+                            <i className={`bi ${isOpen ? 'bi-chevron-up' : 'bi-three-dots-vertical'}`} style={{ fontSize: 14 }}></i>
+                          </button>
                         </div>
                       </td>
                     </tr>
-                  );
+                  ];
+                  if (isOpen) {
+                    rows.push(
+                      <tr key={`${b.id}-exp`} className="exp-row">
+                        <td colSpan={5}>
+                          <div className="exp-panel">
+                            {b.status === 'scheduled' && <>
+                              <button className="exp-btn exp-btn--primary" onClick={() => navigate(`/center-admin/batches/${b.id}/edit`)}>
+                                <i className="bi bi-pencil"></i>সম্পাদনা
+                              </button>
+                              <button className="exp-btn exp-btn--success" onClick={() => handleStatusChange(b.id, 'start')} disabled={isLoading}>
+                                <i className="bi bi-play-fill"></i>শুরু করুন
+                              </button>
+                              <button className="exp-btn exp-btn--primary" onClick={() => handleStatusChange(b.id, 'complete')} disabled={isLoading}>
+                                <i className="bi bi-check-lg"></i>সমাপ্ত করুন
+                              </button>
+                              <button className="exp-btn exp-btn--danger" onClick={() => handleDelete(b.id, b.batch_no)}>
+                                <i className="bi bi-trash"></i>মুছুন
+                              </button>
+                            </>}
+                            {b.status === 'running' && <>
+                              <button className="exp-btn" onClick={() => navigate(`/center-admin/attendance/batch/${b.id}`)}>
+                                <i className="bi bi-calendar-check"></i>উপস্থিতি
+                              </button>
+                              <button className="exp-btn" onClick={() => navigate(`/assessor/assessment/batch/${b.id}`)}>
+                                <i className="bi bi-clipboard-data"></i>মূল্যায়ন
+                              </button>
+                              <button className="exp-btn exp-btn--primary" onClick={() => handleStatusChange(b.id, 'complete')} disabled={isLoading}>
+                                <i className="bi bi-check-lg"></i>সমাপ্ত করুন
+                              </button>
+                              <button className="exp-btn exp-btn--danger" onClick={() => handleDelete(b.id, b.batch_no)}>
+                                <i className="bi bi-trash"></i>মুছুন
+                              </button>
+                            </>}
+                            {b.status === 'completed' && <>
+                              <button className="exp-btn" onClick={() => navigate(`/center-admin/certificates/issue?batch=${b.id}`)}>
+                                <i className="bi bi-award"></i>সার্টিফিকেট
+                              </button>
+                              <button className="exp-btn" onClick={() => navigate(`/center-admin/jobs/add?batch=${b.id}`)}>
+                                <i className="bi bi-briefcase"></i>চাকরি স্থাপন
+                              </button>
+                              <button className="exp-btn" onClick={() => navigate(`/center-admin/jobs/tracking?batch=${b.id}`)}>
+                                <i className="bi bi-graph-up"></i>ট্র্যাকিং
+                              </button>
+                              <button className="exp-btn exp-btn--danger" onClick={() => handleDelete(b.id, b.batch_no)}>
+                                <i className="bi bi-trash"></i>মুছুন
+                              </button>
+                            </>}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  }
+                  return rows;
                 })
               )}
             </tbody>
