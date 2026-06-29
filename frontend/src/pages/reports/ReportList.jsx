@@ -18,7 +18,6 @@ export default function ReportList() {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [form, setForm] = useState({ report_type: 'trainee_list', date_from: '', date_to: '' });
-  const [expandedId, setExpandedId] = useState(null);
   const navigate = useNavigate();
 
   const fetchReports = useCallback(async () => {
@@ -134,8 +133,8 @@ export default function ReportList() {
               ) : reports.length === 0 ? (
                 <tr><td colSpan={5} className="text-center text-secondary py-4">কোনো প্রতিবেদন নেই</td></tr>
               ) : (
-                reports.flatMap(r => [
-                  <tr key={r.id} className="b-row">
+                reports.map(r => (
+                  <tr key={r.id}>
                     <td className="fw-semibold">{r.title || '-'}</td>
                     <td><span className="badge bg-info">{r.report_type}</span></td>
                     <td>
@@ -143,25 +142,19 @@ export default function ReportList() {
                       <span>{r.is_ready ? 'প্রস্তুত' : r.error_message ? 'ব্যর্থ' : 'নির্মাণাধীন'}</span>
                     </td>
                     <td>{r.created_at ? formatDate(r.created_at) : '-'}</td>
-                    <td className="text-center">
-                      <button className="btn btn-sm btn-outline-secondary border-0 me-1" onClick={() => handleDownload(r.id)} title="ডাউনলোড"><i className="bi bi-download"></i></button>
-                      <button className={`btn btn-sm btn-outline-secondary border-0 exp-btn${expandedId === r.id ? ' act-btn--active' : ''}`} onClick={() => setExpandedId(expandedId === r.id ? null : r.id)}>
-                        <i className="bi bi-three-dots-vertical"></i>
-                      </button>
+                    <td className="act-col">
+                      <div className="dropdown act-dropdown">
+                        <button className="dropdown-toggle" data-bs-toggle="dropdown" type="button" data-bs-strategy="fixed">
+                          <i className="bi bi-three-dots-vertical"></i>
+                        </button>
+                        <ul className="dropdown-menu dropdown-menu-end">
+                          <li><button className="dropdown-item" onClick={() => handleDownload(r.id)}><i className="bi bi-download me-2"></i>ডাউনলোড</button></li>
+                          {r.is_ready && <li><button className="dropdown-item" onClick={() => handleRegenerate(r.id)}><i className="bi bi-arrow-repeat me-2"></i>পুনরায় তৈরি</button></li>}
+                        </ul>
+                      </div>
                     </td>
-                  </tr>,
-                  expandedId === r.id && (
-                    <tr key={`${r.id}-exp`} className="exp-row">
-                      <td colSpan={5}>
-                        <div className="exp-panel">
-                          {r.is_ready && (
-                            <button className="act-btn" onClick={() => handleRegenerate(r.id)}><i className="bi bi-arrow-repeat me-1"></i>পুনরায় তৈরি</button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                ])
+                  </tr>
+                ))
               )}
             </tbody>
           </table>

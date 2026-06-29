@@ -16,7 +16,6 @@ export default function TraineeList() {
   const [total, setTotal] = useState(0);
   const pageSize = 25;
   const [selectedIds, setSelectedIds] = useState(new Set());
-  const [expandedId, setExpandedId] = useState(null);
   const [showImport, setShowImport] = useState(false);
   const fileRef = useRef(null);
   const [importFile, setImportFile] = useState(null);
@@ -260,65 +259,45 @@ export default function TraineeList() {
               ) : trainees.length === 0 ? (
                 <tr><td colSpan={10} className="text-center text-secondary py-4">কোনো প্রশিক্ষণার্থী পাওয়া যায়নি</td></tr>
               ) : (
-                trainees.flatMap(t => {
-                  const isOpen = expandedId === t.id;
-                  const rows = [
-                    <tr key={t.id} className={`b-row ${isOpen ? 'b-row--active' : ''} ${selectedIds.has(t.id) ? 'table-active' : ''}`} onClick={() => navigate(`/center-admin/trainees/${t.id}`)}>
-                      <td onClick={e => e.stopPropagation()}><input type="checkbox" className="form-check-input" checked={selectedIds.has(t.id)} onChange={() => handleSelectOne(t.id)} /></td>
-                      <td className="d-none d-lg-table-cell" onClick={e => e.stopPropagation()}>
-                        {t.profile_image ? (
-                          <img src={imgUrl(t.profile_image)} alt="" className="rounded-circle"
-                            style={{ width: 36, height: 36, objectFit: 'cover' }}
-                            onError={e => { e.target.style.display = 'none'; }} />
-                        ) : (
-                          <div className="rounded-circle bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center"
-                            style={{ width: 36, height: 36 }}>
-                            <i className="bi bi-person text-secondary" style={{ fontSize: 16 }}></i>
-                          </div>
-                        )}
-                      </td>
-                      <td className="fw-semibold">{t.registration_no || '-'}</td>
-                      <td style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 100 }}>{t.user_name || '-'}</td>
-                      <td className="d-none d-xl-table-cell" style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 100 }}>{t.user_name_en || '-'}</td>
-                      <td className="d-none d-md-table-cell" style={{ whiteSpace: 'nowrap' }}>{t.user_phone || '-'}</td>
-                      <td className="d-none d-xl-table-cell" style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 100 }}>{t.center_name || '-'}</td>
-                      <td style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 100 }}>{t.batch_name || '-'}</td>
-                      <td style={{ whiteSpace: 'nowrap' }}>
-                        <><span className={`status-dot dot-${t.status}`}></span><span style={{fontSize:13,color:'#334155'}}>{t.status_display || t.status}</span></>
-                      </td>
-                      <td className="text-center" onClick={e => e.stopPropagation()}>
-                        <div className="d-flex gap-1 justify-content-end">
-                          <button className="act-btn" title="বিস্তারিত" onClick={() => navigate(`/center-admin/trainees/${t.id}`)}>
-                            <i className="bi bi-eye" style={{fontSize:14}}></i>
-                          </button>
-                          <button className={`act-btn ${isOpen ? 'act-btn--active' : ''}`} title="কার্যক্রম" onClick={() => setExpandedId(isOpen ? null : t.id)}>
-                            <i className={`bi ${isOpen ? 'bi-chevron-up' : 'bi-three-dots-vertical'}`} style={{fontSize:14}}></i>
-                          </button>
+                trainees.map(t => (
+                  <tr key={t.id}>
+                    <td onClick={e => e.stopPropagation()}><input type="checkbox" className="form-check-input" checked={selectedIds.has(t.id)} onChange={() => handleSelectOne(t.id)} /></td>
+                    <td className="d-none d-lg-table-cell">
+                      {t.profile_image ? (
+                        <img src={imgUrl(t.profile_image)} alt="" className="rounded-circle"
+                          style={{ width: 36, height: 36, objectFit: 'cover' }}
+                          onError={e => { e.target.style.display = 'none'; }} />
+                      ) : (
+                        <div className="rounded-circle bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center"
+                          style={{ width: 36, height: 36 }}>
+                          <i className="bi bi-person text-secondary" style={{ fontSize: 16 }}></i>
                         </div>
-                      </td>
-                    </tr>
-                  ];
-                  if (isOpen) {
-                    rows.push(
-                      <tr key={`${t.id}-exp`} className="exp-row">
-                        <td colSpan={10}>
-                          <div className="exp-panel">
-                            <button className="exp-btn" onClick={() => navigate(`/center-admin/trainees/${t.id}`)}>
-                              <i className="bi bi-eye"></i>বিস্তারিত
-                            </button>
-                            <button className="exp-btn exp-btn--primary" onClick={() => navigate(`/center-admin/trainees/${t.id}/edit`)}>
-                              <i className="bi bi-pencil"></i>সম্পাদনা
-                            </button>
-                            <button className="exp-btn exp-btn--danger" onClick={() => handleDelete(t.id, t.user_name)}>
-                              <i className="bi bi-trash"></i>মুছুন
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  }
-                  return rows;
-                })
+                      )}
+                    </td>
+                    <td className="fw-semibold">{t.registration_no || '-'}</td>
+                    <td style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 100 }}>{t.user_name || '-'}</td>
+                    <td className="d-none d-xl-table-cell" style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 100 }}>{t.user_name_en || '-'}</td>
+                    <td className="d-none d-md-table-cell" style={{ whiteSpace: 'nowrap' }}>{t.user_phone || '-'}</td>
+                    <td className="d-none d-xl-table-cell" style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 100 }}>{t.center_name || '-'}</td>
+                    <td style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 100 }}>{t.batch_name || '-'}</td>
+                    <td style={{ whiteSpace: 'nowrap' }}>
+                      <><span className={`status-dot dot-${t.status}`}></span><span style={{fontSize:13,color:'#334155'}}>{t.status_display || t.status}</span></>
+                    </td>
+                    <td className="act-col">
+                      <div className="dropdown act-dropdown">
+                        <button className="dropdown-toggle" data-bs-toggle="dropdown" type="button" data-bs-strategy="fixed">
+                          <i className="bi bi-three-dots-vertical"></i>
+                        </button>
+                        <ul className="dropdown-menu dropdown-menu-end">
+                          <li><button className="dropdown-item" onClick={() => navigate(`/center-admin/trainees/${t.id}`)}><i className="bi bi-eye me-2"></i>বিস্তারিত</button></li>
+                          <li><button className="dropdown-item" onClick={() => navigate(`/center-admin/trainees/${t.id}/edit`)}><i className="bi bi-pencil me-2"></i>সম্পাদনা</button></li>
+                          <li><hr className="dropdown-divider my-1" /></li>
+                          <li><button className="dropdown-item text-danger" onClick={() => handleDelete(t.id, t.user_name)}><i className="bi bi-trash me-2"></i>মুছুন</button></li>
+                        </ul>
+                      </div>
+                    </td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>

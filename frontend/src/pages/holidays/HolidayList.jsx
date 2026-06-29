@@ -13,7 +13,6 @@ export default function HolidayList() {
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({ date: '', description_bn: '', description_en: '', is_government_holiday: true });
-  const [expandedId, setExpandedId] = useState(null);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const pageSize = 20;
@@ -100,37 +99,30 @@ export default function HolidayList() {
               ) : holidays.length === 0 ? (
                 <tr><td colSpan={6} className="text-center text-secondary py-4">কোন ছুটির দিন পাওয়া যায়নি</td></tr>
               ) : (
-                holidays.flatMap((h, i) => {
-                  const isOpen = expandedId === h.id;
-                  return [
-                    <tr key={h.id} className={`b-row${isOpen ? ' b-row--active' : ''}`}>
-                      <td className="fw-semibold">{i + 1}</td>
-                      <td>{formatDate(h.date)}</td>
-                      <td>{h.description_bn}</td>
-                      <td>{h.description_en || '-'}</td>
-                      <td>
-                        <span className={`status-dot dot-${h.is_government_holiday ? 'active' : 'inactive'}`}></span>
-                        <span style={{fontSize:13,color:'#334155'}}>{h.is_government_holiday ? 'হ্যাঁ' : 'না'}</span>
-                      </td>
-                      <td className="text-center">
-                        <button className="btn btn-sm btn-outline-secondary border-0 me-1" onClick={() => navigate(`/center-admin/holidays/${h.id}`)} title="বিস্তারিত"><i className="bi bi-eye"></i></button>
-                        <button className={`btn btn-sm btn-outline-secondary border-0 exp-btn${isOpen ? ' act-btn--active' : ''}`} onClick={() => setExpandedId(isOpen ? null : h.id)}>
+                holidays.map((h, i) => (
+                  <tr key={h.id}>
+                    <td className="fw-semibold">{i + 1}</td>
+                    <td>{formatDate(h.date)}</td>
+                    <td>{h.description_bn}</td>
+                    <td>{h.description_en || '-'}</td>
+                    <td>
+                      <span className={`status-dot dot-${h.is_government_holiday ? 'active' : 'inactive'}`}></span>
+                      <span style={{fontSize:13,color:'#334155'}}>{h.is_government_holiday ? 'হ্যাঁ' : 'না'}</span>
+                    </td>
+                    <td className="act-col">
+                      <div className="dropdown act-dropdown">
+                        <button className="dropdown-toggle" data-bs-toggle="dropdown" type="button" data-bs-strategy="fixed">
                           <i className="bi bi-three-dots-vertical"></i>
                         </button>
-                      </td>
-                    </tr>,
-                    isOpen && (
-                      <tr key={`exp-${h.id}`} className="exp-row">
-                        <td colSpan={6}>
-                          <div className="exp-panel">
-                            <button className="act-btn" onClick={() => openEdit(h)}><i className="bi bi-pencil me-1"></i>সম্পাদনা</button>
-                            <button className="act-btn text-danger" onClick={() => handleDelete(h.id)}><i className="bi bi-trash me-1"></i>মুছুন</button>
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  ];
-                })
+                        <ul className="dropdown-menu dropdown-menu-end">
+                          <li><button className="dropdown-item" onClick={() => openEdit(h)}><i className="bi bi-pencil me-2"></i>সম্পাদনা</button></li>
+                          <li><hr className="dropdown-divider my-1" /></li>
+                          <li><button className="dropdown-item text-danger" onClick={() => handleDelete(h.id)}><i className="bi bi-trash me-2"></i>মুছুন</button></li>
+                        </ul>
+                      </div>
+                    </td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>

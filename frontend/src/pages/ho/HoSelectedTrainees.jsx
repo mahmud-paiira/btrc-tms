@@ -18,8 +18,6 @@ export default function HoSelectedTrainees() {
   const pageSize = 25;
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [centers, setCenters] = useState([]);
-  const [expandedId, setExpandedId] = useState(null);
-
   useEffect(() => {
     hoService.listCenters({ page_size: 9999 })
       .then(res => {
@@ -233,10 +231,8 @@ export default function HoSelectedTrainees() {
               ) : trainees.length === 0 ? (
                 <tr><td colSpan={10} className="text-center text-secondary py-4">কোনো প্রশিক্ষণার্থী পাওয়া যায়নি</td></tr>
               ) : (
-                trainees.flatMap(t => {
-                  const isOpen = expandedId === t.id;
-                  const rows = [
-                    <tr key={t.id} className={`b-row ${isOpen ? 'b-row--active' : ''} ${selectedIds.has(t.id) ? 'table-active' : ''}`} onClick={() => navigate(`/ho/trainees/${t.id}`)}>
+                trainees.map(t => (
+                    <tr key={t.id} className={selectedIds.has(t.id) ? 'table-active' : ''} onClick={() => navigate(`/ho/trainees/${t.id}`)}>
                       <td onClick={e => e.stopPropagation()}><input type="checkbox" className="form-check-input" checked={selectedIds.has(t.id)} onChange={() => handleSelectOne(t.id)} /></td>
                       <td className="fw-semibold">{t.registration_no || '-'}</td>
                       <td>{t.user_name || '-'}</td>
@@ -249,33 +245,18 @@ export default function HoSelectedTrainees() {
                         <span>{t.status_display || t.status}</span>
                       </td>
                       <td className="d-none d-lg-table-cell">{t.enrollment_date ? formatDate(t.enrollment_date) : '-'}</td>
-                      <td className="text-center" onClick={e => e.stopPropagation()}>
-                        <div className="d-flex gap-1 justify-content-end">
-                          <button className="act-btn" title="বিস্তারিত" onClick={() => navigate(`/ho/trainees/${t.id}`)}>
-                            <i className="bi bi-eye"></i>
+                      <td className="act-col" onClick={e => e.stopPropagation()}>
+                        <div className="dropdown act-dropdown">
+                          <button className="dropdown-toggle" data-bs-toggle="dropdown" type="button" data-bs-strategy="fixed">
+                            <i className="bi bi-three-dots-vertical"></i>
                           </button>
-                          <button className={`act-btn ${isOpen ? 'act-btn--active' : ''}`} title="কার্যক্রম" onClick={() => setExpandedId(isOpen ? null : t.id)}>
-                            <i className={`bi ${isOpen ? 'bi-chevron-up' : 'bi-three-dots-vertical'}`}></i>
-                          </button>
+                          <ul className="dropdown-menu dropdown-menu-end">
+                            <li><button className="dropdown-item text-primary" onClick={() => navigate(`/ho/trainees/${t.id}`)}><i className="bi bi-eye me-2"></i>বিস্তারিত</button></li>
+                          </ul>
                         </div>
                       </td>
                     </tr>
-                  ];
-                  if (isOpen) {
-                    rows.push(
-                      <tr key={`${t.id}-exp`} className="exp-row">
-                        <td colSpan={10}>
-                          <div className="exp-panel">
-                            <button className="exp-btn" onClick={() => navigate(`/ho/trainees/${t.id}`)}>
-                              <i className="bi bi-eye"></i>বিস্তারিত
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  }
-                  return rows;
-                })
+                ))
               )}
             </tbody>
           </table>

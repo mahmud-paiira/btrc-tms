@@ -21,7 +21,6 @@ export default function CourseList() {
   const [importFile, setImportFile] = useState(null);
   const [importLoading, setImportLoading] = useState(false);
   const [importResults, setImportResults] = useState(null);
-  const [expandedId, setExpandedId] = useState(null);
   const navigate = useNavigate();
 
   const fetchCourses = useCallback(async () => {
@@ -254,8 +253,8 @@ export default function CourseList() {
               ) : courses.length === 0 ? (
                 <tr><td colSpan={9} className="text-center text-secondary py-4">কোনো কোর্স পাওয়া যায়নি</td></tr>
               ) : (
-                courses.flatMap(c => [
-                  <tr key={c.id} className={`b-row${selectedIds.has(c.id) ? ' b-row--active' : ''}`}>
+                courses.map(c => (
+                  <tr key={c.id}>
                     <td><input type="checkbox" className="form-check-input" checked={selectedIds.has(c.id)} onChange={() => handleSelectOne(c.id)} /></td>
                     <td className="fw-semibold">{c.code || '-'}</td>
                     <td>{c.name_bn}</td>
@@ -264,24 +263,20 @@ export default function CourseList() {
                     <td className="d-none d-md-table-cell">{c.duration_months ? `${c.duration_months} মাস` : '-'}</td>
                     <td className="d-none d-md-table-cell">{c.fee ? `৳${c.fee.toLocaleString('bn-BD')}` : '-'}</td>
                     <td><span className={`status-dot dot-${c.status}`}></span> <span style={{fontSize:13,color:'#334155'}}>{c.status_display || c.status}</span></td>
-                    <td className="text-center">
-                      <button className="btn btn-sm btn-outline-secondary border-0 me-1" onClick={() => navigate(`/courses/${c.id}`)} title="বিস্তারিত"><i className="bi bi-eye"></i></button>
-                      <button className={`btn btn-sm btn-outline-secondary border-0 exp-btn${expandedId === c.id ? ' act-btn--active' : ''}`} onClick={() => setExpandedId(expandedId === c.id ? null : c.id)}>
-                        <i className="bi bi-three-dots-vertical"></i>
-                      </button>
+                    <td className="act-col">
+                      <div className="dropdown act-dropdown">
+                        <button className="dropdown-toggle" data-bs-toggle="dropdown" type="button" data-bs-strategy="fixed">
+                          <i className="bi bi-three-dots-vertical"></i>
+                        </button>
+                        <ul className="dropdown-menu dropdown-menu-end">
+                          <li><button className="dropdown-item" onClick={() => navigate(`/courses/${c.id}/edit`)}><i className="bi bi-pencil me-2"></i>সম্পাদনা</button></li>
+                          <li><hr className="dropdown-divider my-1" /></li>
+                          <li><button className="dropdown-item text-danger" onClick={() => handleDelete(c.id, c.code)}><i className="bi bi-trash me-2"></i>মুছুন</button></li>
+                        </ul>
+                      </div>
                     </td>
-                  </tr>,
-                  expandedId === c.id && (
-                    <tr key={`${c.id}-exp`} className="exp-row">
-                      <td colSpan={9}>
-                        <div className="exp-panel">
-                          <button className="act-btn" onClick={() => navigate(`/courses/${c.id}/edit`)}><i className="bi bi-pencil me-1"></i>সম্পাদনা</button>
-                          <button className="act-btn" onClick={() => handleDelete(c.id, c.code)}><i className="bi bi-trash me-1"></i>মুছুন</button>
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                ])
+                  </tr>
+                ))
               )}
             </tbody>
           </table>

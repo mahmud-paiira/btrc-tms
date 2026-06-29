@@ -33,7 +33,6 @@ export default function TrainerList() {
   const [importFile, setImportFile] = useState(null);
   const [importLoading, setImportLoading] = useState(false);
   const [importResults, setImportResults] = useState(null);
-  const [expandedId, setExpandedId] = useState(null);
 
   const fetchTrainers = useCallback(async () => {
     setLoading(true);
@@ -265,11 +264,10 @@ export default function TrainerList() {
               ) : trainers.length === 0 ? (
                 <tr><td colSpan={10} className="text-center text-secondary py-4">কোনো প্রশিক্ষক পাওয়া যায়নি</td></tr>
               ) : (
-                trainers.flatMap(t => {
+                trainers.map(t => {
                   const seq = t.trainer_no ? t.trainer_no.split('-').pop() : '-';
-                  const isExpanded = expandedId === t.id;
-                  return [
-                    <tr key={t.id} className={selectedIds.has(t.id) ? 'b-row--active' : 'b-row'}>
+                  return (
+                    <tr key={t.id}>
                       <td><input type="checkbox" className="form-check-input" checked={selectedIds.has(t.id)} onChange={() => handleSelectOne(t.id)} /></td>
                       <td className="d-none d-lg-table-cell">
                         {t.profile_image ? (
@@ -296,30 +294,21 @@ export default function TrainerList() {
                         <span className={`status-dot dot-${t.approval_status}`}></span>
                         <span style={{fontSize:13,color:'#334155'}}>{APPROVAL_MAP[t.approval_status] || t.approval_status}</span>
                       </td>
-                      <td className="text-center">
-                        <button className="btn btn-sm btn-outline-secondary border-0 me-1" onClick={() => navigate(`/center-admin/trainers/${t.id}`)}>
-                          <i className="bi bi-eye"></i>
-                        </button>
-                        <button className="btn btn-sm btn-outline-secondary border-0" onClick={() => setExpandedId(isExpanded ? null : t.id)}>
-                          <i className="bi bi-three-dots-vertical"></i>
-                        </button>
+                      <td className="act-col">
+                        <div className="dropdown act-dropdown">
+                          <button className="dropdown-toggle" data-bs-toggle="dropdown" type="button" data-bs-strategy="fixed">
+                            <i className="bi bi-three-dots-vertical"></i>
+                          </button>
+                          <ul className="dropdown-menu dropdown-menu-end">
+                            <li><button className="dropdown-item" onClick={() => navigate(`/center-admin/trainers/${t.id}`)}><i className="bi bi-eye me-2"></i>বিস্তারিত</button></li>
+                            <li><button className="dropdown-item" onClick={async () => { try { const r = await api.get(`/trainers/${t.id}/`); setEditData(r.data); setShowForm(true); } catch { toast.error('তথ্য লোড করতে ব্যর্থ'); }}}><i className="bi bi-pencil me-2"></i>সম্পাদনা</button></li>
+                            <li><hr className="dropdown-divider my-1" /></li>
+                            <li><button className="dropdown-item text-danger" onClick={() => handleDelete(t.id, t.trainer_no)}><i className="bi bi-trash me-2"></i>মুছুন</button></li>
+                          </ul>
+                        </div>
                       </td>
-                    </tr>,
-                    isExpanded && (
-                      <tr key={`exp-${t.id}`} className="exp-row">
-                        <td colSpan={10}>
-                          <div className="exp-panel">
-                            <button className="exp-btn" onClick={async () => { try { const r = await api.get(`/trainers/${t.id}/`); setEditData(r.data); setShowForm(true); } catch { toast.error('তথ্য লোড করতে ব্যর্থ'); } }}>
-                              <i className="bi bi-pencil me-1"></i>সম্পাদনা
-                            </button>
-                            <button className="exp-btn text-danger" onClick={() => handleDelete(t.id, t.trainer_no)}>
-                              <i className="bi bi-trash me-1"></i>মুছুন
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  ];
+                    </tr>
+                  );
                 })
               )}
             </tbody>

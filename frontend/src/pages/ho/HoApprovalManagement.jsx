@@ -20,8 +20,6 @@ export default function HoApprovalManagement() {
   const [remarks, setRemarks] = useState({});
   const [processing, setProcessing] = useState({});
   const [selectedIds, setSelectedIds] = useState(new Set());
-  const [expandedId, setExpandedId] = useState(null);
-
   const handleSelectAll = (e) => {
     if (e.target.checked) {
       setSelectedIds(new Set(items.map((i) => i.id)));
@@ -325,73 +323,52 @@ export default function HoApprovalManagement() {
                   </tr>
                 </thead>
                 <tbody>
-                  {items.flatMap((item, idx) => {
-                    const isOpen = expandedId === item.id;
-                    const rows = [
-                      <tr key={item.id} className={`b-row ${isOpen ? 'b-row--active' : ''}`} onClick={() => navigate(detailPath(type, item.id))}>
-                        <td onClick={e => e.stopPropagation()}>
-                          <input type="checkbox" className="form-check-input"
-                            checked={selectedIds.has(item.id)}
-                            onChange={() => handleSelectOne(item.id)} />
-                        </td>
-                        <td>{idx + 1}</td>
-                        {fields.map((f) => (
-                          <td key={f.key}>
-                            {f.key === 'application_no' ? (
-                              <button className="btn btn-link btn-sm p-0 text-start fw-semibold"
-                                style={{ color: '#2563eb', textDecoration: 'none' }}
-                                onClick={(e) => { e.stopPropagation(); navigate(`/ho/applications/${item.id}`); }}>
-                                {item[f.key] || '—'}
-                              </button>
-                            ) : f.render ? f.render(item) : item[f.key] || '—'}
-                          </td>
-                        ))}
-                        <td className="text-center" onClick={e => e.stopPropagation()}>
-                          <div className="d-flex gap-1 justify-content-end">
-                            <button className="act-btn" title="বিস্তারিত" onClick={() => navigate(detailPath(type, item.id))}>
-                              <i className="bi bi-eye"></i>
+                  {items.map((item, idx) => (
+                    <tr key={item.id} onClick={() => navigate(detailPath(type, item.id))}>
+                      <td onClick={e => e.stopPropagation()}>
+                        <input type="checkbox" className="form-check-input"
+                          checked={selectedIds.has(item.id)}
+                          onChange={() => handleSelectOne(item.id)} />
+                      </td>
+                      <td>{idx + 1}</td>
+                      {fields.map((f) => (
+                        <td key={f.key}>
+                          {f.key === 'application_no' ? (
+                            <button className="btn btn-link btn-sm p-0 text-start fw-semibold"
+                              style={{ color: '#2563eb', textDecoration: 'none' }}
+                              onClick={(e) => { e.stopPropagation(); navigate(`/ho/applications/${item.id}`); }}>
+                              {item[f.key] || '—'}
                             </button>
-                            <button className={`act-btn ${isOpen ? 'act-btn--active' : ''}`} title="কার্যক্রম"
-                              onClick={() => setExpandedId(isOpen ? null : item.id)}>
-                              <i className={`bi ${isOpen ? 'bi-chevron-up' : 'bi-three-dots-vertical'}`}></i>
-                            </button>
-                          </div>
+                          ) : f.render ? f.render(item) : item[f.key] || '—'}
                         </td>
-                      </tr>
-                    ];
-                    if (isOpen) {
-                      rows.push(
-                        <tr key={`${item.id}-exp`} className="exp-row">
-                          <td colSpan={3 + fields.length}>
-                            <div className="exp-panel">
-                              <button className="exp-btn exp-btn--success"
-                                onClick={() => handleAction(type, item.id, 'approve')}
-                                disabled={processing[`${type}_${item.id}`]}>
-                                {processing[`${type}_${item.id}`] ? (
-                                  <span className="spinner-border spinner-border-sm" />
-                                ) : (
-                                  <i className="bi bi-check-lg"></i>
-                                )}
-                                অনুমোদন
-                              </button>
-                              <button className="exp-btn exp-btn--danger"
-                                onClick={() => handleAction(type, item.id, 'reject')}
-                                disabled={processing[`${type}_${item.id}`]}>
-                                <i className="bi bi-x-lg"></i>
-                                বাতিল
-                              </button>
-                              <input className="form-control form-control-sm"
-                                style={{ maxWidth: 240 }}
+                      ))}
+                      <td className="act-col" onClick={e => e.stopPropagation()}>
+                        <div className="dropdown act-dropdown">
+                          <button className="dropdown-toggle" data-bs-toggle="dropdown" type="button" data-bs-strategy="fixed">
+                            <i className="bi bi-three-dots-vertical"></i>
+                          </button>
+                          <ul className="dropdown-menu dropdown-menu-end">
+                            <li><button className="dropdown-item text-primary" onClick={() => navigate(detailPath(type, item.id))}><i className="bi bi-eye me-2"></i>বিস্তারিত</button></li>
+                            <li><hr className="dropdown-divider my-1" /></li>
+                            <li><button className="dropdown-item text-success" onClick={() => handleAction(type, item.id, 'approve')} disabled={processing[`${type}_${item.id}`]}>
+                              {processing[`${type}_${item.id}`] ? <span className="spinner-border spinner-border-sm me-2" /> : <i className="bi bi-check-lg me-2"></i>}অনুমোদন
+                            </button></li>
+                            <li><button className="dropdown-item text-danger" onClick={() => handleAction(type, item.id, 'reject')} disabled={processing[`${type}_${item.id}`]}>
+                              <i className="bi bi-x-lg me-2"></i>বাতিল
+                            </button></li>
+                            <li><hr className="dropdown-divider my-1" /></li>
+                            <li>
+                              <input className="form-control form-control-sm border-0 ps-3 pe-3"
+                                style={{ minWidth: 200 }}
                                 placeholder={type === 'application' ? 'মন্তব্য (বাতিলের জন্য আবশ্যক)...' : 'মন্তব্য (ঐচ্ছিক)...'}
                                 value={remarks[item.id] || ''}
                                 onChange={(e) => setRemarks((p) => ({ ...p, [item.id]: e.target.value }))} />
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    }
-                    return rows;
-                  })}
+                            </li>
+                          </ul>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>

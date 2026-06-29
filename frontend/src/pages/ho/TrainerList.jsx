@@ -32,7 +32,6 @@ export default function TrainerList() {
   const [importResults, setImportResults] = useState(null);
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
-  const [expandedId, setExpandedId] = useState(null);
   const pageSize = 25;
 
   const fetchItems = useCallback(async () => {
@@ -301,8 +300,8 @@ export default function TrainerList() {
               ) : trainers.length === 0 ? (
                 <tr><td colSpan={11} className="text-center text-secondary py-4">কোনো প্রশিক্ষক পাওয়া যায়নি</td></tr>
               ) : (
-                trainers.flatMap((t, idx) => [
-                  <tr key={t.id} className={selectedIds.has(t.id) ? 'b-row--active' : 'b-row'}>
+                trainers.map((t, idx) => (
+                  <tr key={t.id}>
                     <td><input type="checkbox" className="form-check-input" checked={selectedIds.has(t.id)} onChange={() => handleSelectOne(t.id)} /></td>
                     <td className="text-secondary">{(idx + 1)}</td>
                     <td className="d-none d-lg-table-cell">
@@ -330,46 +329,28 @@ export default function TrainerList() {
                       <span className={`status-dot dot-${t.approval_status}`}></span>
                       <span style={{fontSize:13,color:'#334155'}}>{t.approval_display || t.approval_status}</span>
                     </td>
-                    <td className="text-center">
-                      <button className="act-btn" onClick={() => navigate(`/ho/trainers/${t.id}`)} title="বিস্তারিত">
-                        <i className="bi bi-eye"></i>
-                      </button>
-                      <button className={`act-btn ${expandedId === t.id ? 'act-btn--active' : ''}`}
-                        onClick={() => setExpandedId(expandedId === t.id ? null : t.id)}>
-                        <i className="bi bi-three-dots-vertical"></i>
-                      </button>
-                    </td>
-                  </tr>,
-                  ...(expandedId === t.id ? [(
-                    <tr key={`exp-${t.id}`} className="exp-row">
-                      <td colSpan={11}>
-                        <div className="exp-panel">
-                          <button className="exp-btn exp-btn--primary" onClick={() => navigate(`/ho/trainers/${t.id}`)}>
-                            <i className="bi bi-eye me-1"></i>বিস্তারিত
-                          </button>
-                          <button className="exp-btn exp-btn--danger" onClick={() => handleDelete(t.id, t.trainer_no)}>
-                            <i className="bi bi-trash me-1"></i>মুছুন
-                          </button>
+                    <td className="act-col">
+                      <div className="dropdown act-dropdown">
+                        <button className="dropdown-toggle" data-bs-toggle="dropdown" type="button" data-bs-strategy="fixed">
+                          <i className="bi bi-three-dots-vertical"></i>
+                        </button>
+                        <ul className="dropdown-menu dropdown-menu-end">
+                          <li><button className="dropdown-item text-primary" onClick={() => navigate(`/ho/trainers/${t.id}`)}><i className="bi bi-eye me-2"></i>বিস্তারিত</button></li>
+                          <li><button className="dropdown-item text-danger" onClick={() => handleDelete(t.id, t.trainer_no)}><i className="bi bi-trash me-2"></i>মুছুন</button></li>
                           {t.approval_status === 'pending' && (
-                            <button className="exp-btn exp-btn--primary" onClick={() => handleApproveReject(t)}>
-                              <i className="bi bi-check-lg me-1"></i>অনুমোদন
-                            </button>
+                            <li><button className="dropdown-item text-primary" onClick={() => handleApproveReject(t)}><i className="bi bi-check-lg me-2"></i>অনুমোদন</button></li>
                           )}
                           {t.status === 'active' && (
-                            <button className="exp-btn" onClick={() => handleAction(t.id, 'suspend')}>
-                              <i className="bi bi-pause me-1"></i>স্থগিত
-                            </button>
+                            <li><button className="dropdown-item text-warning" onClick={() => handleAction(t.id, 'suspend')}><i className="bi bi-pause me-2"></i>স্থগিত</button></li>
                           )}
                           {t.status === 'suspended' && t.approval_status === 'approved' && (
-                            <button className="exp-btn exp-btn--primary" onClick={() => handleAction(t.id, 'activate')}>
-                              <i className="bi bi-play me-1"></i>সক্রিয়
-                            </button>
+                            <li><button className="dropdown-item text-success" onClick={() => handleAction(t.id, 'activate')}><i className="bi bi-play me-2"></i>সক্রিয়</button></li>
                           )}
-                        </div>
-                      </td>
-                    </tr>
-                  )] : []),
-                ])
+                        </ul>
+                      </div>
+                    </td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>

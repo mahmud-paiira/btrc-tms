@@ -26,7 +26,6 @@ export default function AssessorList() {
   const [showForm, setShowForm] = useState(false);
   const [editData, setEditData] = useState(null);
   const [selectedIds, setSelectedIds] = useState(new Set());
-  const [expandedId, setExpandedId] = useState(null);
   const [showImport, setShowImport] = useState(false);
   const fileRef = useRef(null);
   const [importFile, setImportFile] = useState(null);
@@ -263,11 +262,10 @@ export default function AssessorList() {
               ) : items.length === 0 ? (
                 <tr><td colSpan={10} className="text-center text-secondary py-4">কোনো মূল্যায়নকারী পাওয়া যায়নি</td></tr>
               ) : (
-                items.flatMap(a => {
+                items.map(a => {
                   const seq = a.assessor_no ? a.assessor_no.split('-').pop() : '-';
-                  const isOpen = expandedId === a.id;
-                  const rows = [
-                    <tr key={a.id} className={`b-row ${isOpen ? 'b-row--active' : ''} ${selectedIds.has(a.id) ? 'selected' : ''}`}>
+                  return (
+                    <tr key={a.id}>
                       <td><input type="checkbox" className="form-check-input" checked={selectedIds.has(a.id)} onChange={() => handleSelectOne(a.id)} /></td>
                       <td className="d-none d-lg-table-cell">
                         {a.profile_image ? (
@@ -294,36 +292,21 @@ export default function AssessorList() {
                         <span className={`status-dot dot-${a.approval_status}`}></span>
                         <span style={{ fontSize: 13, color: '#334155' }}>{APPROVAL_MAP[a.approval_status] || a.approval_status}</span>
                       </td>
-                      <td onClick={e => e.stopPropagation()}>
-                        <div className="d-flex gap-1 justify-content-end">
-                          <button className="act-btn" title="বিস্তারিত" onClick={() => navigate(`/center-admin/assessors/${a.id}`)}>
-                            <i className="bi bi-eye" style={{ fontSize: 14 }}></i>
+                      <td className="act-col">
+                        <div className="dropdown act-dropdown">
+                          <button className="dropdown-toggle" data-bs-toggle="dropdown" type="button" data-bs-strategy="fixed">
+                            <i className="bi bi-three-dots-vertical"></i>
                           </button>
-                          <button className={`act-btn ${isOpen ? 'act-btn--active' : ''}`} title="কার্যক্রম"
-                            onClick={() => setExpandedId(isOpen ? null : a.id)}>
-                            <i className={`bi ${isOpen ? 'bi-chevron-up' : 'bi-three-dots-vertical'}`} style={{ fontSize: 14 }}></i>
-                          </button>
+                          <ul className="dropdown-menu dropdown-menu-end">
+                            <li><button className="dropdown-item" onClick={() => navigate(`/center-admin/assessors/${a.id}`)}><i className="bi bi-eye me-2"></i>বিস্তারিত</button></li>
+                            <li><button className="dropdown-item" onClick={async () => { try { const r = await api.get(`/assessors/${a.id}/`); setEditData(r.data); setShowForm(true); } catch { toast.error('তথ্য লোড করতে ব্যর্থ'); }}}><i className="bi bi-pencil me-2"></i>সম্পাদনা</button></li>
+                            <li><hr className="dropdown-divider my-1" /></li>
+                            <li><button className="dropdown-item text-danger" onClick={() => handleDelete(a.id, a.assessor_no)}><i className="bi bi-trash me-2"></i>মুছুন</button></li>
+                          </ul>
                         </div>
                       </td>
                     </tr>
-                  ];
-                  if (isOpen) {
-                    rows.push(
-                      <tr key={`${a.id}-exp`} className="exp-row">
-                        <td colSpan={10}>
-                          <div className="exp-panel">
-                            <button className="exp-btn" onClick={async () => { try { const r = await api.get(`/assessors/${a.id}/`); setEditData(r.data); setShowForm(true); } catch { toast.error('তথ্য লোড করতে ব্যর্থ'); } }}>
-                              <i className="bi bi-pencil"></i>সম্পাদনা
-                            </button>
-                            <button className="exp-btn exp-btn--danger" onClick={() => handleDelete(a.id, a.assessor_no)}>
-                              <i className="bi bi-trash"></i>মুছুন
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  }
-                  return rows;
+                  );
                 })
               )}
             </tbody>

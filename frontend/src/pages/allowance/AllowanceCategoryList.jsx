@@ -10,7 +10,6 @@ export default function AllowanceCategoryList() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState(null);
-  const [expandedId, setExpandedId] = useState(null);
   const [form, setForm] = useState({ name_bn: '', name_en: '', amount_per_session: '', is_active: true });
   const navigate = useNavigate();
 
@@ -88,8 +87,8 @@ export default function AllowanceCategoryList() {
               {categories.length === 0 ? (
                 <tr><td colSpan={6} className="text-center text-secondary py-4">কোন ভাতার শ্রেণী পাওয়া যায়নি</td></tr>
               ) : (
-                categories.flatMap((c, i) => [
-                  <tr key={c.id} className="b-row">
+                categories.map((c, i) => (
+                  <tr key={c.id}>
                     <td>{i + 1}</td>
                     <td>{c.name_bn}</td>
                     <td>{c.name_en}</td>
@@ -98,24 +97,20 @@ export default function AllowanceCategoryList() {
                       <span className={`status-dot dot-${c.is_active ? 'active' : 'inactive'}`}></span>
                       <span>{c.is_active ? 'হ্যাঁ' : 'না'}</span>
                     </td>
-                    <td className="text-center">
-                      <button className="btn btn-sm btn-outline-secondary border-0 me-1" onClick={() => navigate(`/allowance-categories/${c.id}`)} title="বিস্তারিত"><i className="bi bi-eye"></i></button>
-                      <button className={`btn btn-sm btn-outline-secondary border-0 exp-btn${expandedId === c.id ? ' act-btn--active' : ''}`} onClick={() => setExpandedId(expandedId === c.id ? null : c.id)}>
-                        <i className="bi bi-three-dots-vertical"></i>
-                      </button>
+                    <td className="act-col">
+                      <div className="dropdown act-dropdown">
+                        <button className="dropdown-toggle" data-bs-toggle="dropdown" type="button" data-bs-strategy="fixed">
+                          <i className="bi bi-three-dots-vertical"></i>
+                        </button>
+                        <ul className="dropdown-menu dropdown-menu-end">
+                          <li><button className="dropdown-item" onClick={() => openEdit(c)}><i className="bi bi-pencil me-2"></i>সম্পাদনা</button></li>
+                          <li><hr className="dropdown-divider my-1" /></li>
+                          <li><button className="dropdown-item text-danger" onClick={() => handleDelete(c.id)}><i className="bi bi-trash me-2"></i>মুছুন</button></li>
+                        </ul>
+                      </div>
                     </td>
-                  </tr>,
-                  expandedId === c.id && (
-                    <tr key={`${c.id}-exp`} className="exp-row">
-                      <td colSpan={6}>
-                        <div className="exp-panel">
-                          <button className="act-btn" onClick={() => openEdit(c)}><i className="bi bi-pencil me-1"></i>সম্পাদনা</button>
-                          <button className="act-btn" onClick={() => handleDelete(c.id)}><i className="bi bi-trash me-1"></i>মুছুন</button>
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                ])
+                  </tr>
+                ))
               )}
             </tbody>
           </table>

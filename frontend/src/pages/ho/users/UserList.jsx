@@ -31,8 +31,6 @@ export default function UserList() {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const pageSize = 25;
-  const [expandedId, setExpandedId] = useState(null);
-
   useEffect(() => {
     hoService.listCenters({ status: 'active', page_size: 50 }).then(res => {
       setCenters(res.data.results || res.data || []);
@@ -174,10 +172,8 @@ export default function UserList() {
               {!loading && users.length === 0 && (
                 <tr><td colSpan={9} className="text-center text-secondary py-5">{t('common.noData', 'কোন তথ্য নেই')}</td></tr>
               )}
-              {!loading && users.flatMap(u => {
-                const isExpanded = expandedId === u.id;
-                const row = (
-                  <tr key={u.id} className={`b-row${isExpanded ? ' b-row--active' : ''}`}>
+              {!loading && users.map(u => (
+                  <tr key={u.id}>
                     <td className="ps-4">
                       {u.profile_image_url ? (
                         <img src={u.profile_image_url} alt="" className="rounded-circle shadow-sm border"
@@ -200,44 +196,26 @@ export default function UserList() {
                     <td>
                       <span><span className={`status-dot dot-${u.is_active ? 'success' : 'secondary'}`}></span>{u.is_active ? t('common.active', 'সক্রিয়') : t('common.inactive', 'নিষ্ক্রিয়')}</span>
                     </td>
-                    <td>
-                      <div className="d-flex gap-1">
-                        <button className="btn btn-sm btn-outline-primary act-btn" onClick={() => navigate(`/ho/users/${u.id}`)} title={t('common.view', 'দেখুন')}>
-                          <i className="bi bi-eye"></i>
+                    <td className="act-col">
+                      <div className="dropdown act-dropdown">
+                        <button className="dropdown-toggle" data-bs-toggle="dropdown" type="button" data-bs-strategy="fixed">
+                          <i className="bi bi-three-dots-vertical"></i>
                         </button>
-                        <button className={`btn btn-sm btn-outline-secondary exp-btn${isExpanded ? ' act-btn--active' : ''}`}
-                          onClick={() => setExpandedId(isExpanded ? null : u.id)}>
-                          <i className="bi bi-three-dots"></i>
-                        </button>
+                        <ul className="dropdown-menu dropdown-menu-end">
+                          <li><button className="dropdown-item text-primary" onClick={() => navigate(`/ho/users/${u.id}`)}><i className="bi bi-eye me-2"></i>{t('common.view', 'দেখুন')}</button></li>
+                          <li><hr className="dropdown-divider my-1" /></li>
+                          <li><button className="dropdown-item text-primary" onClick={() => { setEditUser(u); setShowForm(true); }}><i className="bi bi-pencil me-2"></i>{t('common.edit', 'সম্পাদনা')}</button></li>
+                          <li><button className={`dropdown-item ${u.is_active ? 'text-warning' : 'text-success'}`} onClick={() => handleToggleStatus(u)}>
+                            <i className={`bi ${u.is_active ? 'bi-pause-circle' : 'bi-play-circle'} me-2`}></i>{u.is_active ? t('common.suspend', 'নিষ্ক্রিয়') : t('common.activate', 'সক্রিয়')}
+                          </button></li>
+                          <li><button className="dropdown-item text-secondary" onClick={() => handleResetPassword(u)}><i className="bi bi-key me-2"></i>{t('users.resetPassword', 'পাসওয়ার্ড রিসেট')}</button></li>
+                          <li><hr className="dropdown-divider my-1" /></li>
+                          <li><button className="dropdown-item text-danger" onClick={() => handleDelete(u)}><i className="bi bi-trash me-2"></i>{t('common.delete', 'মুছুন')}</button></li>
+                        </ul>
                       </div>
                     </td>
                   </tr>
-                );
-                const expRow = isExpanded ? (
-                  <tr key={`${u.id}-exp`} className="exp-row">
-                    <td colSpan={8}>
-                      <div className="exp-panel">
-                        <div className="d-flex flex-wrap gap-2">
-                          <button className="btn btn-sm btn-outline-info" onClick={() => { setEditUser(u); setShowForm(true); }}>
-                            <i className="bi bi-pencil me-1"></i>{t('common.edit', 'সম্পাদনা')}
-                          </button>
-                          <button className={`btn btn-sm ${u.is_active ? 'btn-outline-warning' : 'btn-outline-success'}`} onClick={() => handleToggleStatus(u)}>
-                            <i className={`bi ${u.is_active ? 'bi-pause-circle' : 'bi-play-circle'} me-1`}></i>
-                            {u.is_active ? t('common.suspend', 'নিষ্ক্রিয়') : t('common.activate', 'সক্রিয়')}
-                          </button>
-                          <button className="btn btn-sm btn-outline-secondary" onClick={() => handleResetPassword(u)}>
-                            <i className="bi bi-key me-1"></i>{t('users.resetPassword', 'পাসওয়ার্ড রিসেট')}
-                          </button>
-                          <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(u)}>
-                            <i className="bi bi-trash me-1"></i>{t('common.delete', 'মুছুন')}
-                          </button>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                ) : null;
-                return expRow ? [row, expRow] : [row];
-              })}
+              ))}
             </tbody>
           </table>
         </div>

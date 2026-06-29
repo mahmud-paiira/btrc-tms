@@ -12,7 +12,6 @@ export default function ShiftList() {
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({ name_bn: '', name_en: '', start_time: '', end_time: '', is_active: true });
-  const [expandedId, setExpandedId] = useState(null);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const pageSize = 20;
@@ -100,38 +99,31 @@ export default function ShiftList() {
               ) : shifts.length === 0 ? (
                 <tr><td colSpan={7} className="text-center text-secondary py-4">কোন শিফট পাওয়া যায়নি</td></tr>
               ) : (
-                shifts.flatMap((s, i) => {
-                  const isOpen = expandedId === s.id;
-                  return [
-                    <tr key={s.id} className={`b-row${isOpen ? ' b-row--active' : ''}`}>
-                      <td className="fw-semibold">{i + 1}</td>
-                      <td>{s.name_bn}</td>
-                      <td>{s.name_en}</td>
-                      <td>{s.start_time}</td>
-                      <td>{s.end_time}</td>
-                      <td>
-                        <span className={`status-dot dot-${s.is_active ? 'active' : 'inactive'}`}></span>
-                        <span style={{fontSize:13,color:'#334155'}}>{s.is_active ? 'হ্যাঁ' : 'না'}</span>
-                      </td>
-                      <td className="text-center">
-                        <button className="btn btn-sm btn-outline-secondary border-0 me-1" onClick={() => navigate(`/center-admin/shifts/${s.id}`)} title="বিস্তারিত"><i className="bi bi-eye"></i></button>
-                        <button className={`btn btn-sm btn-outline-secondary border-0 exp-btn${isOpen ? ' act-btn--active' : ''}`} onClick={() => setExpandedId(isOpen ? null : s.id)}>
+                shifts.map((s, i) => (
+                  <tr key={s.id}>
+                    <td className="fw-semibold">{i + 1}</td>
+                    <td>{s.name_bn}</td>
+                    <td>{s.name_en}</td>
+                    <td>{s.start_time}</td>
+                    <td>{s.end_time}</td>
+                    <td>
+                      <span className={`status-dot dot-${s.is_active ? 'active' : 'inactive'}`}></span>
+                      <span style={{fontSize:13,color:'#334155'}}>{s.is_active ? 'হ্যাঁ' : 'না'}</span>
+                    </td>
+                    <td className="act-col">
+                      <div className="dropdown act-dropdown">
+                        <button className="dropdown-toggle" data-bs-toggle="dropdown" type="button" data-bs-strategy="fixed">
                           <i className="bi bi-three-dots-vertical"></i>
                         </button>
-                      </td>
-                    </tr>,
-                    isOpen && (
-                      <tr key={`exp-${s.id}`} className="exp-row">
-                        <td colSpan={7}>
-                          <div className="exp-panel">
-                            <button className="act-btn" onClick={() => openEdit(s)}><i className="bi bi-pencil me-1"></i>সম্পাদনা</button>
-                            <button className="act-btn text-danger" onClick={() => handleDelete(s.id)}><i className="bi bi-trash me-1"></i>মুছুন</button>
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  ];
-                })
+                        <ul className="dropdown-menu dropdown-menu-end">
+                          <li><button className="dropdown-item" onClick={() => openEdit(s)}><i className="bi bi-pencil me-2"></i>সম্পাদনা</button></li>
+                          <li><hr className="dropdown-divider my-1" /></li>
+                          <li><button className="dropdown-item text-danger" onClick={() => handleDelete(s.id)}><i className="bi bi-trash me-2"></i>মুছুন</button></li>
+                        </ul>
+                      </div>
+                    </td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>

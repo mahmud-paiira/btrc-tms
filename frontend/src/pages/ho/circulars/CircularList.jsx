@@ -19,7 +19,6 @@ export default function CircularList() {
   const [totalCount, setTotalCount] = useState(0);
   const pageSize = 25;
   const [selectedIds, setSelectedIds] = useState(new Set());
-  const [expandedId, setExpandedId] = useState(null);
   const [showImport, setShowImport] = useState(false);
   const fileRef = React.useRef(null);
   const [importFile, setImportFile] = useState(null);
@@ -242,8 +241,8 @@ export default function CircularList() {
               ) : items.length === 0 ? (
                 <tr><td colSpan={8} className="text-center text-secondary py-4">কোনো সার্কুলার পাওয়া যায়নি</td></tr>
               ) : (
-                items.flatMap(c => [
-                  <tr key={c.id} className={`b-row${selectedIds.has(c.id) ? ' b-row--active' : ''}`}>
+                items.map(c => (
+                  <tr key={c.id}>
                     <td><input type="checkbox" className="form-check-input" checked={selectedIds.has(c.id)} onChange={() => handleSelectOne(c.id)} /></td>
                     <td className="fw-semibold">{c.title_bn}</td>
                     <td className="d-none d-lg-table-cell">
@@ -262,38 +261,34 @@ export default function CircularList() {
                       <span className={`status-dot dot-${c.status}`}></span>
                       <span style={{fontSize:13,color:'#334155'}}>{c.status_display || c.status}</span>
                     </td>
-                    <td className="text-center">
-                      <button className="btn btn-sm btn-outline-secondary border-0 me-1" onClick={() => navigate(`/ho/circulars/${c.id}`)} title="বিস্তারিত"><i className="bi bi-eye"></i></button>
-                      <button className={`btn btn-sm btn-outline-secondary border-0 exp-btn${expandedId === c.id ? ' act-btn--active' : ''}`} onClick={() => setExpandedId(expandedId === c.id ? null : c.id)}>
-                        <i className="bi bi-three-dots-vertical"></i>
-                      </button>
-                    </td>
-                  </tr>,
-                  expandedId === c.id && (
-                    <tr key={`${c.id}-exp`} className="exp-row">
-                      <td colSpan={8}>
-                        <div className="exp-panel">
-                          <button className="act-btn" onClick={() => { const t = localStorage.getItem('access_token'); window.open(`/api/ho/circulars/${c.id}/print_circular/?token=${t}`, '_blank'); }}>
-                            <i className="bi bi-filetype-pdf me-1"></i>পিডিএফ প্রিন্ট
-                          </button>
+                    <td className="act-col">
+                      <div className="dropdown act-dropdown">
+                        <button className="dropdown-toggle" data-bs-toggle="dropdown" type="button" data-bs-strategy="fixed">
+                          <i className="bi bi-three-dots-vertical"></i>
+                        </button>
+                        <ul className="dropdown-menu dropdown-menu-end">
+                          <li><button className="dropdown-item text-primary" onClick={() => { const t = localStorage.getItem('access_token'); window.open(`/api/ho/circulars/${c.id}/print_circular/?token=${t}`, '_blank'); }}><i className="bi bi-filetype-pdf me-2"></i>পিডিএফ প্রিন্ট</button></li>
+                          <li><button className="dropdown-item text-primary" onClick={() => navigate(`/ho/circulars/${c.id}`)}><i className="bi bi-eye me-2"></i>বিস্তারিত</button></li>
                           {c.status === 'draft' && (
                             <>
-                              <button className="act-btn" onClick={() => openEdit(c)}><i className="bi bi-pencil me-1"></i>সম্পাদনা</button>
-                              <button className="act-btn text-success" onClick={() => handlePublish(c.id)}><i className="bi bi-send me-1"></i>প্রকাশ</button>
-                              <button className="act-btn text-danger" onClick={() => handleDelete(c.id)}><i className="bi bi-trash me-1"></i>মুছুন</button>
+                              <li><hr className="dropdown-divider my-1" /></li>
+                              <li><button className="dropdown-item text-primary" onClick={() => openEdit(c)}><i className="bi bi-pencil me-2"></i>সম্পাদনা</button></li>
+                              <li><button className="dropdown-item text-success" onClick={() => handlePublish(c.id)}><i className="bi bi-send me-2"></i>প্রকাশ</button></li>
+                              <li><button className="dropdown-item text-danger" onClick={() => handleDelete(c.id)}><i className="bi bi-trash me-2"></i>মুছুন</button></li>
                             </>
                           )}
                           {c.status === 'published' && (
                             <>
-                              <button className="act-btn text-warning" onClick={() => handleClose(c.id)}><i className="bi bi-stop me-1"></i>বন্ধ করুন</button>
-                              <button className="act-btn text-secondary" onClick={() => handleUnpublish(c.id)}><i className="bi bi-arrow-return-left me-1"></i>খসড়ায় ফেরত</button>
+                              <li><hr className="dropdown-divider my-1" /></li>
+                              <li><button className="dropdown-item text-warning" onClick={() => handleClose(c.id)}><i className="bi bi-stop me-2"></i>বন্ধ করুন</button></li>
+                              <li><button className="dropdown-item text-secondary" onClick={() => handleUnpublish(c.id)}><i className="bi bi-arrow-return-left me-2"></i>খসড়ায় ফেরত</button></li>
                             </>
                           )}
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                ])
+                        </ul>
+                      </div>
+                    </td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>

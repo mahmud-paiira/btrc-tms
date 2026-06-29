@@ -42,7 +42,6 @@ export default function BatchList() {
   const [selectedCircular, setSelectedCircular] = useState('');
   const [generating, setGenerating] = useState(false);
   const [actionLoading, setActionLoading] = useState(null);
-  const [expandedId, setExpandedId] = useState(null);
 
   const fetchBatches = useCallback(async () => {
     setLoading(true);
@@ -207,86 +206,52 @@ export default function BatchList() {
                   <p className="mt-2 mb-0">{t('batch.list.empty', 'কোন ব্যাচ পাওয়া যায়নি')}</p>
                 </td></tr>
               ) : (
-                batches.flatMap((b) => {
-                  const isOpen = expandedId === b.id;
+                batches.map((b) => {
                   const isLoading = actionLoading === `${b.id}-start` || actionLoading === `${b.id}-complete` || actionLoading === `${b.id}-cancel`;
-                  const rows = [
-                    <tr key={b.id} className={`b-row ${isOpen ? 'b-row--active' : ''}`} onClick={() => navigate(`/center-admin/batches/${b.id}`)}>
+                  return (
+                    <tr key={b.id}>
                       <td>
-                        <div style={{ fontWeight: 600, color: '#0f172a' }}>{b.batch_no}</div>
+                        <a href={`/center-admin/batches/${b.id}`} style={{ fontWeight: 600, color: '#0f172a', textDecoration: 'none' }}
+                          onClick={e => { e.preventDefault(); navigate(`/center-admin/batches/${b.id}`); }}>
+                          {b.batch_no}
+                        </a>
                       </td>
                       <td style={{ color: '#334155' }}>{b.batch_name_bn || b.batch_name_en || '—'}</td>
-                      <td className="d-none d-sm-table-cell" style={{ color: '#64748b', whiteSpace: 'nowrap' }}>{b.start_date ? formatDate(b.start_date) : '—'}</td>
+                      <td className="d-none d-sm-table-cell" style={{ color: '#6b7280', whiteSpace: 'nowrap' }}>{b.start_date ? formatDate(b.start_date) : '—'}</td>
                       <td>
                         <span className={`status-dot dot-${b.status}`}></span>
                         <span style={{ fontSize: 13, color: '#334155' }}>{STATUS_MAP[b.status] || b.status}</span>
                       </td>
-                      <td onClick={e => e.stopPropagation()}>
-                        <div className="d-flex gap-1 justify-content-end">
-                          <button className="act-btn" title="বিস্তারিত" onClick={() => navigate(`/center-admin/batches/${b.id}`)}>
-                            <i className="bi bi-eye" style={{ fontSize: 14 }}></i>
+                      <td className="act-col">
+                        <div className="dropdown act-dropdown">
+                          <button className="dropdown-toggle" data-bs-toggle="dropdown" type="button" data-bs-strategy="fixed">
+                            <i className="bi bi-three-dots-vertical"></i>
                           </button>
-                          <button className={`act-btn ${isOpen ? 'act-btn--active' : ''}`} title="কার্যক্রম"
-                            onClick={() => setExpandedId(isOpen ? null : b.id)}>
-                            <i className={`bi ${isOpen ? 'bi-chevron-up' : 'bi-three-dots-vertical'}`} style={{ fontSize: 14 }}></i>
-                          </button>
+                          <ul className="dropdown-menu dropdown-menu-end">
+                            {b.status === 'scheduled' && <>
+                              <li><button className="dropdown-item" onClick={() => navigate(`/center-admin/batches/${b.id}/edit`)}><i className="bi bi-pencil me-2"></i>সম্পাদনা</button></li>
+                              <li><button className="dropdown-item text-success" onClick={() => handleStatusChange(b.id, 'start')} disabled={isLoading}><i className="bi bi-play-fill me-2"></i>শুরু করুন</button></li>
+                              <li><hr className="dropdown-divider my-1" /></li>
+                              <li><button className="dropdown-item text-primary" onClick={() => handleStatusChange(b.id, 'complete')} disabled={isLoading}><i className="bi bi-check-lg me-2"></i>সমাপ্ত করুন</button></li>
+                            </>}
+                            {b.status === 'running' && <>
+                              <li><button className="dropdown-item" onClick={() => navigate(`/center-admin/attendance/batch/${b.id}`)}><i className="bi bi-calendar-check me-2"></i>উপস্থিতি</button></li>
+                              <li><button className="dropdown-item" onClick={() => navigate(`/assessor/assessment/batch/${b.id}`)}><i className="bi bi-clipboard-data me-2"></i>মূল্যায়ন</button></li>
+                              <li><hr className="dropdown-divider my-1" /></li>
+                              <li><button className="dropdown-item text-primary" onClick={() => handleStatusChange(b.id, 'complete')} disabled={isLoading}><i className="bi bi-check-lg me-2"></i>সমাপ্ত করুন</button></li>
+                            </>}
+                            {b.status === 'completed' && <>
+                              <li><button className="dropdown-item" onClick={() => navigate(`/center-admin/certificates/issue?batch=${b.id}`)}><i className="bi bi-award me-2"></i>সার্টিফিকেট</button></li>
+                              <li><button className="dropdown-item" onClick={() => navigate(`/center-admin/jobs/add?batch=${b.id}`)}><i className="bi bi-briefcase me-2"></i>চাকরি স্থাপন</button></li>
+                              <li><button className="dropdown-item" onClick={() => navigate(`/center-admin/jobs/tracking?batch=${b.id}`)}><i className="bi bi-graph-up me-2"></i>ট্র্যাকিং</button></li>
+                            </>}
+                            <li><hr className="dropdown-divider my-1" /></li>
+                            <li><button className="dropdown-item text-danger" onClick={() => handleDelete(b.id, b.batch_no)}><i className="bi bi-trash me-2"></i>মুছুন</button></li>
+                          </ul>
                         </div>
                       </td>
                     </tr>
-                  ];
-                  if (isOpen) {
-                    rows.push(
-                      <tr key={`${b.id}-exp`} className="exp-row">
-                        <td colSpan={5}>
-                          <div className="exp-panel">
-                            {b.status === 'scheduled' && <>
-                              <button className="exp-btn exp-btn--primary" onClick={() => navigate(`/center-admin/batches/${b.id}/edit`)}>
-                                <i className="bi bi-pencil"></i>সম্পাদনা
-                              </button>
-                              <button className="exp-btn exp-btn--success" onClick={() => handleStatusChange(b.id, 'start')} disabled={isLoading}>
-                                <i className="bi bi-play-fill"></i>শুরু করুন
-                              </button>
-                              <button className="exp-btn exp-btn--primary" onClick={() => handleStatusChange(b.id, 'complete')} disabled={isLoading}>
-                                <i className="bi bi-check-lg"></i>সমাপ্ত করুন
-                              </button>
-                              <button className="exp-btn exp-btn--danger" onClick={() => handleDelete(b.id, b.batch_no)}>
-                                <i className="bi bi-trash"></i>মুছুন
-                              </button>
-                            </>}
-                            {b.status === 'running' && <>
-                              <button className="exp-btn" onClick={() => navigate(`/center-admin/attendance/batch/${b.id}`)}>
-                                <i className="bi bi-calendar-check"></i>উপস্থিতি
-                              </button>
-                              <button className="exp-btn" onClick={() => navigate(`/assessor/assessment/batch/${b.id}`)}>
-                                <i className="bi bi-clipboard-data"></i>মূল্যায়ন
-                              </button>
-                              <button className="exp-btn exp-btn--primary" onClick={() => handleStatusChange(b.id, 'complete')} disabled={isLoading}>
-                                <i className="bi bi-check-lg"></i>সমাপ্ত করুন
-                              </button>
-                              <button className="exp-btn exp-btn--danger" onClick={() => handleDelete(b.id, b.batch_no)}>
-                                <i className="bi bi-trash"></i>মুছুন
-                              </button>
-                            </>}
-                            {b.status === 'completed' && <>
-                              <button className="exp-btn" onClick={() => navigate(`/center-admin/certificates/issue?batch=${b.id}`)}>
-                                <i className="bi bi-award"></i>সার্টিফিকেট
-                              </button>
-                              <button className="exp-btn" onClick={() => navigate(`/center-admin/jobs/add?batch=${b.id}`)}>
-                                <i className="bi bi-briefcase"></i>চাকরি স্থাপন
-                              </button>
-                              <button className="exp-btn" onClick={() => navigate(`/center-admin/jobs/tracking?batch=${b.id}`)}>
-                                <i className="bi bi-graph-up"></i>ট্র্যাকিং
-                              </button>
-                              <button className="exp-btn exp-btn--danger" onClick={() => handleDelete(b.id, b.batch_no)}>
-                                <i className="bi bi-trash"></i>মুছুন
-                              </button>
-                            </>}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  }
-                  return rows;
+                  );
                 })
               )}
             </tbody>

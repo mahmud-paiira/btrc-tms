@@ -20,7 +20,6 @@ export default function AllowanceList() {
   const [selectedBatch, setSelectedBatch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
-  const [expandedId, setExpandedId] = useState(null);
   const navigate = useNavigate();
 
   const fetchBatches = useCallback(async () => {
@@ -150,8 +149,8 @@ export default function AllowanceList() {
               ) : allowances.length === 0 ? (
                 <tr><td colSpan={10} className="text-center text-secondary py-4">কোন ভাতা পাওয়া যায়নি</td></tr>
               ) : (
-                allowances.flatMap((a, i) => [
-                  <tr key={a.id} className="b-row">
+                allowances.map((a, i) => (
+                  <tr key={a.id}>
                     <td>{i + 1}</td>
                     <td>{a.trainee_name}</td>
                     <td>{a.registration_no}</td>
@@ -164,28 +163,24 @@ export default function AllowanceList() {
                       <span className={`status-dot dot-${a.status}`}></span>
                       <span>{a.status_display || a.status}</span>
                     </td>
-                    <td className="text-center">
-                      <button className="btn btn-sm btn-outline-secondary border-0 me-1" onClick={() => navigate(`/allowances/${a.id}`)} title="বিস্তারিত"><i className="bi bi-eye"></i></button>
-                      <button className={`btn btn-sm btn-outline-secondary border-0 exp-btn${expandedId === a.id ? ' act-btn--active' : ''}`} onClick={() => setExpandedId(expandedId === a.id ? null : a.id)}>
-                        <i className="bi bi-three-dots-vertical"></i>
-                      </button>
-                    </td>
-                  </tr>,
-                  expandedId === a.id && (
-                    <tr key={`${a.id}-exp`} className="exp-row">
-                      <td colSpan={10}>
-                        <div className="exp-panel">
+                    <td className="act-col">
+                      <div className="dropdown act-dropdown">
+                        <button className="dropdown-toggle" data-bs-toggle="dropdown" type="button" data-bs-strategy="fixed">
+                          <i className="bi bi-three-dots-vertical"></i>
+                        </button>
+                        <ul className="dropdown-menu dropdown-menu-end">
+                          <li><button className="dropdown-item" onClick={() => navigate(`/allowances/${a.id}`)}><i className="bi bi-eye me-2"></i>বিস্তারিত</button></li>
                           {a.status === 'calculated' && (
-                            <button className="act-btn" onClick={() => handleApprove(a.id)}><i className="bi bi-check-lg me-1"></i>অনুমোদন</button>
+                            <li><button className="dropdown-item text-success" onClick={() => handleApprove(a.id)}><i className="bi bi-check-lg me-2"></i>অনুমোদন</button></li>
                           )}
                           {a.status === 'approved' && (
-                            <button className="act-btn" onClick={() => handleDisburse(a.id)}><i className="bi bi-cash me-1"></i>বিতরণ</button>
+                            <li><button className="dropdown-item text-primary" onClick={() => handleDisburse(a.id)}><i className="bi bi-cash me-2"></i>বিতরণ</button></li>
                           )}
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                ])
+                        </ul>
+                      </div>
+                    </td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>

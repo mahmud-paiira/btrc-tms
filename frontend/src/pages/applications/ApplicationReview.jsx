@@ -48,7 +48,6 @@ export default function ApplicationReview() {
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
   const [pendingStatus, setPendingStatus] = useState({});
-  const [expandedId, setExpandedId] = useState(null);
 
   const fetchCirculars = useCallback(async () => {
     try {
@@ -374,10 +373,9 @@ export default function ApplicationReview() {
                     </tr>
                   </thead>
                   <tbody>
-                    {applications.flatMap((app, idx) => {
-                      const isExpanded = expandedId === app.id;
-                      const row = (
-                        <tr key={app.id} className={`b-row${isExpanded ? ' b-row--active' : ''}${selectedIds.includes(app.id) ? ' table-active' : ''}`}>
+                    {applications.map((app, idx) => {
+                      return (
+                        <tr key={app.id}>
                           <td>
                             <input type="checkbox" className="form-check-input"
                               checked={selectedIds.includes(app.id)} onChange={() => handleSelectOne(app.id)} />
@@ -393,55 +391,42 @@ export default function ApplicationReview() {
                           <td className="text-nowrap small">{app.phone}</td>
                           <td className="text-nowrap small">{app.applied_at ? new Date(app.applied_at).toLocaleDateString('bn-BD') : '—'}</td>
                           <td>{statusBadge(pendingStatus[app.id] ?? app.status)}</td>
-                          <td>
-                            <div className="d-flex gap-1 justify-content-center">
-                              <button className="btn btn-sm btn-outline-primary act-btn" onClick={() => navigate(`/center-admin/applications/${app.id}`)}
-                                title="বিস্তারিত দেখুন / সম্পাদনা">
-                                <i className="bi bi-eye"></i>
+                          <td className="act-col">
+                            <div className="dropdown act-dropdown">
+                              <button className="dropdown-toggle" data-bs-toggle="dropdown" type="button" data-bs-strategy="fixed">
+                                <i className="bi bi-three-dots-vertical"></i>
                               </button>
-                              <button className={`btn btn-sm btn-outline-secondary exp-btn${isExpanded ? ' act-btn--active' : ''}`}
-                                onClick={() => setExpandedId(isExpanded ? null : app.id)}>
-                                <i className="bi bi-three-dots"></i>
-                              </button>
+                              <ul className="dropdown-menu dropdown-menu-end" style={{ minWidth: 200 }}>
+                                <li><button className="dropdown-item" onClick={() => navigate(`/center-admin/applications/${app.id}`)}><i className="bi bi-eye me-2"></i>বিস্তারিত</button></li>
+                                <li><hr className="dropdown-divider my-1" /></li>
+                                <li><span className="dropdown-item-text small text-muted ps-2">অবস্থা পরিবর্তন:</span></li>
+                                <li>
+                                  <div className="px-2 py-1">
+                                    <select className="form-select form-select-sm"
+                                      value={pendingStatus[app.id] ?? app.status}
+                                      onChange={e => {
+                                        const newStatus = e.target.value;
+                                        if (newStatus && newStatus !== app.status) {
+                                          if (window.confirm(`আবেদন #${app.id} এর অবস্থা "${STATUS_OPTIONS.find(s => s.value === newStatus)?.label}"-এ পরিবর্তন করবেন?`)) {
+                                            handleSingleReview(app.id, newStatus);
+                                          }
+                                        }
+                                      }}
+                                    >
+                                      {STATUS_OPTIONS.filter(s => s.value).map(s => (
+                                        <option key={s.value} value={s.value}>{s.label}</option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                </li>
+                                <li><hr className="dropdown-divider my-1" /></li>
+                                <li><button className="dropdown-item" onClick={() => handlePrint(app)}><i className="bi bi-printer me-2"></i>প্রিন্ট</button></li>
+                                <li><button className="dropdown-item text-danger" onClick={() => setShowDeleteConfirm(app)}><i className="bi bi-trash me-2"></i>মুছে ফেলুন</button></li>
+                              </ul>
                             </div>
                           </td>
                         </tr>
                       );
-                      const expRow = isExpanded ? (
-                        <tr key={`${app.id}-exp`} className="exp-row">
-                          <td colSpan={9}>
-                            <div className="exp-panel">
-                              <div className="d-flex flex-wrap gap-2 align-items-center">
-                                <span className="fw-medium small">অবস্থা পরিবর্তন:</span>
-                                <select className="form-select form-select-sm" style={{ width: 140 }}
-                                  value={pendingStatus[app.id] ?? app.status}
-                                  onChange={e => setPendingStatus(prev => ({ ...prev, [app.id]: e.target.value }))}
-                                  onBlur={e => {
-                                    const newStatus = pendingStatus[app.id];
-                                    if (newStatus && newStatus !== app.status) {
-                                      if (window.confirm(`আবেদন #${app.id} এর অবস্থা "${STATUS_OPTIONS.find(s => s.value === newStatus)?.label}"-এ পরিবর্তন করবেন?`)) {
-                                        handleSingleReview(app.id, newStatus);
-                                      }
-                                    }
-                                    setPendingStatus(prev => { const p = { ...prev }; delete p[app.id]; return p; });
-                                  }}
-                                >
-                                  {STATUS_OPTIONS.filter(s => s.value).map(s => (
-                                    <option key={s.value} value={s.value}>{s.label}</option>
-                                  ))}
-                                </select>
-                                <button className="btn btn-sm btn-outline-secondary" onClick={() => handlePrint(app)} title="প্রিন্ট">
-                                  <i className="bi bi-printer"></i>
-                                </button>
-                                <button className="btn btn-sm btn-outline-danger" onClick={() => setShowDeleteConfirm(app)} title="মুছে ফেলুন">
-                                  <i className="bi bi-trash"></i>
-                                </button>
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
-                      ) : null;
-                      return expRow ? [row, expRow] : [row];
                     })}
                   </tbody>
                 </table>

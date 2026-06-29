@@ -587,7 +587,6 @@ export default function HoCenterManagement() {
   const [editCenter, setEditCenter] = useState(null);
   const [showImport, setShowImport] = useState(false);
   const [selectedIds, setSelectedIds] = useState(new Set());
-  const [expandedId, setExpandedId] = useState(null);
   const [usersList, setUsersList] = useState([]);
 
   useEffect(() => {
@@ -838,8 +837,8 @@ export default function HoCenterManagement() {
               ) : centers.length === 0 ? (
                 <tr><td colSpan={7} className="text-center text-secondary py-4">কোন কেন্দ্র পাওয়া যায়নি</td></tr>
               ) : (
-                centers.flatMap(c => [
-                  <tr key={c.id} className={`b-row${selectedIds.has(c.id) ? ' b-row--active' : ''}`}>
+                centers.map(c => (
+                  <tr key={c.id}>
                     <td><input type="checkbox" className="form-check-input"
                       checked={selectedIds.has(c.id)}
                       onChange={() => handleSelectOne(c.id)} /></td>
@@ -856,22 +855,15 @@ export default function HoCenterManagement() {
                       <span className={`status-dot dot-${c.status}`}></span>
                       <span style={{fontSize:13,color:'#334155'}}>{STATUS_MAP[c.status] || c.status}</span>
                     </td>
-                    <td className="text-center">
-                      <button className="btn btn-sm btn-outline-secondary border-0 me-1" title="বিস্তারিত"
-                        onClick={() => navigate(`/ho/centers/${c.id}`)}>
-                        <i className="bi bi-eye"></i>
-                      </button>
-                      <button className={`btn btn-sm btn-outline-secondary border-0 exp-btn${expandedId === c.id ? ' act-btn--active' : ''}`}
-                        onClick={() => setExpandedId(expandedId === c.id ? null : c.id)}>
-                        <i className="bi bi-three-dots-vertical"></i>
-                      </button>
-                    </td>
-                  </tr>,
-                  expandedId === c.id && (
-                    <tr key={`${c.id}-exp`} className="exp-row">
-                      <td colSpan={7}>
-                        <div className="exp-panel">
-                          <button className="act-btn" onClick={async () => {
+                    <td className="act-col">
+                      <div className="dropdown act-dropdown">
+                        <button className="dropdown-toggle" data-bs-toggle="dropdown" type="button" data-bs-strategy="fixed">
+                          <i className="bi bi-three-dots-vertical"></i>
+                        </button>
+                        <ul className="dropdown-menu dropdown-menu-end">
+                          <li><button className="dropdown-item text-primary" onClick={() => navigate(`/ho/centers/${c.id}`)}><i className="bi bi-eye me-2"></i>বিস্তারিত</button></li>
+                          <li><hr className="dropdown-divider my-1" /></li>
+                          <li><button className="dropdown-item text-primary" onClick={async () => {
                             try {
                               const { data } = await hoService.getCenter(c.id);
                               setEditCenter(data);
@@ -879,22 +871,17 @@ export default function HoCenterManagement() {
                             } catch {
                               toast.error('কেন্দ্রের তথ্য লোড করতে ব্যর্থ');
                             }
-                          }}>
-                            <i className="bi bi-pencil me-1"></i>সম্পাদনা
-                          </button>
-                          <button className={`act-btn ${c.status === 'active' ? 'text-warning' : 'text-success'}`}
-                            onClick={() => handleToggle(c)}>
-                            <i className={`bi ${c.status === 'active' ? 'bi-pause-circle' : 'bi-play-circle'} me-1`}></i>
-                            {c.status === 'active' ? 'স্থগিত করুন' : 'সক্রিয় করুন'}
-                          </button>
-                          <button className="act-btn text-danger" onClick={() => handleDelete(c)}>
-                            <i className="bi bi-trash me-1"></i>মুছুন
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                ])
+                          }}><i className="bi bi-pencil me-2"></i>সম্পাদনা</button></li>
+                          <li><button className={`dropdown-item ${c.status === 'active' ? 'text-warning' : 'text-success'}`} onClick={() => handleToggle(c)}>
+                            <i className={`bi ${c.status === 'active' ? 'bi-pause-circle' : 'bi-play-circle'} me-2`}></i>{c.status === 'active' ? 'স্থগিত করুন' : 'সক্রিয় করুন'}
+                          </button></li>
+                          <li><hr className="dropdown-divider my-1" /></li>
+                          <li><button className="dropdown-item text-danger" onClick={() => handleDelete(c)}><i className="bi bi-trash me-2"></i>মুছুন</button></li>
+                        </ul>
+                      </div>
+                    </td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>

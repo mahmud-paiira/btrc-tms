@@ -305,8 +305,6 @@ export default function HoCourseManagement() {
   const [editCourse, setEditCourse] = useState(null);
   const [selectedIds, setSelectedIds] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
-  const [expandedId, setExpandedId] = useState(null);
-
   const fetchCourses = useCallback(async () => {
     setLoading(true);
     try {
@@ -405,10 +403,8 @@ export default function HoCourseManagement() {
                     </thead>
                     <tbody>
                       {courses.length === 0 ? <tr><td colSpan={9} className="text-center text-muted py-4">কোন কোর্স পাওয়া যায়নি</td></tr>
-                      : courses.flatMap((c) => {
-                        const isExpanded = expandedId === c.id;
-                        const rows = [
-                          <tr key={c.id} className={selectedIds.includes(c.id) ? 'b-row b-row--active' : 'b-row'}>
+                      : courses.map((c) => (
+                          <tr key={c.id}>
                             <td>
                               <input type="checkbox" className="form-check-input"
                                 checked={selectedIds.includes(c.id)} onChange={() => handleSelectOne(c.id)} />
@@ -426,37 +422,31 @@ export default function HoCourseManagement() {
                             <td>{c.project_sponsor || '—'}</td>
                             <td>{c.description ? c.description.slice(0, 60) + (c.description.length > 60 ? '…' : '') : '—'}</td>
                             <td><span className={`status-dot dot-${c.status}`}></span> {c.status_display || STATUS_MAP[c.status]}</td>
-                            <td>
-                              <div className="d-flex gap-1 justify-content-center">
-                                <button className="btn btn-sm btn-outline-info" onClick={() => navigate('/ho/courses/' + c.id)} title="বিস্তারিত"><i className="bi bi-eye"></i></button>
-                                <button className={`btn btn-sm exp-btn${isExpanded ? ' act-btn--active' : ''}`} onClick={() => setExpandedId(isExpanded ? null : c.id)} title="আরো">
+                            <td className="act-col">
+                              <div className="dropdown act-dropdown">
+                                <button className="dropdown-toggle" data-bs-toggle="dropdown" type="button" data-bs-strategy="fixed">
                                   <i className="bi bi-three-dots-vertical"></i>
                                 </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ];
-                        if (isExpanded) {
-                          rows.push(
-                            <tr key={`${c.id}-exp`} className="exp-row">
-                              <td colSpan={9} className="exp-panel">
-                                <div className="d-flex gap-2 justify-content-center py-2">
-                                  <button className="act-btn" onClick={async () => {
+                                <ul className="dropdown-menu dropdown-menu-end">
+                                  <li><button className="dropdown-item text-primary" onClick={() => navigate('/ho/courses/' + c.id)}><i className="bi bi-eye me-2"></i>বিস্তারিত</button></li>
+                                  <li><hr className="dropdown-divider my-1" /></li>
+                                  <li><button className="dropdown-item text-primary" onClick={async () => {
                                     try {
                                       const { data } = await hoService.getCourse(c.id);
                                       setEditCourse(data);
                                       setShowForm(true);
                                     } catch { toast.error('কোর্স ডেটা লোড করতে ব্যর্থ'); }
-                                  }} title="সম্পাদনা"><i className="bi bi-pencil me-1"></i>সম্পাদনা</button>
-                                  <button className={`act-btn${c.status === 'active' ? ' act-btn--active' : ''}`} onClick={() => handleToggle(c)} title={c.status === 'active' ? 'নিষ্ক্রিয় করুন' : 'সক্রিয় করুন'}><i className={`bi ${c.status === 'active' ? 'bi-pause-circle' : 'bi-play-circle'} me-1`}></i>{c.status === 'active' ? 'নিষ্ক্রিয়' : 'সক্রিয়'}</button>
-                                  <button className="act-btn" onClick={() => handleDelete(c)} title="মুছুন"><i className="bi bi-trash me-1"></i>মুছুন</button>
-                                </div>
-                              </td>
-                            </tr>
-                          );
-                        }
-                        return rows;
-                      })}
+                                  }}><i className="bi bi-pencil me-2"></i>সম্পাদনা</button></li>
+                                  <li><button className={`dropdown-item ${c.status === 'active' ? 'text-warning' : 'text-success'}`} onClick={() => handleToggle(c)}>
+                                    <i className={`bi ${c.status === 'active' ? 'bi-pause-circle' : 'bi-play-circle'} me-2`}></i>{c.status === 'active' ? 'নিষ্ক্রিয়' : 'সক্রিয়'}
+                                  </button></li>
+                                  <li><hr className="dropdown-divider my-1" /></li>
+                                  <li><button className="dropdown-item text-danger" onClick={() => handleDelete(c)}><i className="bi bi-trash me-2"></i>মুছুন</button></li>
+                                </ul>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
                     </tbody>
                   </table>
                 </div>
