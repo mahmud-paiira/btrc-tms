@@ -183,22 +183,31 @@ export default function BatchList() {
       </div>
 
       <style>{`
-        .batch-table th { padding: 12px 16px; font-weight: 600; color: #374151; border-bottom: 2px solid #e5e7eb; background: #f8fafc; }
-        .batch-table td { padding: 10px 16px; border-bottom: 1px solid #f0f0f0; }
-        .batch-table tbody tr { background: #fff; transition: background .15s; }
-        .batch-table tbody tr:nth-child(odd) { background: #fafafa; }
-        .batch-table tbody tr:hover { background: #f0f5ff !important; }
+        .b-table { border-collapse: collapse; }
+        .b-table thead { position: sticky; top: 0; z-index: 2; }
+        .b-table th { padding: 14px 16px; font-weight: 600; font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: .5px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
+        .b-table td { padding: 14px 16px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
+        .b-table tbody tr { transition: background .15s; }
+        .b-table tbody tr:hover { background: #f8faff; }
+        .b-table tbody tr:last-child td { border-bottom: none; }
+        .b-table .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+        .b-table .dot-scheduled { background: #94a3b8; }
+        .b-table .dot-running { background: #22c55e; }
+        .b-table .dot-completed { background: #3b82f6; }
+        .b-table .dot-cancelled { background: #ef4444; }
+        .act-btn { width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; border: 1px solid #e2e8f0; background: #fff; color: #64748b; cursor: pointer; transition: all .15s; }
+        .act-btn:hover { background: #f1f5f9; border-color: #cbd5e1; color: #334155; }
       `}</style>
-      <div className="card" style={{ borderRadius: 12, border: '1px solid #e5e7eb', overflow: 'visible' }}>
-        <div style={{ overflowX: 'auto', overflowY: 'visible' }}>
-          <table className="batch-table table align-middle mb-0" style={{ fontSize: 13, minWidth: 600, borderCollapse: 'separate', borderSpacing: 0 }}>
+      <div className="card" style={{ borderRadius: 12, border: '1px solid #e2e8f0', overflow: 'visible', boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}>
+        <div className="card-body p-0" style={{ overflowX: 'auto', overflowY: 'visible' }}>
+          <table className="b-table w-100" style={{ minWidth: 640 }}>
             <thead>
               <tr>
                 <th>ব্যাচ নং</th>
                 <th>নাম</th>
                 <th className="d-none d-sm-table-cell">শুরুর তারিখ</th>
-                <th className="text-center" style={{ width: 100 }}>স্ট্যাটাস</th>
-                <th className="text-center" style={{ width: 120 }}>কার্যক্রম</th>
+                <th>স্ট্যাটাস</th>
+                <th style={{ width: 90 }}></th>
               </tr>
             </thead>
             <tbody>
@@ -217,45 +226,46 @@ export default function BatchList() {
                   const isLoading = actionLoading === `${b.id}-start` || actionLoading === `${b.id}-complete` || actionLoading === `${b.id}-cancel`;
                   return (
                     <tr key={b.id}>
-                      <td style={{ color: '#1d4ed8', fontWeight: 600 }}>
-                        {b.batch_no}
+                      <td>
+                        <div style={{ fontWeight: 600, color: '#0f172a' }}>{b.batch_no}</div>
                       </td>
-                      <td style={{ color: '#1f2937' }}>{b.batch_name_bn || b.batch_name_en || '—'}</td>
-                      <td className="d-none d-sm-table-cell" style={{ color: '#6b7280', whiteSpace: 'nowrap' }}>{b.start_date ? formatDate(b.start_date) : '—'}</td>
-                      <td className="text-center">
-                        <span className={`badge bg-${STATUS_BADGE[b.status]}`} style={{ fontSize: 11, padding: '4px 10px', borderRadius: 20 }}>
-                          {STATUS_MAP[b.status] || b.status}
-                        </span>
+                      <td style={{ color: '#334155' }}>{b.batch_name_bn || b.batch_name_en || '—'}</td>
+                      <td className="d-none d-sm-table-cell" style={{ color: '#64748b', whiteSpace: 'nowrap' }}>{b.start_date ? formatDate(b.start_date) : '—'}</td>
+                      <td>
+                        <span className={`status-dot dot-${b.status}`}></span>
+                        <span style={{ fontSize: 13, color: '#334155' }}>{STATUS_MAP[b.status] || b.status}</span>
                       </td>
-                      <td className="text-center">
-                        <div className="dropdown d-inline-block">
-                          <button className="btn btn-sm" data-bs-toggle="dropdown" type="button"
-                            style={{ background: 'transparent', border: '1px solid #e5e7eb', borderRadius: 8, padding: '4px 10px', color: '#6b7280' }}>
-                            <i className="bi bi-three-dots-vertical"></i>
+                      <td>
+                        <div className="d-flex gap-1 justify-content-end">
+                          <button className="act-btn" title="বিস্তারিত" onClick={() => navigate(`/center-admin/batches/${b.id}`)}>
+                            <i className="bi bi-eye" style={{ fontSize: 14 }}></i>
                           </button>
-                          <ul className="dropdown-menu dropdown-menu-start border shadow-sm" style={{ fontSize: 13, borderRadius: 10, border: 'none', boxShadow: '0 4px 16px rgba(0,0,0,.12)' }}>
-                            {b.status === 'scheduled' && <>
-                              <li><button className="dropdown-item py-2" onClick={() => navigate(`/center-admin/batches/${b.id}/edit`)}><i className="bi bi-pencil me-2 text-secondary"></i>সম্পাদনা</button></li>
-                              <li><button className="dropdown-item py-2 text-success" onClick={() => handleStatusChange(b.id, 'start')} disabled={isLoading}><i className="bi bi-play-fill me-2"></i>শুরু করুন</button></li>
+                          <div className="dropdown d-inline-block">
+                            <button className="act-btn" data-bs-toggle="dropdown" type="button" title="আরো">
+                              <i className="bi bi-three-dots-vertical" style={{ fontSize: 14 }}></i>
+                            </button>
+                            <ul className="dropdown-menu dropdown-menu-end" style={{ fontSize: 13, borderRadius: 10, border: '1px solid #e2e8f0', boxShadow: '0 4px 24px rgba(0,0,0,.1)', padding: 6, minWidth: 180 }}>
+                              {b.status === 'scheduled' && <>
+                                <li><button className="dropdown-item rounded-2 py-2" onClick={() => navigate(`/center-admin/batches/${b.id}/edit`)}><i className="bi bi-pencil me-2 text-secondary"></i>সম্পাদনা</button></li>
+                                <li><button className="dropdown-item rounded-2 py-2" onClick={() => handleStatusChange(b.id, 'start')} disabled={isLoading}><i className="bi bi-play-fill me-2 text-success"></i>শুরু করুন</button></li>
+                                <li><hr className="dropdown-divider my-1" /></li>
+                                <li><button className="dropdown-item rounded-2 py-2" onClick={() => handleStatusChange(b.id, 'complete')} disabled={isLoading}><i className="bi bi-check-lg me-2 text-primary"></i>সমাপ্ত করুন</button></li>
+                              </>}
+                              {b.status === 'running' && <>
+                                <li><button className="dropdown-item rounded-2 py-2" onClick={() => navigate(`/center-admin/attendance/batch/${b.id}`)}><i className="bi bi-calendar-check me-2 text-secondary"></i>উপস্থিতি</button></li>
+                                <li><button className="dropdown-item rounded-2 py-2" onClick={() => navigate(`/assessor/assessment/batch/${b.id}`)}><i className="bi bi-clipboard-data me-2 text-secondary"></i>মূল্যায়ন</button></li>
+                                <li><hr className="dropdown-divider my-1" /></li>
+                                <li><button className="dropdown-item rounded-2 py-2" onClick={() => handleStatusChange(b.id, 'complete')} disabled={isLoading}><i className="bi bi-check-lg me-2 text-primary"></i>সমাপ্ত করুন</button></li>
+                              </>}
+                              {b.status === 'completed' && <>
+                                <li><button className="dropdown-item rounded-2 py-2" onClick={() => navigate(`/center-admin/certificates/issue?batch=${b.id}`)}><i className="bi bi-award me-2 text-secondary"></i>সার্টিফিকেট</button></li>
+                                <li><button className="dropdown-item rounded-2 py-2" onClick={() => navigate(`/center-admin/jobs/add?batch=${b.id}`)}><i className="bi bi-briefcase me-2 text-secondary"></i>চাকরি স্থাপন</button></li>
+                                <li><button className="dropdown-item rounded-2 py-2" onClick={() => navigate(`/center-admin/jobs/tracking?batch=${b.id}`)}><i className="bi bi-graph-up me-2 text-secondary"></i>ট্র্যাকিং</button></li>
+                              </>}
                               <li><hr className="dropdown-divider my-1" /></li>
-                              <li><button className="dropdown-item py-2 text-primary" onClick={() => handleStatusChange(b.id, 'complete')} disabled={isLoading}><i className="bi bi-check-lg me-2"></i>সমাপ্ত করুন</button></li>
-                              <li><hr className="dropdown-divider my-1" /></li>
-                            </>}
-                            {b.status === 'running' && <>
-                              <li><button className="dropdown-item py-2" onClick={() => navigate(`/center-admin/attendance/batch/${b.id}`)}><i className="bi bi-calendar-check me-2 text-secondary"></i>উপস্থিতি</button></li>
-                              <li><button className="dropdown-item py-2" onClick={() => navigate(`/assessor/assessment/batch/${b.id}`)}><i className="bi bi-clipboard-data me-2 text-secondary"></i>মূল্যায়ন</button></li>
-                              <li><hr className="dropdown-divider my-1" /></li>
-                              <li><button className="dropdown-item py-2 text-primary" onClick={() => handleStatusChange(b.id, 'complete')} disabled={isLoading}><i className="bi bi-check-lg me-2"></i>সমাপ্ত করুন</button></li>
-                              <li><hr className="dropdown-divider my-1" /></li>
-                            </>}
-                            {b.status === 'completed' && <>
-                              <li><button className="dropdown-item py-2" onClick={() => navigate(`/center-admin/certificates/issue?batch=${b.id}`)}><i className="bi bi-award me-2 text-secondary"></i>সার্টিফিকেট</button></li>
-                              <li><button className="dropdown-item py-2" onClick={() => navigate(`/center-admin/jobs/add?batch=${b.id}`)}><i className="bi bi-briefcase me-2 text-secondary"></i>চাকরি স্থাপন</button></li>
-                              <li><button className="dropdown-item py-2" onClick={() => navigate(`/center-admin/jobs/tracking?batch=${b.id}`)}><i className="bi bi-graph-up me-2 text-secondary"></i>ট্র্যাকিং</button></li>
-                              <li><hr className="dropdown-divider my-1" /></li>
-                            </>}
-                            <li><button className="dropdown-item py-2 text-danger" onClick={() => handleDelete(b.id, b.batch_no)}><i className="bi bi-trash me-2"></i>মুছুন</button></li>
-                          </ul>
+                              <li><button className="dropdown-item rounded-2 py-2 text-danger" onClick={() => handleDelete(b.id, b.batch_no)}><i className="bi bi-trash me-2"></i>মুছুন</button></li>
+                            </ul>
+                          </div>
                         </div>
                       </td>
                     </tr>
@@ -266,14 +276,16 @@ export default function BatchList() {
           </table>
         </div>
         {totalPages > 1 && (
-          <div className="d-flex justify-content-between align-items-center py-2 px-3">
-            <small className="text-secondary">মোট: {total}</small>
-            <div className="d-flex gap-1">
-              <button className="btn btn-sm btn-outline-secondary" disabled={page <= 1} onClick={() => setPage(page - 1)}>
+          <div className="d-flex justify-content-between align-items-center px-3 py-3" style={{ borderTop: '1px solid #f1f5f9' }}>
+            <small style={{ color: '#64748b' }}>মোট {total} টি ব্যাচ</small>
+            <div className="d-flex gap-1 align-items-center">
+              <button className="btn btn-sm" onClick={() => setPage(page - 1)} disabled={page <= 1}
+                style={{ border: '1px solid #e2e8f0', borderRadius: 8, color: page <= 1 ? '#cbd5e1' : '#64748b', background: '#fff' }}>
                 <i className="bi bi-chevron-left"></i>
               </button>
-              <span className="px-2 d-flex align-items-center small">{page} / {totalPages}</span>
-              <button className="btn btn-sm btn-outline-secondary" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>
+              <span style={{ fontSize: 13, color: '#64748b', padding: '0 8px' }}>{page} / {totalPages}</span>
+              <button className="btn btn-sm" onClick={() => setPage(page + 1)} disabled={page >= totalPages}
+                style={{ border: '1px solid #e2e8f0', borderRadius: 8, color: page >= totalPages ? '#cbd5e1' : '#64748b', background: '#fff' }}>
                 <i className="bi bi-chevron-right"></i>
               </button>
             </div>
