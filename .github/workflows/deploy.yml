@@ -10,34 +10,12 @@ env:
   IMAGE_NAMESPACE: ${{ github.repository_owner }}
 
 jobs:
-  changes:
-    name: Detect Changes
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push'
-    outputs:
-      backend: ${{ steps.filter.outputs.backend }}
-      frontend: ${{ steps.filter.outputs.frontend }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            backend:
-              - 'backend/**'
-            frontend:
-              - 'frontend/**'
-
   build-backend:
     name: Build & Push Backend
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      (needs.changes.outputs.backend == 'true')
-    needs: [changes]
 
     steps:
       - uses: actions/checkout@v4
@@ -77,10 +55,6 @@ jobs:
     permissions:
       contents: read
       packages: write
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      (needs.changes.outputs.frontend == 'true')
-    needs: [changes]
 
     steps:
       - uses: actions/checkout@v4
