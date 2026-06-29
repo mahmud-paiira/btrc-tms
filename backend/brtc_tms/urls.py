@@ -136,6 +136,7 @@ urlpatterns = [
     path('api/center/attendance/', include('apps.attendance.urls_center')),
     path('api/center/', include('apps.centers.urls_center_dashboard')),
     path('api/center/', include('apps.assessments.urls_center')),
+    path('api/assessor/', include('apps.assessments.urls_assessor')),
     path('api/center/', include('apps.certificates.urls_center')),
     path('api/center/', include('apps.jobplacement.urls_center')),
 

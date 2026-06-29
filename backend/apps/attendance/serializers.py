@@ -49,29 +49,24 @@ class AttendanceListSerializer(serializers.ModelSerializer):
         )
 
 
+class AttendanceEntrySerializer(serializers.Serializer):
+    trainee = serializers.IntegerField()
+    status = serializers.ChoiceField(choices=Attendance.Status.choices)
+    lead_trainer = serializers.IntegerField(required=False, allow_null=True)
+    associate_trainer = serializers.IntegerField(required=False, allow_null=True)
+    guest_trainer_name = serializers.CharField(required=False, allow_blank=True, default='')
+    remarks = serializers.CharField(required=False, allow_blank=True, default='')
+
+
 class MarkAttendanceSerializer(serializers.Serializer):
     batch = serializers.IntegerField(label='ব্যাচ আইডি')
     session_date = serializers.DateField(label='সেশনের তারিখ')
     session_no = serializers.IntegerField(label='সেশন নম্বর')
-    entries = serializers.ListField(
-        child=serializers.DictField(child=serializers.CharField()),
-        label='উপস্থিতি তালিকা',
-    )
+    entries = AttendanceEntrySerializer(many=True)
 
     def validate_entries(self, value):
         if not value:
             raise serializers.ValidationError('কমপক্ষে একজন প্রশিক্ষণার্থীর তথ্য দিন')
-        for entry in value:
-            if 'trainee' not in entry:
-                raise serializers.ValidationError('প্রতিটি এন্ট্রিতে trainee আবশ্যক')
-            if 'status' not in entry:
-                raise serializers.ValidationError('প্রতিটি এন্ট্রিতে status আবশ্যক')
-            status_val = entry['status']
-            valid_statuses = [s.value for s in Attendance.Status]
-            if status_val not in valid_statuses:
-                raise serializers.ValidationError(
-                    f"status অবশ্যই {', '.join(valid_statuses)} এর একটি হতে হবে",
-                )
         return value
 
     def create(self, validated_data):

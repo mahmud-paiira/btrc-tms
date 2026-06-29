@@ -331,6 +331,7 @@ export default function AttendanceCalendar() {
       {showModal && selectedDate && (
         <AttendanceModal
           batchId={parseInt(batchId)}
+          batch={batch}
           sessionDate={selectedDate}
           weekPlans={weekPlans}
           summaries={summaries}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { useAuth } from '../../contexts/AuthContext';
 import assessmentService from '../../services/assessmentService';
 import AssessmentForm from '../../components/assessments/AssessmentForm';
 import ReassessmentRequest from '../../components/assessments/ReassessmentRequest';
@@ -18,7 +19,9 @@ const ASSESSMENT_TYPES = [
 export default function AssessorAssessment() {
   const { id: batchId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { t } = useTranslation();
+  const userType = user?.user_type;
 
   const [batch, setBatch] = useState(null);
   const [eligibleData, setEligibleData] = useState(null);
@@ -39,9 +42,9 @@ export default function AssessorAssessment() {
     setLoading(true);
     try {
       const [eligibleRes, batchRes, resultsRes] = await Promise.all([
-        assessmentService.getBatchEligible(batchId),
+        assessmentService.getBatchEligible(batchId, userType),
         assessmentService.getBatchDetail(batchId),
-        assessmentService.getBatchResults(batchId),
+        assessmentService.getBatchResults(batchId, userType),
       ]);
       setEligibleData(eligibleRes.data);
       setBatch(batchRes.data);
@@ -90,7 +93,7 @@ export default function AssessorAssessment() {
         assessment_type: assessmentType,
         assessment_date: assessmentDate,
         entries: payload,
-      });
+      }, userType);
       toast.success(t('assessment.conduct.saveSuccess', 'মূল্যায়ন সফলভাবে সংরক্ষিত হয়েছে'));
       await fetchData();
     } catch (err) {
@@ -126,7 +129,7 @@ export default function AssessorAssessment() {
         assessment_type: assessmentType,
         assessment_date: assessmentDate,
         entries,
-      });
+      }, userType);
       toast.success(t('assessment.conduct.saveSuccess', `${entries.length} জনের মূল্যায়ন সংরক্ষিত হয়েছে`));
       await fetchData();
     } catch (err) {

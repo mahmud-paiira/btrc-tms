@@ -47,8 +47,19 @@ class TrainerViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         qs = super().get_queryset()
         user = self.request.user
-        if user.user_type == 'center_admin' and user.center:
+        center_id = self.request.query_params.get('mapped_center')
+        course_id = self.request.query_params.get('mapped_course')
+
+        if center_id:
+            qs = qs.filter(mappings__center_id=center_id, mappings__status='active')
+        elif user.user_type == 'center_admin' and user.center:
             qs = qs.filter(user__center=user.center)
+
+        if course_id:
+            qs = qs.filter(mappings__course_id=course_id, mappings__status='active')
+
+        if center_id or course_id:
+            qs = qs.distinct()
         return qs
 
     def perform_create(self, serializer):

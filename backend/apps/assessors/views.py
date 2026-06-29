@@ -90,13 +90,17 @@ class AssessorViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def my_batches(self, request):
         from apps.assessments.models import Assessment
+        from apps.batches.models import Batch, BatchAssessor
         assessor = getattr(request.user, 'assessor_profile', None)
         if not assessor:
             return Response({'detail': 'মূল্যায়নকারী প্রোফাইল পাওয়া যায়নি।'}, status=404)
-        batch_ids = Assessment.objects.filter(
+        assessment_batch_ids = Assessment.objects.filter(
             assessor=assessor,
-        ).values_list('batch_id', flat=True).distinct()
-        from apps.batches.models import Batch
+        ).values_list('batch_id', flat=True)
+        assignment_batch_ids = BatchAssessor.objects.filter(
+            assessor=assessor,
+        ).values_list('batch_id', flat=True)
+        batch_ids = set(assessment_batch_ids) | set(assignment_batch_ids)
         from apps.batches.serializers import BatchListSerializer
         batches = Batch.objects.filter(id__in=batch_ids)
         serializer = BatchListSerializer(batches, many=True, context={'request': request})

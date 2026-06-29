@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import api from '../../services/api';
 import batchService from '../../services/batchService';
 import WeekPlanBuilder from '../../components/batches/WeekPlanBuilder';
+import AssessorAssignmentCard from '../../components/batches/AssessorAssignmentCard';
 import { useTranslation } from '../../hooks/useTranslation';
 import BanglaInput from '../../components/common/BanglaInput';
 
@@ -285,6 +286,11 @@ export default function BatchCreate() {
             courseId={form.course}
             onPlansChange={handleWeekPlansChange}
           />
+          {isEdit && (
+            <div className="mt-4">
+              <AssessorAssignmentCard batchId={batchId} batch={form} />
+            </div>
+          )}
         </div>
       )}
     </div>
