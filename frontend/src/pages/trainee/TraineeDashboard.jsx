@@ -15,13 +15,13 @@ const BRAND = '#1b6b3b';
 
 function StatCard({ icon, label, value, color }) {
   return (
-    <div className="d-flex align-items-center gap-3 p-3 bg-white rounded-4 shadow-sm" style={{ minWidth: 0 }}>
-      <div className="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0" style={{ width: 44, height: 44, background: `${color}15` }}>
-        <i className={`bi ${icon}`} style={{ fontSize: '1.2rem', color }}></i>
+    <div className="d-flex align-items-start gap-2 p-3 bg-white rounded-4 shadow-sm h-100" style={{ minWidth: 0 }}>
+      <div className="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0 mt-1" style={{ width: 36, height: 36, background: `${color}15` }}>
+        <i className={`bi ${icon}`} style={{ fontSize: '1rem', color }}></i>
       </div>
-      <div className="min-width-0">
-        <div className="text-muted" style={{ fontSize: '0.7rem', letterSpacing: '0.3px', textTransform: 'uppercase' }}>{label}</div>
-        <div className="fw-bold text-truncate">{value || '—'}</div>
+      <div className="min-width-0" style={{ overflowWrap: 'break-word', wordBreak: 'break-word' }}>
+        <div className="text-muted" style={{ fontSize: '0.65rem', letterSpacing: '0.3px', textTransform: 'uppercase' }}>{label}</div>
+        <div className="fw-bold small">{value || '—'}</div>
       </div>
     </div>
   );
