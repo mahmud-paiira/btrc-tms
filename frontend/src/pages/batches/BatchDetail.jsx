@@ -293,7 +293,7 @@ export default function BatchDetail() {
                     {actionLoading === 'start' ? 'প্রক্রিয়াধীন...' : 'শুরু করুন'}
                   </button>
                 )}
-                {batch.status === 'running' && (
+                {(batch.status === 'running' || batch.status === 'scheduled') && (
                   <button
                     className="btn btn-primary btn-sm"
                     onClick={() => handleAction('complete')}

@@ -307,12 +307,11 @@ export default function BatchList() {
                 </th>
                 <th>{t('batch.list.colBatchNo', 'ব্যাচ নং')}</th>
                 <th>{t('batch.list.colName', 'নাম')}</th>
-                <th className="d-none d-lg-table-cell">শিফট</th>
                 <th className="d-none d-xl-table-cell">{t('batch.list.colCourse', 'কোর্স')}</th>
-                <th className="d-none d-md-table-cell">{t('batch.list.colStartDate', 'শুরুর তারিখ')}</th>
-                <th className="d-none d-md-table-cell">{t('batch.list.colEndDate', 'সমাপ্তির তারিখ')}</th>
-                <th className="d-none d-lg-table-cell">{t('batch.list.colSeats', 'আসন')}</th>
-                <th>{t('batch.list.colStatus', 'স্ট্যাটাস')}</th>
+                <th className="d-none d-lg-table-cell">{t('batch.list.colStartDate', 'শুরুর তারিখ')}</th>
+                <th className="d-none d-xl-table-cell">{t('batch.list.colEndDate', 'সমাপ্তির তারিখ')}</th>
+                <th className="d-none d-lg-table-cell text-center">{t('batch.list.colSeats', 'আসন')}</th>
+                <th className="text-center">{t('batch.list.colStatus', 'স্ট্যাটাস')}</th>
                 <th className="text-center" style={{ width: 50 }}>{t('batch.list.colActions', 'কার্যক্রম')}</th>
               </tr>
             </thead>
@@ -337,14 +336,11 @@ export default function BatchList() {
               </Link>
             </td>
                     <td style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 120 }}>{b.batch_name_bn || b.batch_name_en}</td>
-                    <td className="d-none d-lg-table-cell" style={{ whiteSpace: 'nowrap' }}>
-                      {b.shift === 'shift_1' ? 'শিফট-১' : b.shift === 'shift_2' ? 'শিফট-২' : '-'}
-                    </td>
                     <td className="d-none d-xl-table-cell" style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 100 }}>{b.course_name}</td>
-                    <td className="d-none d-md-table-cell" style={{ whiteSpace: 'nowrap' }}>{b.start_date ? formatDate(b.start_date) : '-'}</td>
-                    <td className="d-none d-md-table-cell" style={{ whiteSpace: 'nowrap' }}>{b.end_date ? formatDate(b.end_date) : '-'}</td>
-                    <td className="d-none d-lg-table-cell" style={{ whiteSpace: 'nowrap' }}>{b.filled_seats || 0}/{b.total_seats || 0}</td>
-                    <td style={{ whiteSpace: 'nowrap' }}>
+                    <td className="d-none d-lg-table-cell" style={{ whiteSpace: 'nowrap' }}>{b.start_date ? formatDate(b.start_date) : '-'}</td>
+                    <td className="d-none d-xl-table-cell" style={{ whiteSpace: 'nowrap' }}>{b.end_date ? formatDate(b.end_date) : '-'}</td>
+                    <td className="d-none d-lg-table-cell text-center" style={{ whiteSpace: 'nowrap' }}>{b.filled_seats || 0}/{b.total_seats || 0}</td>
+                    <td className="text-center">
                       <span className={`badge bg-${STATUS_BADGE[b.status]}`}>
                         {STATUS_MAP[b.status] || b.status}
                       </span>
@@ -360,7 +356,7 @@ export default function BatchList() {
                           {(b.status === 'scheduled' || b.status === 'running') && <li><hr className="dropdown-divider" /></li>}
                           {b.status === 'running' && <li><button className="dropdown-item" onClick={() => navigate(`/center-admin/attendance/batch/${b.id}`)}><i className="bi bi-calendar-check me-2"></i>{t('batch.list.btnAttendance', 'উপস্থিতি')}</button></li>}
                           {b.status === 'running' && <li><button className="dropdown-item" onClick={() => navigate(`/assessor/assessment/batch/${b.id}`)}><i className="bi bi-clipboard-data me-2"></i>{t('batch.list.btnAssessment', 'মূল্যায়ন')}</button></li>}
-                          {b.status === 'running' && <li><button className="dropdown-item text-primary" onClick={() => handleStatusChange(b.id, 'complete')}><i className="bi bi-check-lg me-2"></i>{t('batch.list.btnComplete', 'সমাপ্ত করুন')}</button></li>}
+                          {(b.status === 'running' || b.status === 'scheduled') && <li><button className="dropdown-item text-primary" onClick={() => handleStatusChange(b.id, 'complete')}><i className="bi bi-check-lg me-2"></i>{t('batch.list.btnComplete', 'সমাপ্ত করুন')}</button></li>}
                           {b.status === 'running' && <li><hr className="dropdown-divider" /></li>}
                           {b.status === 'completed' && <li><button className="dropdown-item" onClick={() => navigate(`/center-admin/certificates/issue?batch=${b.id}`)}><i className="bi bi-award me-2"></i>{t('batch.list.btnCertificate', 'সার্টিফিকেট')}</button></li>}
                           {b.status === 'completed' && <li><button className="dropdown-item" onClick={() => navigate(`/center-admin/jobs/add?batch=${b.id}`)}><i className="bi bi-briefcase me-2"></i>{t('batch.list.btnJob', 'চাকরি স্থাপন')}</button></li>}
