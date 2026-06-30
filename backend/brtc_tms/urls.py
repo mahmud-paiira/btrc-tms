@@ -17,6 +17,9 @@ import urllib.request
 from apps.applications.ocr.utils import extract_nid_data
 
 
+def health_check(request):
+    return JsonResponse({"status": "ok"})
+
 def root_redirect(request):
     if settings.DEBUG:
         frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')
@@ -112,6 +115,8 @@ urlpatterns = [
     path('admin/ocr-test/', admin.site.admin_view(ocr_test_view), name='ocr-test'),
 
     path('api/admin/download-ben-data/', admin.site.admin_view(download_ben_data_view), name='download-ben-data'),
+
+    path('api/health/', health_check, name='health-check'),
 
     # API modules
     path('api/auth/', include('apps.accounts.urls')),
