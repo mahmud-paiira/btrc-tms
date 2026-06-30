@@ -20,7 +20,6 @@ export default function HoApprovalManagement() {
   const [remarks, setRemarks] = useState({});
   const [processing, setProcessing] = useState({});
   const [selectedIds, setSelectedIds] = useState(new Set());
-
   const handleSelectAll = (e) => {
     if (e.target.checked) {
       setSelectedIds(new Set(items.map((i) => i.id)));
@@ -187,6 +186,12 @@ export default function HoApprovalManagement() {
     applications: applications.length,
   };
 
+  const detailPath = (type, id) => {
+    if (type === 'application') return `/ho/applications/${id}`;
+    if (type === 'trainer') return `/ho/trainers/${id}`;
+    return `/ho/assessors/${id}`;
+  };
+
   return (
     <div className="px-4 py-4">
       {/* Header */}
@@ -305,73 +310,61 @@ export default function HoApprovalManagement() {
             </div>
           ) : (
             <div className="table-responsive">
-              <table className="table table-hover align-middle mb-0">
+              <table className="b-table w-100">
                 <thead>
                   <tr>
-                    <th style={{ width: 36, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#475569', borderBottom: '2px solid #e2e8f0', padding: '14px 8px', background: '#f8fafc' }}>
+                    <th>
                       <input type="checkbox" className="form-check-input" onChange={handleSelectAll}
                         checked={items.length > 0 && selectedIds.size === items.length} />
                     </th>
-                    <th style={{ width: 40, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#475569', borderBottom: '2px solid #e2e8f0', padding: '14px 8px', background: '#f8fafc' }}>#</th>
-                    {fields.map((f) => <th key={f.key} style={f.style}>{f.label}</th>)}
-                    <th className="text-center" style={{ width: 220, ...{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#475569', borderBottom: '2px solid #e2e8f0', padding: '14px 20px', background: '#f8fafc' } }}>কার্যক্রম</th>
+                    <th>#</th>
+                    {fields.map((f) => <th key={f.key}>{f.label}</th>)}
+                    <th className="text-center">কার্যক্রম</th>
                   </tr>
                 </thead>
                 <tbody>
                   {items.map((item, idx) => (
-                    <tr key={item.id}>
-                      <td style={{ padding: '14px 8px', borderBottom: '1px solid #f1f5f9' }}>
+                    <tr key={item.id} onClick={() => navigate(detailPath(type, item.id))}>
+                      <td onClick={e => e.stopPropagation()}>
                         <input type="checkbox" className="form-check-input"
                           checked={selectedIds.has(item.id)}
                           onChange={() => handleSelectOne(item.id)} />
                       </td>
-                      <td style={{ padding: '14px 8px', fontSize: 14, color: '#64748b', borderBottom: '1px solid #f1f5f9' }}>
-                        {idx + 1}
-                      </td>
+                      <td>{idx + 1}</td>
                       {fields.map((f) => (
-                        <td key={f.key} style={{ padding: '14px 20px', fontSize: 14, color: '#334155', borderBottom: '1px solid #f1f5f9' }}>
+                        <td key={f.key}>
                           {f.key === 'application_no' ? (
                             <button className="btn btn-link btn-sm p-0 text-start fw-semibold"
                               style={{ color: '#2563eb', textDecoration: 'none' }}
-                              onClick={() => navigate(`/ho/applications/${item.id}`)}>
+                              onClick={(e) => { e.stopPropagation(); navigate(`/ho/applications/${item.id}`); }}>
                               {item[f.key] || '—'}
                             </button>
                           ) : f.render ? f.render(item) : item[f.key] || '—'}
                         </td>
                       ))}
-                      <td style={{ padding: '10px 20px', borderBottom: '1px solid #f1f5f9' }}>
-                        <div className="d-flex flex-column gap-1">
-                          <div className="d-flex gap-1">
-                            <button className="btn btn-sm d-flex align-items-center gap-1"
-                              style={{
-                                flex: 1, background: '#10b981', color: '#fff', border: 'none',
-                                borderRadius: 8, fontSize: 13, fontWeight: 600, padding: '6px 12px',
-                              }}
-                              onClick={() => handleAction(type, item.id, 'approve')}
-                              disabled={processing[`${type}_${item.id}`]}>
-                              {processing[`${type}_${item.id}`] ? (
-                                <span className="spinner-border spinner-border-sm" style={{ width: 14, height: 14 }} />
-                              ) : (
-                                <i className="bi bi-check-lg"></i>
-                              )}
-                              অনুমোদন
-                            </button>
-                            <button className="btn btn-sm d-flex align-items-center gap-1"
-                              style={{
-                                flex: 1, background: '#fee2e2', color: '#dc2626', border: 'none',
-                                borderRadius: 8, fontSize: 13, fontWeight: 600, padding: '6px 12px',
-                              }}
-                              onClick={() => handleAction(type, item.id, 'reject')}
-                              disabled={processing[`${type}_${item.id}`]}>
-                              <i className="bi bi-x-lg"></i>
-                              বাতিল
-                            </button>
-                          </div>
-                          <input className="form-control form-control-sm"
-                            style={{ borderRadius: 8, fontSize: 12, border: '1px solid #e2e8f0', background: '#f8fafc' }}
-                            placeholder={type === 'application' ? 'মন্তব্য (বাতিলের জন্য আবশ্যক)...' : 'মন্তব্য (ঐচ্ছিক)...'}
-                            value={remarks[item.id] || ''}
-                            onChange={(e) => setRemarks((p) => ({ ...p, [item.id]: e.target.value }))} />
+                      <td className="act-col" onClick={e => e.stopPropagation()}>
+                        <div className="dropdown act-dropdown">
+                          <button className="dropdown-toggle" data-bs-toggle="dropdown" type="button" data-bs-strategy="fixed">
+                            <i className="bi bi-three-dots-vertical"></i>
+                          </button>
+                          <ul className="dropdown-menu dropdown-menu-end">
+                            <li><button className="dropdown-item text-primary" onClick={() => navigate(detailPath(type, item.id))}><i className="bi bi-eye me-2"></i>বিস্তারিত</button></li>
+                            <li><hr className="dropdown-divider my-1" /></li>
+                            <li><button className="dropdown-item text-success" onClick={() => handleAction(type, item.id, 'approve')} disabled={processing[`${type}_${item.id}`]}>
+                              {processing[`${type}_${item.id}`] ? <span className="spinner-border spinner-border-sm me-2" /> : <i className="bi bi-check-lg me-2"></i>}অনুমোদন
+                            </button></li>
+                            <li><button className="dropdown-item text-danger" onClick={() => handleAction(type, item.id, 'reject')} disabled={processing[`${type}_${item.id}`]}>
+                              <i className="bi bi-x-lg me-2"></i>বাতিল
+                            </button></li>
+                            <li><hr className="dropdown-divider my-1" /></li>
+                            <li>
+                              <input className="form-control form-control-sm border-0 ps-3 pe-3"
+                                style={{ minWidth: 200 }}
+                                placeholder={type === 'application' ? 'মন্তব্য (বাতিলের জন্য আবশ্যক)...' : 'মন্তব্য (ঐচ্ছিক)...'}
+                                value={remarks[item.id] || ''}
+                                onChange={(e) => setRemarks((p) => ({ ...p, [item.id]: e.target.value }))} />
+                            </li>
+                          </ul>
                         </div>
                       </td>
                     </tr>
@@ -388,19 +381,19 @@ export default function HoApprovalManagement() {
 
 const TAB_FIELDS = {
   trainers: [
-    { key: 'trainer_no', label: 'আইডি', style: { width: 80 } },
+    { key: 'trainer_no', label: 'আইডি' },
     { key: 'name', label: 'নাম', render: (t) => t.user?.full_name_bn || t.user?.email || '—' },
     { key: 'phone', label: 'মোবাইল', render: (t) => t.user?.phone || '—' },
     { key: 'expertise_area', label: 'দক্ষতা' },
   ],
   assessors: [
-    { key: 'assessor_no', label: 'আইডি', style: { width: 80 } },
+    { key: 'assessor_no', label: 'আইডি' },
     { key: 'name', label: 'নাম', render: (a) => a.user?.full_name_bn || a.user?.email || '—' },
     { key: 'phone', label: 'মোবাইল', render: (a) => a.user?.phone || '—' },
     { key: 'expertise_area', label: 'দক্ষতা' },
   ],
   applications: [
-    { key: 'application_no', label: 'আবেদন নং', style: { width: 110 } },
+    { key: 'application_no', label: 'আবেদন নং' },
     { key: 'name_bn', label: 'নাম' },
     { key: 'nid', label: 'এনআইডি' },
     { key: 'phone', label: 'মোবাইল' },

@@ -6,8 +6,6 @@ import BanglaInput from '../../components/common/BanglaInput';
 
 const TYPE_MAP = { driver: 'ড্রাইভার', mechanic: 'মেকানিক', supervisor: 'সুপারভাইজার' };
 const STATUS_MAP = { draft: 'খসড়া', active: 'সক্রিয়', completed: 'সমাপ্ত' };
-const STATUS_BG = { draft: 'secondary', active: 'success', completed: 'info' };
-
 const STEP_LABELS = ['বেসিক তথ্য', 'কনফিগারেশন', 'বিল আইটেম', 'অধ্যায়', 'পূর্বশর্ত'];
 
 const DURATION_UNITS = [
@@ -307,7 +305,6 @@ export default function HoCourseManagement() {
   const [editCourse, setEditCourse] = useState(null);
   const [selectedIds, setSelectedIds] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
-
   const fetchCourses = useCallback(async () => {
     setLoading(true);
     try {
@@ -395,10 +392,10 @@ export default function HoCourseManagement() {
             <div className={loading ? 'card-body text-center py-5' : 'card-body p-0'}>
               {loading ? <div className="spinner-border text-primary" /> : (
                 <div className="table-responsive">
-                  <table className="table table-hover align-middle mb-0">
-                    <thead className="table-dark">
+                  <table className="b-table w-100">
+                    <thead>
                       <tr>
-                        <th style={{ width: 36 }}>
+                        <th>
                           <input type="checkbox" className="form-check-input" checked={selectAll} onChange={handleSelectAll} />
                         </th>
                         <th>কোড</th><th>নাম (বাংলা)</th><th>মেয়াদ</th><th>প্রকল্প</th><th>স্পনসর</th><th>বিবরণ</th><th>স্ট্যাটাস</th><th className="text-center">কার্যক্রম</th>
@@ -407,44 +404,57 @@ export default function HoCourseManagement() {
                     <tbody>
                       {courses.length === 0 ? <tr><td colSpan={9} className="text-center text-muted py-4">কোন কোর্স পাওয়া যায়নি</td></tr>
                       : courses.map((c) => (
-                        <tr key={c.id} className={selectedIds.includes(c.id) ? 'table-active' : ''}>
-                          <td>
-                            <input type="checkbox" className="form-check-input"
-                              checked={selectedIds.includes(c.id)} onChange={() => handleSelectOne(c.id)} />
-                          </td>
-                          <td><strong>{c.code}</strong></td>
-                          <td><button className="btn btn-link btn-sm p-0 text-decoration-none fw-semibold" onClick={() => navigate('/ho/courses/' + c.id)}>{c.name_bn}</button></td>
-                          <td>
-                            {c.duration_value ? (
-                              <>{c.duration_value} {c.duration_unit === 'days' ? 'দিন' : c.duration_unit === 'weeks' ? 'সপ্তাহ' : 'মাস'}</>
-                            ) : (
-                              c.duration_months ? <>{c.duration_months} মাস</> : <span className="text-muted">—</span>
-                            )}
-                          </td>
-                          <td>{c.project_name || '—'}</td>
-                          <td>{c.project_sponsor || '—'}</td>
-                          <td>{c.description ? c.description.slice(0, 60) + (c.description.length > 60 ? '…' : '') : '—'}</td>
-                          <td><span className={`badge bg-${STATUS_BG[c.status]}`}>{c.status_display || STATUS_MAP[c.status]}</span></td>
-                          <td><div className="d-flex gap-1 justify-content-center">
-                            <button className="btn btn-sm btn-outline-info" onClick={() => navigate('/ho/courses/' + c.id)} title="বিস্তারিত"><i className="bi bi-eye"></i></button>
-                            <button className="btn btn-sm btn-outline-primary" onClick={async () => {
-                              try {
-                                const { data } = await hoService.getCourse(c.id);
-                                setEditCourse(data);
-                                setShowForm(true);
-                              } catch { toast.error('কোর্স ডেটা লোড করতে ব্যর্থ'); }
-                            }} title="সম্পাদনা"><i className="bi bi-pencil"></i></button>
-                            <button className={`btn btn-sm ${c.status === 'active' ? 'btn-outline-warning' : 'btn-outline-success'}`} onClick={() => handleToggle(c)} title={c.status === 'active' ? 'নিষ্ক্রিয় করুন' : 'সক্রিয় করুন'}><i className={`bi ${c.status === 'active' ? 'bi-pause-circle' : 'bi-play-circle'}`}></i></button>
-                            <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(c)} title="মুছুন"><i className="bi bi-trash"></i></button>
-                          </div></td>
-                        </tr>
-                      ))}
+                          <tr key={c.id}>
+                            <td>
+                              <input type="checkbox" className="form-check-input"
+                                checked={selectedIds.includes(c.id)} onChange={() => handleSelectOne(c.id)} />
+                            </td>
+                            <td><strong>{c.code}</strong></td>
+                            <td><button className="btn btn-link btn-sm p-0 text-decoration-none fw-semibold" onClick={() => navigate('/ho/courses/' + c.id)}>{c.name_bn}</button></td>
+                            <td>
+                              {c.duration_value ? (
+                                <>{c.duration_value} {c.duration_unit === 'days' ? 'দিন' : c.duration_unit === 'weeks' ? 'সপ্তাহ' : 'মাস'}</>
+                              ) : (
+                                c.duration_months ? <>{c.duration_months} মাস</> : <span className="text-muted">—</span>
+                              )}
+                            </td>
+                            <td>{c.project_name || '—'}</td>
+                            <td>{c.project_sponsor || '—'}</td>
+                            <td>{c.description ? c.description.slice(0, 60) + (c.description.length > 60 ? '…' : '') : '—'}</td>
+                            <td><span className={`status-dot dot-${c.status}`}></span> {c.status_display || STATUS_MAP[c.status]}</td>
+                            <td className="act-col">
+                              <div className="dropdown act-dropdown">
+                                <button className="dropdown-toggle" data-bs-toggle="dropdown" type="button" data-bs-strategy="fixed">
+                                  <i className="bi bi-three-dots-vertical"></i>
+                                </button>
+                                <ul className="dropdown-menu dropdown-menu-end">
+                                  <li><button className="dropdown-item text-primary" onClick={() => navigate('/ho/courses/' + c.id)}><i className="bi bi-eye me-2"></i>বিস্তারিত</button></li>
+                                  <li><hr className="dropdown-divider my-1" /></li>
+                                  <li><button className="dropdown-item text-primary" onClick={async () => {
+                                    try {
+                                      const { data } = await hoService.getCourse(c.id);
+                                      setEditCourse(data);
+                                      setShowForm(true);
+                                    } catch { toast.error('কোর্স ডেটা লোড করতে ব্যর্থ'); }
+                                  }}><i className="bi bi-pencil me-2"></i>সম্পাদনা</button></li>
+                                  <li><button className={`dropdown-item ${c.status === 'active' ? 'text-warning' : 'text-success'}`} onClick={() => handleToggle(c)}>
+                                    <i className={`bi ${c.status === 'active' ? 'bi-pause-circle' : 'bi-play-circle'} me-2`}></i>{c.status === 'active' ? 'নিষ্ক্রিয়' : 'সক্রিয়'}
+                                  </button></li>
+                                  <li><hr className="dropdown-divider my-1" /></li>
+                                  <li><button className="dropdown-item text-danger" onClick={() => handleDelete(c)}><i className="bi bi-trash me-2"></i>মুছুন</button></li>
+                                </ul>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
                     </tbody>
                   </table>
                 </div>
               )}
             </div>
-            <div className="card-footer text-muted small">মোট {courses.length} টি কোর্স</div>
+            <div className="card-footer b-pagination">
+              <span className="page-info">মোট {courses.length} টি কোর্স</span>
+            </div>
           </div>
         </div>
       </div>

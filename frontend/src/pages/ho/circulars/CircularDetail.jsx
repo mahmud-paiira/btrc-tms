@@ -113,9 +113,8 @@ export default function CircularDetail() {
             }}>
             <i className="bi bi-filetype-pdf me-1"></i>পিডিএফ
           </button>
-          <span className={`badge bg-${STATUS_BG[circular.status]} fs-6 px-3 py-2`}>
+<span className={`status-dot dot-${STATUS_BG[circular.status]}`} />
             {circular.status_display}
-          </span>
         </div>
       </div>
 
@@ -135,32 +134,32 @@ export default function CircularDetail() {
             <div className="row g-4">
               <div className="col-md-6">
                 <h6 className="fw-bold mb-3 text-muted text-uppercase small">সার্কুলার তথ্য</h6>
-                <table className="table table-bordered align-middle">
+                <table className="b-detail-table align-middle">
                   <tbody>
-                    <tr><th className="bg-light" style={{ width: 160 }}>শিরোনাম (বাংলা)</th><td>{circular.title_bn}</td></tr>
-                    <tr><th className="bg-light">শিরোনাম (ইংরেজি)</th><td>{circular.title_en}</td></tr>
-                    <tr><th className="bg-light">সার্কুলার নম্বর</th><td>{circular.circular_no || '-'}</td></tr>
-                    <tr><th className="bg-light">সংস্করণ</th><td>{circular.edition}</td></tr>
-                    <tr><th className="bg-light">কোর্স</th><td>{circular.course_code} - {circular.course_name}</td></tr>
-                    <tr><th className="bg-light">কোর্সের ধরণ</th><td>{circular.course_type || '-'}</td></tr>
-                    <tr><th className="bg-light">মেয়াদ</th><td>{circular.course_duration ? `${circular.course_duration} মাস` : '-'}</td></tr>
-                    <tr><th className="bg-light">মোট আসন</th><td>{circular.total_seats}</td></tr>
-                    <tr><th className="bg-light">অবশিষ্ট আসন</th><td>{circular.remaining_seats}</td></tr>
-                    <tr><th className="bg-light">কোর্স ফি</th><td>{circular.fee ? `৳${circular.fee}` : 'ডিফল্ট'}</td></tr>
+                    <tr><th>শিরোনাম (বাংলা)</th><td>{circular.title_bn}</td></tr>
+                    <tr><th>শিরোনাম (ইংরেজি)</th><td>{circular.title_en}</td></tr>
+                    <tr><th>সার্কুলার নম্বর</th><td>{circular.circular_no || '-'}</td></tr>
+                    <tr><th>সংস্করণ</th><td>{circular.edition}</td></tr>
+                    <tr><th>কোর্স</th><td>{circular.course_code} - {circular.course_name}</td></tr>
+                    <tr><th>কোর্সের ধরণ</th><td>{circular.course_type || '-'}</td></tr>
+                    <tr><th>মেয়াদ</th><td>{circular.course_duration ? `${circular.course_duration} মাস` : '-'}</td></tr>
+                    <tr><th>মোট আসন</th><td>{circular.total_seats}</td></tr>
+                    <tr><th>অবশিষ্ট আসন</th><td>{circular.remaining_seats}</td></tr>
+                    <tr><th>কোর্স ফি</th><td>{circular.fee ? `৳${circular.fee}` : 'ডিফল্ট'}</td></tr>
                   </tbody>
                 </table>
               </div>
               <div className="col-md-6">
                 <h6 className="fw-bold mb-3 text-muted text-uppercase small">সময়সীমা</h6>
-                <table className="table table-bordered align-middle">
+                <table className="b-detail-table align-middle">
                   <tbody>
-                    <tr><th className="bg-light" style={{ width: 160 }}>আবেদন শুরুর তারিখ</th><td>{circular.application_start_date}</td></tr>
-                    <tr><th className="bg-light">আবেদনের শেষ তারিখ</th><td>{circular.application_end_date}</td></tr>
-                    <tr><th className="bg-light">প্রশিক্ষণ শুরুর তারিখ</th><td>{circular.training_start_date}</td></tr>
-                    <tr><th className="bg-light">প্রশিক্ষণ শেষের তারিখ</th><td>{circular.training_end_date}</td></tr>
-                    <tr><th className="bg-light">উপযুক্ত কেন্দ্র</th><td>{circular.all_centers ? 'সব কেন্দ্র' : (circular.eligible_centers || []).map(c => `${c.code} - ${c.name_bn}`).join(', ')}</td></tr>
-                    <tr><th className="bg-light">তৈরি করেছেন</th><td>{circular.created_by_name || '-'}</td></tr>
-                    <tr><th className="bg-light">প্রকাশের তারিখ</th><td>{circular.published_at || '-'}</td></tr>
+                    <tr><th>আবেদন শুরুর তারিখ</th><td>{circular.application_start_date}</td></tr>
+                    <tr><th>আবেদনের শেষ তারিখ</th><td>{circular.application_end_date}</td></tr>
+                    <tr><th>প্রশিক্ষণ শুরুর তারিখ</th><td>{circular.training_start_date}</td></tr>
+                    <tr><th>প্রশিক্ষণ শেষের তারিখ</th><td>{circular.training_end_date}</td></tr>
+                    <tr><th>উপযুক্ত কেন্দ্র</th><td>{circular.all_centers ? 'সব কেন্দ্র' : (circular.eligible_centers || []).map(c => `${c.code} - ${c.name_bn}`).join(', ')}</td></tr>
+                    <tr><th>তৈরি করেছেন</th><td>{circular.created_by_name || '-'}</td></tr>
+                    <tr><th>প্রকাশের তারিখ</th><td>{circular.published_at || '-'}</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -208,8 +207,8 @@ export default function CircularDetail() {
                 </div>
               </div>
               <div className="table-responsive" style={{ maxHeight: 500, overflowY: 'auto' }}>
-                <table className="table table-hover table-bordered align-middle">
-                  <thead className="table-light sticky-top">
+              <table className="b-table align-middle">
+                  <thead className="sticky-top">
                     <tr>
                       <th>আবেদন নং</th><th>নাম</th><th>এনআইডি</th><th>ফোন</th><th>তারিখ</th><th>অবস্থা</th><th>অ্যাকশন</th>
                     </tr>
@@ -226,7 +225,7 @@ export default function CircularDetail() {
                         <td>{a.nid}</td>
                         <td>{a.phone || '-'}</td>
                         <td>{a.applied_at?.slice(0, 10)}</td>
-                        <td><span className={`badge bg-${APP_STATUS_BG[a.status]}`}>{a.status}</span></td>
+                        <td><span className={`status-dot dot-${APP_STATUS_BG[a.status]}`} />{a.status}</td>
                         <td>
                           {a.status === 'pending' && (
                             <div className="d-flex gap-1">
@@ -276,9 +275,7 @@ export default function CircularDetail() {
                       <h6 className="fw-bold mb-2">আবেদনের অবস্থা</h6>
                       <div className="d-flex flex-wrap gap-2">
                         {Object.entries(analytics.status_breakdown).map(([k, v]) => (
-                          <span key={k} className={`badge bg-${APP_STATUS_BG[k] || 'secondary'} fs-6 px-3 py-2`}>
-                            {k}: {v}
-                          </span>
+                          <span key={k}><span className={`status-dot dot-${APP_STATUS_BG[k] || 'secondary'}`}></span>{k}: {v}</span>
                         ))}
                       </div>
                     </div>
@@ -290,7 +287,7 @@ export default function CircularDetail() {
                         <h6 className="fw-bold mb-2">লিঙ্গ অনুযায়ী</h6>
                         <div className="d-flex flex-wrap gap-2">
                           {Object.entries(analytics.applications_by_gender).map(([k, v]) => (
-                            <span key={k} className="badge bg-info fs-6 px-3 py-2">{k === 'male' ? 'পুরুষ' : k === 'female' ? 'মহিলা' : k}: {v}</span>
+                            <span key={k}><span className="status-dot dot-info"></span>{k === 'male' ? 'পুরুষ' : k === 'female' ? 'মহিলা' : k}: {v}</span>
                           ))}
                         </div>
                       </div>
@@ -299,8 +296,8 @@ export default function CircularDetail() {
                     {analytics.applications_by_age_group && (
                       <div className="col-md-4">
                         <h6 className="fw-bold mb-2">বয়স গ্রুপ</h6>
-                        <table className="table table-sm table-bordered">
-                          <thead className="table-light"><tr><th>গ্রুপ</th><th>সংখ্যা</th></tr></thead>
+                        <table className="b-detail-table align-middle">
+                          <thead><tr><th>গ্রুপ</th><th>সংখ্যা</th></tr></thead>
                           <tbody>
                             {Object.entries(analytics.applications_by_age_group).map(([k, v]) => (
                               <tr key={k}><td>{k}</td><td className="fw-bold">{v}</td></tr>

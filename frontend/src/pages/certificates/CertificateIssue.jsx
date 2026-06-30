@@ -232,8 +232,8 @@ export default function CertificateIssue() {
                     </h6>
                   </div>
                   <div className="table-responsive">
-                    <table className="table table-hover table-bordered mb-0 align-middle">
-                      <thead className="table-success">
+                    <table className="b-form-table w-100">
+                      <thead>
                         <tr>
                           <th style={{ width: 40 }} className="text-center">
                             <input

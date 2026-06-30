@@ -5,56 +5,6 @@ import api from '../../../services/api';
 import hoService from '../../../services/hoService';
 import CircularForm from './CircularForm';
 
-const STATUS_BG = { draft: 'secondary', published: 'success', closed: 'danger', completed: 'info' };
-
-function ActionMenu({ children }) {
-  const [open, setOpen] = useState(false);
-  const [pos, setPos] = useState({ top: 0, right: 0 });
-  const ref = useRef(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [open]);
-
-  const toggle = (e) => {
-    e.stopPropagation();
-    const rect = e.currentTarget.getBoundingClientRect();
-    setPos({ top: rect.bottom + 2, right: window.innerWidth - rect.right + 4 });
-    setOpen(o => !o);
-  };
-
-  const wrapChild = (child) => {
-    if (!child) return child;
-    const originalOnClick = child.props?.onClick;
-    if (!originalOnClick) return child;
-    return React.cloneElement(child, {
-      onClick: (e) => { originalOnClick(e); setOpen(false); },
-    });
-  };
-
-  return (
-    <span ref={ref} style={{ position: 'relative' }}>
-      <button className="btn btn-sm btn-outline-secondary border-0" type="button"
-        onClick={toggle}>
-        <i className="bi bi-three-dots-vertical"></i>
-      </button>
-      {open && (
-        <div style={{
-          position: 'fixed', top: pos.top, right: pos.right, zIndex: 1050,
-          minWidth: 160, fontSize: 13, left: 'auto',
-        }} className="dropdown-menu show">
-          {React.Children.map(children, wrapChild)}
-        </div>
-      )}
-    </span>
-  );
-}
-
 export default function CircularList() {
   const navigate = useNavigate();
   const [items, setItems] = useState([]);
@@ -269,8 +219,8 @@ export default function CircularList() {
 
       <div className="card shadow-sm table-card" style={{ borderRadius: 12, border: 'none' }}>
         <div className="table-responsive">
-          <table className="table table-hover align-middle mb-0" style={{ fontSize: 13 }}>
-            <thead className="table-light">
+          <table className="b-table w-100">
+            <thead>
               <tr>
                 <th style={{ width: 36 }}>
                   <input type="checkbox" className="form-check-input" onChange={handleSelectAll}
@@ -278,10 +228,10 @@ export default function CircularList() {
                 </th>
                 <th>শিরোনাম</th>
                 <th className="d-none d-lg-table-cell">কেন্দ্র</th>
-                <th className="text-center" style={{ width: 80 }}>আসন</th>
+                <th className="text-center">আসন</th>
                 <th className="d-none d-md-table-cell">আবেদনের তারিখ</th>
                 <th className="d-none d-xl-table-cell">প্রশিক্ষণ শুরুর তারিখ</th>
-                <th style={{ width: 90 }}>অবস্থা</th>
+                <th>অবস্থা</th>
                 <th className="text-center" style={{ width: 50 }}>অ্যাকশন</th>
               </tr>
             </thead>
@@ -291,45 +241,51 @@ export default function CircularList() {
               ) : items.length === 0 ? (
                 <tr><td colSpan={8} className="text-center text-secondary py-4">কোনো সার্কুলার পাওয়া যায়নি</td></tr>
               ) : (
-                items.map((c, idx) => (
-                  <tr key={c.id} className={selectedIds.has(c.id) ? 'table-active' : ''}>
+                items.map(c => (
+                  <tr key={c.id}>
                     <td><input type="checkbox" className="form-check-input" checked={selectedIds.has(c.id)} onChange={() => handleSelectOne(c.id)} /></td>
-                    <td className="fw-semibold" style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 120 }}>{c.title_bn}</td>
-                    <td className="d-none d-lg-table-cell" style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 100 }}>
+                    <td className="fw-semibold">{c.title_bn}</td>
+                    <td className="d-none d-lg-table-cell">
                       {c.all_centers ? 'সব কেন্দ্র' : (c.eligible_centers || []).map(ec => ec.code).join(', ')}
                     </td>
-                    <td className="text-center" style={{ whiteSpace: 'nowrap' }}>
+                    <td className="text-center">
                       <span className="fw-bold">{c.remaining_seats}</span><small className="text-muted">/{c.total_seats}</small>
                     </td>
-                    <td className="d-none d-md-table-cell" style={{ fontSize: 12, whiteSpace: 'nowrap' }}>
+                    <td className="d-none d-md-table-cell">
                       {c.application_start_date} → {c.application_end_date}
                     </td>
-                    <td className="d-none d-xl-table-cell" style={{ fontSize: 12, whiteSpace: 'nowrap' }}>
+                    <td className="d-none d-xl-table-cell">
                       {c.training_start_date || '-'}
                     </td>
-                    <td style={{ whiteSpace: 'nowrap' }}>
-                      <span className={`badge bg-${STATUS_BG[c.status] || 'secondary'}`}>{c.status_display || c.status}</span>
+                    <td>
+                      <span className={`status-dot dot-${c.status}`}></span>
+                      <span style={{fontSize:13,color:'#334155'}}>{c.status_display || c.status}</span>
                     </td>
-                    <td className="text-center" style={{ width: 50 }}>
-                      <ActionMenu>
-                        <li><button className="dropdown-item" onClick={() => navigate(`/ho/circulars/${c.id}`)}><i className="bi bi-eye me-2"></i>বিস্তারিত</button></li>
-                        <li><button className="dropdown-item" onClick={() => { const t = localStorage.getItem('access_token'); window.open(`/api/ho/circulars/${c.id}/print_circular/?token=${t}`, '_blank'); }}><i className="bi bi-filetype-pdf me-2"></i>পিডিএফ প্রিন্ট</button></li>
-                        {c.status === 'draft' && (
-                          <>
-                            <li><hr className="dropdown-divider" /></li>
-                            <li><button className="dropdown-item" onClick={() => openEdit(c)}><i className="bi bi-pencil me-2"></i>সম্পাদনা</button></li>
-                            <li><button className="dropdown-item text-success" onClick={() => handlePublish(c.id)}><i className="bi bi-send me-2"></i>প্রকাশ</button></li>
-                            <li><button className="dropdown-item text-danger" onClick={() => handleDelete(c.id)}><i className="bi bi-trash me-2"></i>মুছুন</button></li>
-                          </>
-                        )}
-                        {c.status === 'published' && (
-                          <>
-                            <li><hr className="dropdown-divider" /></li>
-                            <li><button className="dropdown-item text-warning" onClick={() => handleClose(c.id)}><i className="bi bi-stop me-2"></i>বন্ধ করুন</button></li>
-                            <li><button className="dropdown-item text-secondary" onClick={() => handleUnpublish(c.id)}><i className="bi bi-arrow-return-left me-2"></i>খসড়ায় ফেরত</button></li>
-                          </>
-                        )}
-                      </ActionMenu>
+                    <td className="act-col">
+                      <div className="dropdown act-dropdown">
+                        <button className="dropdown-toggle" data-bs-toggle="dropdown" type="button" data-bs-strategy="fixed">
+                          <i className="bi bi-three-dots-vertical"></i>
+                        </button>
+                        <ul className="dropdown-menu dropdown-menu-end">
+                          <li><button className="dropdown-item text-primary" onClick={() => { const t = localStorage.getItem('access_token'); window.open(`/api/ho/circulars/${c.id}/print_circular/?token=${t}`, '_blank'); }}><i className="bi bi-filetype-pdf me-2"></i>পিডিএফ প্রিন্ট</button></li>
+                          <li><button className="dropdown-item text-primary" onClick={() => navigate(`/ho/circulars/${c.id}`)}><i className="bi bi-eye me-2"></i>বিস্তারিত</button></li>
+                          {c.status === 'draft' && (
+                            <>
+                              <li><hr className="dropdown-divider my-1" /></li>
+                              <li><button className="dropdown-item text-primary" onClick={() => openEdit(c)}><i className="bi bi-pencil me-2"></i>সম্পাদনা</button></li>
+                              <li><button className="dropdown-item text-success" onClick={() => handlePublish(c.id)}><i className="bi bi-send me-2"></i>প্রকাশ</button></li>
+                              <li><button className="dropdown-item text-danger" onClick={() => handleDelete(c.id)}><i className="bi bi-trash me-2"></i>মুছুন</button></li>
+                            </>
+                          )}
+                          {c.status === 'published' && (
+                            <>
+                              <li><hr className="dropdown-divider my-1" /></li>
+                              <li><button className="dropdown-item text-warning" onClick={() => handleClose(c.id)}><i className="bi bi-stop me-2"></i>বন্ধ করুন</button></li>
+                              <li><button className="dropdown-item text-secondary" onClick={() => handleUnpublish(c.id)}><i className="bi bi-arrow-return-left me-2"></i>খসড়ায় ফেরত</button></li>
+                            </>
+                          )}
+                        </ul>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -337,22 +293,19 @@ export default function CircularList() {
             </tbody>
           </table>
         </div>
-        <div className="card-footer bg-white d-flex justify-content-between align-items-center py-2 px-3"
-          style={{ borderRadius: '0 0 12px 12px' }}>
-          <span className="text-muted small">মোট: {totalCount}টি সার্কুলার</span>
-          {totalPages > 1 && (
-            <nav>
-              <ul className="pagination pagination-sm mb-0">
-                <li className={`page-item ${page <= 1 ? 'disabled' : ''}`}>
-                  <button className="page-link" onClick={() => setPage(p => Math.max(1, p - 1))}>পূর্ববর্তী</button>
-                </li>
-                <li className={`page-item ${page >= totalPages ? 'disabled' : ''}`}>
-                  <button className="page-link" onClick={() => setPage(p => Math.min(totalPages, p + 1))}>পরবর্তী</button>
-                </li>
-              </ul>
-            </nav>
-          )}
-        </div>
+        {totalPages > 1 && (
+          <div className="b-pagination">
+            <span className="page-info">দেখানো হচ্ছে {Math.min((page-1)*pageSize+1, totalCount)}-{Math.min(page*pageSize, totalCount)} এর {totalCount}</span>
+            <div className="d-flex gap-1">
+              <button className="page-btn" disabled={page <= 1} onClick={() => setPage(page - 1)}>
+                <i className="bi bi-chevron-left"></i>
+              </button>
+              <button className="page-btn" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>
+                <i className="bi bi-chevron-right"></i>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {showForm && (

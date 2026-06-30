@@ -6,9 +6,6 @@ import hoService from '../../services/hoService';
 import TrainerApprovalModal from './TrainerApprovalModal';
 import TrainerMapForm from './TrainerMapForm';
 
-const STATUS_BG = { pending: 'warning', active: 'success', suspended: 'danger' };
-const APPROVAL_BG = { pending: 'warning', approved: 'success', rejected: 'danger' };
-
 const TABS = [
   { key: 'all', label: 'সকল প্রশিক্ষক' },
   { key: 'pending', label: 'অনুমোদন অপেক্ষা' },
@@ -278,23 +275,23 @@ export default function TrainerList() {
 
       <div className="card shadow-sm table-card" style={{ borderRadius: 12, border: 'none' }}>
         <div className="table-responsive">
-          <table className="table table-hover align-middle mb-0" style={{ fontSize: 13 }}>
-            <thead className="table-light">
+          <table className="b-table w-100">
+            <thead>
               <tr>
-                <th style={{ width: 36 }}>
+                <th>
                   <input type="checkbox" className="form-check-input" onChange={handleSelectAll}
                     checked={trainers.length > 0 && selectedIds.size === trainers.length} />
                 </th>
-                <th style={{ width: 40 }}>ক্রমিক</th>
-                <th className="d-none d-lg-table-cell" style={{ width: 50 }}>ছবি</th>
+                <th>ক্রমিক</th>
+                <th className="d-none d-lg-table-cell">ছবি</th>
                 <th>নাম (বাংলা)</th>
                 <th className="d-none d-xl-table-cell">নাম (ইংরেজি)</th>
                 <th className="d-none d-lg-table-cell">ইমেইল</th>
                 <th className="d-none d-md-table-cell">ফোন</th>
-                <th className="d-none d-xl-table-cell" style={{ width: 70 }}>অভিজ্ঞতা</th>
+                <th className="d-none d-xl-table-cell">অভিজ্ঞতা</th>
                 <th className="d-none d-lg-table-cell">কেন্দ্র</th>
-                <th style={{ width: 100 }}>স্ট্যাটাস</th>
-                <th className="text-center" style={{ width: 50 }}>অ্যাকশন</th>
+                <th>স্ট্যাটাস</th>
+                <th className="text-center">অ্যাকশন</th>
               </tr>
             </thead>
             <tbody>
@@ -304,9 +301,9 @@ export default function TrainerList() {
                 <tr><td colSpan={11} className="text-center text-secondary py-4">কোনো প্রশিক্ষক পাওয়া যায়নি</td></tr>
               ) : (
                 trainers.map((t, idx) => (
-                  <tr key={t.id} className={selectedIds.has(t.id) ? 'table-active' : ''}>
+                  <tr key={t.id}>
                     <td><input type="checkbox" className="form-check-input" checked={selectedIds.has(t.id)} onChange={() => handleSelectOne(t.id)} /></td>
-                    <td className="text-secondary" style={{ fontSize: 11 }}>{(idx + 1)}</td>
+                    <td className="text-secondary">{(idx + 1)}</td>
                     <td className="d-none d-lg-table-cell">
                       {t.profile_image ? (
                         <img src={imageUrl(t.profile_image)} alt="ছবি" className="rounded-circle"
@@ -319,30 +316,36 @@ export default function TrainerList() {
                         </div>
                       )}
                     </td>
-                    <td className="fw-semibold" style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 120 }}>{t.user_full_name_bn || t.user_email || '-'}</td>
-                    <td className="d-none d-xl-table-cell" style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 100 }}>{t.user_full_name_en || '-'}</td>
-                    <td className="d-none d-lg-table-cell" style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 120 }}>{t.user_email || '-'}</td>
-                    <td className="d-none d-md-table-cell" style={{ whiteSpace: 'nowrap' }}>{t.user_phone || '-'}</td>
-                    <td className="d-none d-xl-table-cell" style={{ whiteSpace: 'nowrap' }}>{t.years_of_experience ? `${t.years_of_experience} বছর` : '-'}</td>
-                    <td className="d-none d-lg-table-cell" style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 100 }}>{t.center_names || '-'}</td>
-                    <td style={{ fontSize: 10, whiteSpace: 'nowrap' }}>
-                      <span className={`badge bg-${STATUS_BG[t.status] || 'secondary'} d-block mb-1`} style={{ fontSize: 10 }}>{t.status_display || t.status}</span>
-                      <span className={`badge bg-${APPROVAL_BG[t.approval_status] || 'secondary'} d-block`} style={{ fontSize: 10 }}>{t.approval_display || t.approval_status}</span>
+                    <td className="fw-semibold">{t.user_full_name_bn || t.user_email || '-'}</td>
+                    <td className="d-none d-xl-table-cell">{t.user_full_name_en || '-'}</td>
+                    <td className="d-none d-lg-table-cell">{t.user_email || '-'}</td>
+                    <td className="d-none d-md-table-cell">{t.user_phone || '-'}</td>
+                    <td className="d-none d-xl-table-cell">{t.years_of_experience ? `${t.years_of_experience} বছর` : '-'}</td>
+                    <td className="d-none d-lg-table-cell">{t.center_names || '-'}</td>
+                    <td>
+                      <span className={`status-dot dot-${t.status}`}></span>
+                      <span style={{fontSize:13,color:'#334155'}}>{t.status_display || t.status}</span>
+                      <br />
+                      <span className={`status-dot dot-${t.approval_status}`}></span>
+                      <span style={{fontSize:13,color:'#334155'}}>{t.approval_display || t.approval_status}</span>
                     </td>
-                    <td className="text-center" style={{ width: 50 }}>
-                      <div className="dropdown">
-                        <button className="btn btn-sm btn-outline-secondary border-0" data-bs-toggle="dropdown" type="button">
+                    <td className="act-col">
+                      <div className="dropdown act-dropdown">
+                        <button className="dropdown-toggle" data-bs-toggle="dropdown" type="button" data-bs-strategy="fixed">
                           <i className="bi bi-three-dots-vertical"></i>
                         </button>
-                        <ul className="dropdown-menu dropdown-menu-end" style={{ fontSize: 13 }}>
-                          <li><button className="dropdown-item" onClick={() => navigate(`/ho/trainers/${t.id}`)}><i className="bi bi-eye me-2"></i>বিস্তারিত</button></li>
+                        <ul className="dropdown-menu dropdown-menu-end">
+                          <li><button className="dropdown-item text-primary" onClick={() => navigate(`/ho/trainers/${t.id}`)}><i className="bi bi-eye me-2"></i>বিস্তারিত</button></li>
                           <li><button className="dropdown-item text-danger" onClick={() => handleDelete(t.id, t.trainer_no)}><i className="bi bi-trash me-2"></i>মুছুন</button></li>
-                          {t.approval_status === 'pending' && <li><hr className="dropdown-divider" /></li>}
-                          {t.approval_status === 'pending' && <li><button className="dropdown-item text-success" onClick={() => handleApproveReject(t)}><i className="bi bi-check-lg me-2"></i>অনুমোদন</button></li>}
-                          {t.status === 'active' && <li><hr className="dropdown-divider" /></li>}
-                          {t.status === 'active' && <li><button className="dropdown-item text-warning" onClick={() => handleAction(t.id, 'suspend')}><i className="bi bi-pause me-2"></i>স্থগিত</button></li>}
-                          {t.status === 'suspended' && t.approval_status === 'approved' && <li><hr className="dropdown-divider" /></li>}
-                          {t.status === 'suspended' && t.approval_status === 'approved' && <li><button className="dropdown-item text-success" onClick={() => handleAction(t.id, 'activate')}><i className="bi bi-play me-2"></i>সক্রিয়</button></li>}
+                          {t.approval_status === 'pending' && (
+                            <li><button className="dropdown-item text-primary" onClick={() => handleApproveReject(t)}><i className="bi bi-check-lg me-2"></i>অনুমোদন</button></li>
+                          )}
+                          {t.status === 'active' && (
+                            <li><button className="dropdown-item text-warning" onClick={() => handleAction(t.id, 'suspend')}><i className="bi bi-pause me-2"></i>স্থগিত</button></li>
+                          )}
+                          {t.status === 'suspended' && t.approval_status === 'approved' && (
+                            <li><button className="dropdown-item text-success" onClick={() => handleAction(t.id, 'activate')}><i className="bi bi-play me-2"></i>সক্রিয়</button></li>
+                          )}
                         </ul>
                       </div>
                     </td>
@@ -352,20 +355,13 @@ export default function TrainerList() {
             </tbody>
           </table>
         </div>
-        <div className="card-footer bg-white d-flex justify-content-between align-items-center py-2 px-3"
-          style={{ borderRadius: '0 0 12px 12px' }}>
-          <span className="text-muted small">মোট: {totalCount} জন প্রশিক্ষক</span>
+        <div className="b-pagination">
+          <span className="page-info">মোট: {totalCount} জন প্রশিক্ষক</span>
           {Math.ceil(totalCount / pageSize) > 1 && (
-            <nav>
-              <ul className="pagination pagination-sm mb-0">
-                <li className={`page-item ${page <= 1 ? 'disabled' : ''}`}>
-                  <button className="page-link" onClick={() => setPage(p => Math.max(1, p - 1))}>পূর্ববর্তী</button>
-                </li>
-                <li className={`page-item ${page >= Math.ceil(totalCount / pageSize) ? 'disabled' : ''}`}>
-                  <button className="page-link" onClick={() => setPage(p => Math.min(Math.ceil(totalCount / pageSize), p + 1))}>পরবর্তী</button>
-                </li>
-              </ul>
-            </nav>
+            <div>
+              <button className="page-btn" disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}>পূর্ববর্তী</button>
+              <button className="page-btn" disabled={page >= Math.ceil(totalCount / pageSize)} onClick={() => setPage(p => Math.min(Math.ceil(totalCount / pageSize), p + 1))}>পরবর্তী</button>
+            </div>
           )}
         </div>
       </div>

@@ -23,6 +23,7 @@ function getDateKey(d) {
 
 export default function AttendanceModal({
   batchId,
+  batch,
   sessionDate,
   weekPlans,
   summaries,
@@ -57,9 +58,11 @@ export default function AttendanceModal({
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
+      const params = { approval_status: 'approved' };
+      if (batch?.center) params.mapped_center = batch.center;
       const [enrollRes, trainerRes] = await Promise.all([
         attendanceService.getBatchEnrollments(batchId),
-        api.get('/trainers/', { params: { status: 'active' } }),
+        api.get('/trainers/', { params }),
       ]);
       setEnrollments(enrollRes.data.results || enrollRes.data || []);
       setTrainers(trainerRes.data.results || trainerRes.data || []);
@@ -118,7 +121,7 @@ export default function AttendanceModal({
 
   const handleSave = async () => {
     if (!leadTrainer) {
-      toast.warning('দয়া করে প্রধান প্রশিক্ষক নির্বাচন করুন');
+      toast.warning('দয়া করে প্রশিক্ষক নির্বাচন করুন');
       return;
     }
 
@@ -197,7 +200,7 @@ export default function AttendanceModal({
                       </div>
                     </div>
                     <div className="col-md-4">
-                      <label className="form-label fw-bold">প্রধান প্রশিক্ষক</label>
+                      <label className="form-label fw-bold">প্রশিক্ষক</label>
                       <select
                         className="form-select"
                         value={leadTrainer}
@@ -206,7 +209,7 @@ export default function AttendanceModal({
                         <option value="">-- নির্বাচন করুন --</option>
                         {trainers.map((t) => (
                           <option key={t.id} value={t.id}>
-                            {t.user_email || t.trainer_no} - {t.expertise_area}
+                            {t.user_full_name_bn || t.user_email || t.trainer_no}
                           </option>
                         ))}
                       </select>
@@ -230,8 +233,8 @@ export default function AttendanceModal({
 
                 {/* Trainee table */}
                 <div className="table-responsive">
-                  <table className="table table-hover table-bordered mb-0">
-                    <thead className="table-dark">
+                  <table className="b-form-table w-100">
+                    <thead>
                       <tr>
                         <th style={{ width: 40 }}>#</th>
                         <th>প্রশিক্ষণার্থী</th>
@@ -269,13 +272,9 @@ export default function AttendanceModal({
                               </td>
                               <td className="text-center align-middle">
                                 {pct > 0 ? (
-                                  <span
-                                    className={`badge ${isLow ? 'bg-danger' : 'bg-success'} fs-6`}
-                                  >
-                                    {formatPercentage(pct, 'bn')}
-                                  </span>
+                                  <span><span className={`status-dot ${isLow ? 'dot-danger' : 'dot-success'}`}></span> {formatPercentage(pct, 'bn')}</span>
                                 ) : (
-                                  <span className="badge bg-secondary">—</span>
+                                  <span><span className="status-dot dot-secondary"></span> —</span>
                                 )}
                               </td>
                               <td>

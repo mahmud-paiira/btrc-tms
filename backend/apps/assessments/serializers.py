@@ -2,6 +2,21 @@ from rest_framework import serializers
 from .models import Assessment, Reassessment
 
 
+class AssessmentEntrySerializer(serializers.Serializer):
+    trainee = serializers.IntegerField()
+    competency_status = serializers.ChoiceField(
+        choices=['competent', 'not_competent', 'absent'], required=False, default='absent',
+    )
+    marks_obtained = serializers.DecimalField(
+        max_digits=6, decimal_places=2, required=False, default=0,
+    )
+    total_marks = serializers.DecimalField(
+        max_digits=6, decimal_places=2, required=False, default=100,
+    )
+    remarks = serializers.CharField(required=False, allow_blank=True, default='')
+    is_reassessment = serializers.BooleanField(required=False, default=False)
+
+
 class AssessmentSerializer(serializers.ModelSerializer):
     trainee_name = serializers.CharField(
         source='trainee.user.full_name_bn', read_only=True,
@@ -38,20 +53,7 @@ class ConductAssessmentSerializer(serializers.Serializer):
     assessor = serializers.IntegerField(
         required=False, allow_null=True, label='মূল্যায়নকারী',
     )
-    entries = serializers.ListField(
-        child=serializers.DictField(child=serializers.CharField()),
-        label='মূল্যায়ন তালিকা',
-    )
-
-    def validate_entries(self, value):
-        if not value:
-            raise serializers.ValidationError('কমপক্ষে একজন প্রশিক্ষণার্থীর তথ্য দিন')
-
-        for entry in value:
-            if 'trainee' not in entry:
-                raise serializers.ValidationError('প্রতিটি এন্ট্রিতে trainee আবশ্যক')
-
-        return value
+    entries = AssessmentEntrySerializer(many=True, label='মূল্যায়ন তালিকা')
 
     def create(self, validated_data):
         batch_id = validated_data['batch']
@@ -64,7 +66,7 @@ class ConductAssessmentSerializer(serializers.Serializer):
 
         for entry in entries:
             obj, created = Assessment.objects.update_or_create(
-                trainee_id=int(entry['trainee']),
+                trainee_id=entry['trainee'],
                 batch_id=int(batch_id),
                 assessment_type=assessment_type,
                 is_reassessment=entry.get('is_reassessment', False),

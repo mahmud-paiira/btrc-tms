@@ -53,12 +53,10 @@ export default function TrainerDetail() {
           <div className="text-muted small">প্রশিক্ষক নং: {trainer.trainer_no}</div>
         </div>
         <div className="ms-auto d-flex gap-2">
-          <span className={`badge bg-${STATUS_BG[trainer.status] || 'secondary'} fs-6 px-3 py-2`}>
-            {trainer.status_display || trainer.status}
-          </span>
-          <span className={`badge bg-${trainer.approval_status === 'approved' ? 'success' : trainer.approval_status === 'rejected' ? 'danger' : 'warning'} fs-6 px-3 py-2`}>
-            {trainer.approval_status_display || trainer.approval_status}
-          </span>
+          <span className={`status-dot dot-${STATUS_BG[trainer.status] || 'secondary'}`} />
+          {trainer.status_display || trainer.status}
+          <span className={`status-dot dot-${trainer.approval_status === 'approved' ? 'success' : trainer.approval_status === 'rejected' ? 'danger' : 'warning'}`} />
+          {trainer.approval_status_display || trainer.approval_status}
         </div>
       </div>
 
@@ -78,31 +76,31 @@ export default function TrainerDetail() {
             <div className="row g-4">
               <div className="col-md-6">
                 <h6 className="fw-bold mb-3 text-muted text-uppercase small">ব্যক্তিগত তথ্য</h6>
-                <table className="table table-bordered align-middle">
+                <table className="b-detail-table align-middle">
                   <tbody>
-                    <tr><th className="bg-light" style={{ width: 160 }}>প্রশিক্ষক নং</th><td>{trainer.trainer_no}</td></tr>
-                    <tr><th className="bg-light">নাম (ইংরেজি)</th><td>{user.full_name_en || '-'}</td></tr>
-                    <tr><th className="bg-light">নাম (বাংলা)</th><td>{nameBn}</td></tr>
-                    <tr><th className="bg-light">ইমেইল</th><td>{user.email || '-'}</td></tr>
-                    <tr><th className="bg-light">ফোন</th><td>{user.phone || '-'}</td></tr>
-                    <tr><th className="bg-light">এনআইডি</th><td>{trainer.nid}</td></tr>
-                    <tr><th className="bg-light">জন্ম নিবন্ধন</th><td>{trainer.birth_certificate_no || '-'}</td></tr>
-                    <tr><th className="bg-light">জন্ম তারিখ</th><td>{trainer.date_of_birth || '-'}</td></tr>
+                    <tr><th>প্রশিক্ষক নং</th><td>{trainer.trainer_no}</td></tr>
+                    <tr><th>নাম (ইংরেজি)</th><td>{user.full_name_en || '-'}</td></tr>
+                    <tr><th>নাম (বাংলা)</th><td>{nameBn}</td></tr>
+                    <tr><th>ইমেইল</th><td>{user.email || '-'}</td></tr>
+                    <tr><th>ফোন</th><td>{user.phone || '-'}</td></tr>
+                    <tr><th>এনআইডি</th><td>{trainer.nid}</td></tr>
+                    <tr><th>জন্ম নিবন্ধন</th><td>{trainer.birth_certificate_no || '-'}</td></tr>
+                    <tr><th>জন্ম তারিখ</th><td>{trainer.date_of_birth || '-'}</td></tr>
                   </tbody>
                 </table>
               </div>
               <div className="col-md-6">
                 <h6 className="fw-bold mb-3 text-muted text-uppercase small">পেশাগত তথ্য</h6>
-                <table className="table table-bordered align-middle">
+                <table className="b-detail-table align-middle">
                   <tbody>
-                    <tr><th className="bg-light" style={{ width: 160 }}>পিতার নাম</th><td>{trainer.father_name_bn}</td></tr>
-                    <tr><th className="bg-light">মাতার নাম</th><td>{trainer.mother_name_bn}</td></tr>
-                    <tr><th className="bg-light">শিক্ষাগত যোগ্যতা</th><td>{trainer.education_qualification}</td></tr>
-                    <tr><th className="bg-light">অভিজ্ঞতা</th><td>{`${trainer.years_of_experience} বছর`}</td></tr>
-                    <tr><th className="bg-light">দক্ষতার ক্ষেত্র</th><td>{trainer.expertise_area}</td></tr>
-                    <tr><th className="bg-light">ব্যাংক একাউন্ট</th><td>{trainer.bank_account_no || '-'}</td></tr>
-                    <tr><th className="bg-light">ব্যাংকের নাম</th><td>{trainer.bank_name || '-'}</td></tr>
-                    <tr><th className="bg-light">নিবন্ধনের তারিখ</th><td>{trainer.created_at || '-'}</td></tr>
+                    <tr><th>পিতার নাম</th><td>{trainer.father_name_bn}</td></tr>
+                    <tr><th>মাতার নাম</th><td>{trainer.mother_name_bn}</td></tr>
+                    <tr><th>শিক্ষাগত যোগ্যতা</th><td>{trainer.education_qualification}</td></tr>
+                    <tr><th>অভিজ্ঞতা</th><td>{`${trainer.years_of_experience} বছর`}</td></tr>
+                    <tr><th>দক্ষতার ক্ষেত্র</th><td>{trainer.expertise_area}</td></tr>
+                    <tr><th>ব্যাংক একাউন্ট</th><td>{trainer.bank_account_no || '-'}</td></tr>
+                    <tr><th>ব্যাংকের নাম</th><td>{trainer.bank_name || '-'}</td></tr>
+                    <tr><th>নিবন্ধনের তারিখ</th><td>{trainer.created_at || '-'}</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -110,15 +108,15 @@ export default function TrainerDetail() {
           )}
           {activeTab === 'mapped_institutes' && (
             <div className="table-responsive">
-              <table className="table table-hover table-bordered align-middle">
-                <thead className="table-light">
+              <table className="b-table align-middle">
+                <thead>
                   <tr><th>কেন্দ্র</th><th>অবস্থা</th></tr>
                 </thead>
                 <tbody>
                   {trainer.mappings?.length > 0 ? trainer.mappings.map(m => (
                     <tr key={m.id}>
                       <td>{m.center_code} - {m.center?.name_bn || ''}</td>
-                      <td><span className={`badge bg-${STATUS_BG[m.status]}`}>{m.status}</span></td>
+                      <td><span className={`status-dot dot-${STATUS_BG[m.status]}`}></span>{m.status}</td>
                     </tr>
                   )) : (
                     <tr><td colSpan={2} className="text-center text-muted py-4">কোনো কেন্দ্র ম্যাপ করা হয়নি</td></tr>
@@ -129,16 +127,16 @@ export default function TrainerDetail() {
           )}
           {activeTab === 'mapped_courses' && (
             <div className="table-responsive">
-              <table className="table table-hover table-bordered align-middle">
-                <thead className="table-light">
+              <table className="b-table align-middle">
+                <thead>
                   <tr><th>কোর্স</th><th>প্রাথমিক</th><th>অবস্থা</th></tr>
                 </thead>
                 <tbody>
                   {trainer.mappings?.length > 0 ? trainer.mappings.map(m => (
                     <tr key={m.id}>
                       <td>{m.course_code} - {m.course?.name_bn || ''}</td>
-                      <td>{m.is_primary ? <span className="badge bg-info">হ্যাঁ</span> : 'না'}</td>
-                      <td><span className={`badge bg-${STATUS_BG[m.status]}`}>{m.status}</span></td>
+                      <td>{m.is_primary ? <span className="status-dot dot-info" /> : 'না'}</td>
+                      <td><span className={`status-dot dot-${STATUS_BG[m.status]}`}></span>{m.status}</td>
                     </tr>
                   )) : (
                     <tr><td colSpan={3} className="text-center text-muted py-4">কোনো কোর্স ম্যাপ করা হয়নি</td></tr>
@@ -150,12 +148,12 @@ export default function TrainerDetail() {
           {activeTab === 'tracking' && (
             <div className="row g-4">
               <div className="col-md-6">
-                <table className="table table-bordered align-middle">
+                <table className="b-table align-middle">
                   <tbody>
-                    <tr><th className="bg-light" style={{ width: 160 }}>প্রশিক্ষক নং</th><td>{trainer.trainer_no}</td></tr>
-                    <tr><th className="bg-light">এনআইডি</th><td>{trainer.nid}</td></tr>
-                    <tr><th className="bg-light">মোবাইল</th><td>{user.phone || '-'}</td></tr>
-                    <tr><th className="bg-light">জন্ম নিবন্ধন</th><td>{trainer.birth_certificate_no || '-'}</td></tr>
+                    <tr><th>প্রশিক্ষক নং</th><td>{trainer.trainer_no}</td></tr>
+                    <tr><th>এনআইডি</th><td>{trainer.nid}</td></tr>
+                    <tr><th>মোবাইল</th><td>{user.phone || '-'}</td></tr>
+                    <tr><th>জন্ম নিবন্ধন</th><td>{trainer.birth_certificate_no || '-'}</td></tr>
                   </tbody>
                 </table>
               </div>

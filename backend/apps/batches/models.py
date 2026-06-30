@@ -2,12 +2,14 @@ from datetime import date, timedelta, datetime
 
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.conf import settings
 from django.core.validators import MinValueValidator
 from apps.accounts.models import User
 from apps.centers.models import Center
 from apps.circulars.models import Circular
 from apps.courses.models import Course
 from apps.trainers.models import Trainer
+from apps.assessors.models import Assessor
 
 
 def generate_batch_no():
@@ -336,3 +338,28 @@ class BatchCalendarDay(models.Model):
 
     def __str__(self):
         return f'{self.batch.batch_no} - {self.date}'
+
+
+class BatchAssessor(models.Model):
+    batch = models.ForeignKey(
+        Batch, on_delete=models.CASCADE,
+        related_name='assessor_assignments', verbose_name='ব্যাচ',
+    )
+    assessor = models.ForeignKey(
+        Assessor, on_delete=models.CASCADE,
+        related_name='batch_assignments', verbose_name='মূল্যায়নকারী',
+    )
+    assessment_type = models.CharField(
+        max_length=20, default='pre_evaluation',
+        verbose_name='মূল্যায়নের ধরণ',
+    )
+    assigned_at = models.DateTimeField(auto_now_add=True, verbose_name='নিয়োগের তারিখ')
+
+    class Meta:
+        verbose_name = 'ব্যাচ-মূল্যায়নকারী নিয়োগ'
+        verbose_name_plural = 'ব্যাচ-মূল্যায়নকারী নিয়োগ'
+        unique_together = ('batch', 'assessor')
+        ordering = ('-assigned_at',)
+
+    def __str__(self):
+        return f'{self.batch.batch_no} - {self.assessor.assessor_no}'

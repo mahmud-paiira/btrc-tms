@@ -8,6 +8,7 @@ import { formatDate } from '../../utils/dateFormatter';
 import AddTraineeModal from '../../components/batches/AddTraineeModal';
 import TransferModal from '../../components/batches/TransferModal';
 import AssignTrainerModal from '../../components/batches/AssignTrainerModal';
+import AssessorAssignmentCard from '../../components/batches/AssessorAssignmentCard';
 
 const STATUS_BADGE = {
   scheduled: 'secondary',
@@ -292,7 +293,7 @@ export default function BatchDetail() {
                     {actionLoading === 'start' ? 'প্রক্রিয়াধীন...' : 'শুরু করুন'}
                   </button>
                 )}
-                {batch.status === 'running' && (
+                {(batch.status === 'running' || batch.status === 'scheduled') && (
                   <button
                     className="btn btn-primary btn-sm"
                     onClick={() => handleAction('complete')}
@@ -412,6 +413,10 @@ export default function BatchDetail() {
             </table>
           </div>
         </div>
+      </div>
+
+      <div className="mt-4">
+        <AssessorAssignmentCard batchId={id} batch={batch} />
       </div>
 
       {showAddModal && (

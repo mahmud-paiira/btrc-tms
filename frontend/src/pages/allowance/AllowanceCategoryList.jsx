@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import allowanceService from '../../services/allowanceService';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -10,6 +11,7 @@ export default function AllowanceCategoryList() {
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({ name_bn: '', name_en: '', amount_per_session: '', is_active: true });
+  const navigate = useNavigate();
 
   const fetch = useCallback(async () => {
     setLoading(true);
@@ -70,33 +72,45 @@ export default function AllowanceCategoryList() {
 
       <div className="card">
         <div className="card-body p-0">
-          <table className="table table-bordered align-middle mb-0">
-            <thead className="bg-light">
+          <table className="b-table w-100">
+            <thead>
               <tr>
                 <th>#</th>
                 <th>নাম (বাংলা)</th>
                 <th>নাম (ইংরেজি)</th>
                 <th>প্রতি সেশনে ভাতা</th>
                 <th>সক্রিয়</th>
-                <th>কর্ম</th>
+                <th className="text-center">কর্ম</th>
               </tr>
             </thead>
             <tbody>
-              {categories.map((c, i) => (
-                <tr key={c.id}>
-                  <td>{i + 1}</td>
-                  <td>{c.name_bn}</td>
-                  <td>{c.name_en}</td>
-                  <td>{c.amount_per_session} টাকা</td>
-                  <td>{c.is_active ? <span className="badge bg-success">হ্যাঁ</span> : <span className="badge bg-secondary">না</span>}</td>
-                  <td>
-                    <button className="btn btn-sm btn-outline-primary me-1" onClick={() => openEdit(c)}><i className="bi bi-pencil"></i></button>
-                    <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(c.id)}><i className="bi bi-trash"></i></button>
-                  </td>
-                </tr>
-              ))}
-              {categories.length === 0 && (
-                <tr><td colSpan={6} className="text-center text-muted py-4">কোন ভাতার শ্রেণী পাওয়া যায়নি</td></tr>
+              {categories.length === 0 ? (
+                <tr><td colSpan={6} className="text-center text-secondary py-4">কোন ভাতার শ্রেণী পাওয়া যায়নি</td></tr>
+              ) : (
+                categories.map((c, i) => (
+                  <tr key={c.id}>
+                    <td>{i + 1}</td>
+                    <td>{c.name_bn}</td>
+                    <td>{c.name_en}</td>
+                    <td>{c.amount_per_session} টাকা</td>
+                    <td>
+                      <span className={`status-dot dot-${c.is_active ? 'active' : 'inactive'}`}></span>
+                      <span>{c.is_active ? 'হ্যাঁ' : 'না'}</span>
+                    </td>
+                    <td className="act-col">
+                      <div className="dropdown act-dropdown">
+                        <button className="dropdown-toggle" data-bs-toggle="dropdown" type="button" data-bs-strategy="fixed">
+                          <i className="bi bi-three-dots-vertical"></i>
+                        </button>
+                        <ul className="dropdown-menu dropdown-menu-end">
+                          <li><button className="dropdown-item" onClick={() => openEdit(c)}><i className="bi bi-pencil me-2"></i>সম্পাদনা</button></li>
+                          <li><hr className="dropdown-divider my-1" /></li>
+                          <li><button className="dropdown-item text-danger" onClick={() => handleDelete(c.id)}><i className="bi bi-trash me-2"></i>মুছুন</button></li>
+                        </ul>
+                      </div>
+                    </td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>

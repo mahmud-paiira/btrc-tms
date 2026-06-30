@@ -144,9 +144,9 @@ export default function Dashboard() {
             <div className="card-body">
               {charts?.attendance_trend?.length > 0 ? (
                 <div className="table-responsive">
-                  <table className="table table-sm table-bordered">
-                    <thead className="table-light">
-                      <tr><th>{t('dashboard.charts.batch', 'ব্যাচ')}</th><th className="text-center">{t('dashboard.charts.trainees', 'প্রশিক্ষণার্থী')}</th><th className="text-center">{t('dashboard.charts.avgAttendance', 'গড় উপস্থিতি')}</th><th style={{ width: '40%' }}>{t('dashboard.charts.progress', 'প্রগ্রেস')}</th></tr>
+                  <table className="b-form-table align-middle">
+                    <thead>
+                      <tr><th>{t('dashboard.charts.batch', 'ব্যাচ')}</th><th className="text-center">{t('dashboard.charts.trainees', 'প্রশিক্ষণার্থী')}</th><th className="text-center">{t('dashboard.charts.avgAttendance', 'গড় উপস্থিতি')}</th><th>{t('dashboard.charts.progress', 'প্রগ্রেস')}</th></tr>
                     </thead>
                     <tbody>
                       {charts.attendance_trend.map((b) => (
@@ -154,9 +154,8 @@ export default function Dashboard() {
                           <td>{b.batch_name}</td>
                           <td className="text-center">{b.total_trainees}</td>
                           <td className="text-center">
-                            <span className={`badge ${b.avg_attendance >= 80 ? 'bg-success' : 'bg-danger'}`}>
+                            <span className={`status-dot ${b.avg_attendance >= 80 ? 'dot-success' : 'dot-danger'}`} />
                               {formatPercentage(b.avg_attendance, 'bn')}
-                            </span>
                           </td>
                           <td>
                             <div className="progress" style={{ height: 8 }}>
@@ -181,9 +180,9 @@ export default function Dashboard() {
             <div className="card-body">
               {charts?.assessment_ratio?.length > 0 ? (
                 <div className="table-responsive">
-                  <table className="table table-sm table-bordered">
-                    <thead className="table-light">
-                      <tr><th>{t('dashboard.charts.batch', 'ব্যাচ')}</th><th className="text-center text-success">{t('dashboard.charts.competent', 'দক্ষ')}</th><th className="text-center text-danger">{t('dashboard.charts.notCompetent', 'অদক্ষ')}</th><th className="text-center text-secondary">{t('dashboard.charts.absent', 'অনুপস্থিত')}</th><th className="text-center">{t('dashboard.charts.passRate', 'পাসের হার')}</th><th style={{ width: '30%' }}>{t('dashboard.charts.progress', 'প্রগ্রেস')}</th></tr>
+                  <table className="b-form-table align-middle">
+                    <thead>
+                      <tr><th>{t('dashboard.charts.batch', 'ব্যাচ')}</th><th className="text-center text-success">{t('dashboard.charts.competent', 'দক্ষ')}</th><th className="text-center text-danger">{t('dashboard.charts.notCompetent', 'অদক্ষ')}</th><th className="text-center text-secondary">{t('dashboard.charts.absent', 'অনুপস্থিত')}</th><th className="text-center">{t('dashboard.charts.passRate', 'পাসের হার')}</th><th>{t('dashboard.charts.progress', 'প্রগ্রেস')}</th></tr>
                     </thead>
                     <tbody>
                       {charts.assessment_ratio.map((b) => (
@@ -193,9 +192,8 @@ export default function Dashboard() {
                           <td className="text-center fw-bold text-danger">{b.not_competent}</td>
                           <td className="text-center text-secondary">{b.absent}</td>
                           <td className="text-center">
-                            <span className={`badge ${b.pass_rate >= 80 ? 'bg-success' : b.pass_rate >= 60 ? 'bg-warning' : 'bg-danger'}`}>
+                            <span className={`status-dot ${b.pass_rate >= 80 ? 'dot-success' : b.pass_rate >= 60 ? 'dot-warning' : 'dot-danger'}`} />
                               {formatPercentage(b.pass_rate, 'bn')}
-                            </span>
                           </td>
                           <td>
                             <div className="progress" style={{ height: 8 }}>
@@ -253,12 +251,12 @@ export default function Dashboard() {
                     <Link to="/center-admin/applications" className="list-group-item list-group-item-action py-3 d-flex justify-content-between align-items-center">
                       <span><i className="bi bi-file-earmark-text me-2 text-warning"></i>{t('dashboard.quickActions.reviewApplications', 'আবেদন পর্যালোচনা')}</span>
                       {actions?.pending_applications > 0 && (
-                        <span className="badge bg-danger rounded-pill">{actions.pending_applications}</span>
+                        <span><span className="status-dot dot-danger"></span>{actions.pending_applications}</span>
                       )}
                     </Link>
                     <Link to="/center-admin/certificates/issue" className="list-group-item list-group-item-action py-3 d-flex justify-content-between align-items-center">
                       <span><i className="bi bi-award me-2 text-info"></i>{t('dashboard.quickActions.issueCertificate', 'সার্টিফিকেট ইস্যু')}</span>
-                      {actions?.eligible_certificates > 0 && <span className="badge bg-success rounded-pill">{actions.eligible_certificates}</span>}
+                      {actions?.eligible_certificates > 0 && <span className="status-dot dot-success"></span>}{actions.eligible_certificates}
                     </Link>
                   </div>
                 </div>
@@ -274,11 +272,11 @@ export default function Dashboard() {
                     <div className="d-grid gap-3">
                       <div className="d-flex justify-content-between align-items-center p-2 rounded bg-light">
                         <span className="small"><i className="bi bi-person-badge me-2 text-primary"></i>{t('dashboard.activity.pendingTrainers', 'পেন্ডিং প্রশিক্ষক')}</span>
-                        <span className="badge bg-primary rounded-pill">{activity.pending_trainers}</span>
+                        <span><span className="status-dot dot-primary"></span>{activity.pending_trainers}</span>
                       </div>
                       <div className="d-flex justify-content-between align-items-center p-2 rounded bg-light">
                         <span className="small"><i className="bi bi-person-check me-2 text-success"></i>{t('dashboard.activity.pendingAssessors', 'পেন্ডিং মূল্যায়নকারী')}</span>
-                        <span className="badge bg-success rounded-pill">{activity.pending_assessors}</span>
+                        <span><span className="status-dot dot-success"></span>{activity.pending_assessors}</span>
                       </div>
                     </div>
                   ) : (

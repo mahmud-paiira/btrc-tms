@@ -239,7 +239,7 @@ class TraineePortalViewSet(viewsets.ViewSet):
 
         assessments = Assessment.objects.filter(
             trainee=trainee, batch=trainee.batch,
-        ).select_related('assessed_by').order_by('assessment_type')
+        ).select_related('assessed_by', 'assessor__user').order_by('assessment_type')
 
         data = []
         all_competent = True
@@ -256,6 +256,8 @@ class TraineePortalViewSet(viewsets.ViewSet):
                 'percentage': float(a.percentage) if a.percentage else None,
                 'remarks': a.remarks,
                 'is_reassessment': a.is_reassessment,
+                'assessor_name': a.assessor.user.full_name_bn if a.assessor else None,
+                'assessed_by_name': a.assessed_by.full_name_bn if a.assessed_by else None,
             })
             if a.competency_status != 'competent':
                 all_competent = False

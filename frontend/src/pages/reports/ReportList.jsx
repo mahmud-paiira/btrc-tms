@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import hoService from '../../services/hoService';
 import { formatDate } from '../../utils/dateFormatter';
@@ -17,6 +18,7 @@ export default function ReportList() {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [form, setForm] = useState({ report_type: 'trainee_list', date_from: '', date_to: '' });
+  const navigate = useNavigate();
 
   const fetchReports = useCallback(async () => {
     setLoading(true);
@@ -65,6 +67,16 @@ export default function ReportList() {
     }
   };
 
+  const handleRegenerate = async (id) => {
+    try {
+      await hoService.regenerateReport(id);
+      toast.success('প্রতিবেদন পুনরায় তৈরি শুরু হয়েছে');
+      fetchReports();
+    } catch {
+      toast.error('পুনরায় তৈরি ব্যর্থ');
+    }
+  };
+
   return (
     <div>
       <h4 className="mb-3 fw-bold"><i className="bi bi-file-earmark-bar-graph me-2"></i>প্রতিবেদন</h4>
@@ -105,14 +117,14 @@ export default function ReportList() {
       <div className="card shadow-sm table-card">
         <div className="card-header bg-white fw-semibold">পূর্ববর্তী প্রতিবেদন</div>
         <div className="table-responsive">
-          <table className="table table-hover align-middle mb-0" style={{ fontSize: 13 }}>
-            <thead className="table-light">
+          <table className="b-table w-100">
+            <thead>
               <tr>
                 <th>শিরোনাম</th>
                 <th>ধরণ</th>
                 <th>অবস্থা</th>
                 <th>তৈরির তারিখ</th>
-                <th>অ্যাকশন</th>
+                <th className="text-center">অ্যাকশন</th>
               </tr>
             </thead>
             <tbody>
@@ -126,21 +138,20 @@ export default function ReportList() {
                     <td className="fw-semibold">{r.title || '-'}</td>
                     <td><span className="badge bg-info">{r.report_type}</span></td>
                     <td>
-                      {r.is_ready ? (
-                        <span className="badge bg-success">প্রস্তুত</span>
-                      ) : r.error_message ? (
-                        <span className="badge bg-danger" title={r.error_message}>ব্যর্থ</span>
-                      ) : (
-                        <span className="badge bg-warning">নির্মাণাধীন</span>
-                      )}
+                      <span className={`status-dot dot-${r.is_ready ? 'success' : r.error_message ? 'danger' : 'warning'}`}></span>
+                      <span>{r.is_ready ? 'প্রস্তুত' : r.error_message ? 'ব্যর্থ' : 'নির্মাণাধীন'}</span>
                     </td>
                     <td>{r.created_at ? formatDate(r.created_at) : '-'}</td>
-                    <td>
-                      {r.is_ready && (
-                        <button className="btn btn-sm btn-outline-primary" onClick={() => handleDownload(r.id)}>
-                          <i className="bi bi-download"></i>
+                    <td className="act-col">
+                      <div className="dropdown act-dropdown">
+                        <button className="dropdown-toggle" data-bs-toggle="dropdown" type="button" data-bs-strategy="fixed">
+                          <i className="bi bi-three-dots-vertical"></i>
                         </button>
-                      )}
+                        <ul className="dropdown-menu dropdown-menu-end">
+                          <li><button className="dropdown-item" onClick={() => handleDownload(r.id)}><i className="bi bi-download me-2"></i>ডাউনলোড</button></li>
+                          {r.is_ready && <li><button className="dropdown-item" onClick={() => handleRegenerate(r.id)}><i className="bi bi-arrow-repeat me-2"></i>পুনরায় তৈরি</button></li>}
+                        </ul>
+                      </div>
                     </td>
                   </tr>
                 ))

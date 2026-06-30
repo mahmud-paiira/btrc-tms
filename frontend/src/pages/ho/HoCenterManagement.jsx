@@ -813,67 +813,57 @@ export default function HoCenterManagement() {
         </div>
       </div>
 
-      <div className="card border-0 shadow-sm">
-        {loading ? (
-          <div className="text-center py-5">
-            <div className="spinner-border text-primary mb-2" role="status" />
-            <p className="text-muted small mb-0">লোড হচ্ছে...</p>
-          </div>
-        ) : centers.length === 0 ? (
-          <div className="text-center py-5">
-            <i className="bi bi-inbox fs-1 text-muted d-block mb-2"></i>
-            <p className="text-muted mb-0">কোন কেন্দ্র পাওয়া যায়নি</p>
-          </div>
-        ) : (
-          <div className="table-responsive">
-            <table className="table table-hover align-middle mb-0">
-              <thead className="table-light">
-                <tr>
-                  <th style={{ width: 40 }} className="text-center">
-                    <input type="checkbox" className="form-check-input"
-                      checked={centers.length > 0 && selectedIds.size === centers.length}
-                      onChange={handleSelectAll} />
-                  </th>
-                  <th style={{ width: 80 }}>কোড</th>
-                  <th>কেন্দ্রের নাম</th>
-                  <th style={{ width: 130 }}>ফোন</th>
-                  <th className="d-none d-md-table-cell">ইমেইল</th>
-                  <th style={{ width: 95 }}>স্ট্যাটাস</th>
-                  <th className="text-center" style={{ width: 175 }}>কার্যক্রম</th>
-                </tr>
-              </thead>
-              <tbody>
-                {centers.map((c) => (
-                  <tr key={c.id} className={selectedIds.has(c.id) ? 'table-active' : ''}>
-                    <td className="text-center">
-                      <input type="checkbox" className="form-check-input"
-                        checked={selectedIds.has(c.id)}
-                        onChange={() => handleSelectOne(c.id)} />
-                    </td>
-                    <td>
-                      <span className="badge bg-light text-dark border px-2 py-1">{c.code}</span>
+      <div className="card border-0 shadow-sm table-card" style={{ borderRadius: 12, border: 'none' }}>
+        <div className="table-responsive">
+          <table className="b-table w-100">
+            <thead>
+              <tr>
+                <th style={{ width: 36 }}>
+                  <input type="checkbox" className="form-check-input"
+                    checked={centers.length > 0 && selectedIds.size === centers.length}
+                    onChange={handleSelectAll} />
+                </th>
+                <th>কোড</th>
+                <th>কেন্দ্রের নাম</th>
+                <th className="d-none d-md-table-cell">ফোন</th>
+                <th className="d-none d-md-table-cell">ইমেইল</th>
+                <th>স্ট্যাটাস</th>
+                <th className="text-center" style={{ width: 50 }}>অ্যাকশন</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr><td colSpan={7} className="text-center py-4"><div className="spinner-border spinner-border-sm me-2" />লোড হচ্ছে...</td></tr>
+              ) : centers.length === 0 ? (
+                <tr><td colSpan={7} className="text-center text-secondary py-4">কোন কেন্দ্র পাওয়া যায়নি</td></tr>
+              ) : (
+                centers.map(c => (
+                  <tr key={c.id}>
+                    <td><input type="checkbox" className="form-check-input"
+                      checked={selectedIds.has(c.id)}
+                      onChange={() => handleSelectOne(c.id)} /></td>
+                    <td className="fw-semibold">
+                      <span className="badge bg-secondary bg-opacity-10 text-dark">{c.code}</span>
                     </td>
                     <td>
                       <div className="fw-semibold">{c.name_bn}</div>
                       {c.name_en && <small className="text-muted">{c.name_en}</small>}
                     </td>
-                    <td>{c.phone || <span className="text-muted">—</span>}</td>
-                    <td className="d-none d-md-table-cell text-truncate" style={{ maxWidth: 200 }}>
-                      {c.email || <span className="text-muted">—</span>}
-                    </td>
+                    <td className="d-none d-md-table-cell">{c.phone || <span className="text-muted">—</span>}</td>
+                    <td className="d-none d-md-table-cell">{c.email || <span className="text-muted">—</span>}</td>
                     <td>
-                      <span className={`badge px-3 py-1 ${c.status === 'active' ? 'bg-success' : 'bg-warning text-dark'}`}>
-                        {STATUS_MAP[c.status] || c.status}
-                      </span>
+                      <span className={`status-dot dot-${c.status}`}></span>
+                      <span style={{fontSize:13,color:'#334155'}}>{STATUS_MAP[c.status] || c.status}</span>
                     </td>
-                    <td>
-                      <div className="d-flex gap-1 justify-content-center">
-                        <button className="btn btn-sm btn-outline-primary" title="বিস্তারিত দেখুন"
-                          onClick={() => navigate(`/ho/centers/${c.id}`)}>
-                          <i className="bi bi-eye"></i>
+                    <td className="act-col">
+                      <div className="dropdown act-dropdown">
+                        <button className="dropdown-toggle" data-bs-toggle="dropdown" type="button" data-bs-strategy="fixed">
+                          <i className="bi bi-three-dots-vertical"></i>
                         </button>
-                        <button className="btn btn-sm btn-outline-info" title="সম্পাদনা করুন"
-                          onClick={async () => {
+                        <ul className="dropdown-menu dropdown-menu-end">
+                          <li><button className="dropdown-item text-primary" onClick={() => navigate(`/ho/centers/${c.id}`)}><i className="bi bi-eye me-2"></i>বিস্তারিত</button></li>
+                          <li><hr className="dropdown-divider my-1" /></li>
+                          <li><button className="dropdown-item text-primary" onClick={async () => {
                             try {
                               const { data } = await hoService.getCenter(c.id);
                               setEditCenter(data);
@@ -881,31 +871,23 @@ export default function HoCenterManagement() {
                             } catch {
                               toast.error('কেন্দ্রের তথ্য লোড করতে ব্যর্থ');
                             }
-                          }}>
-                          <i className="bi bi-pencil"></i>
-                        </button>
-                        <button className={`btn btn-sm ${c.status === 'active' ? 'btn-outline-warning' : 'btn-outline-success'}`}
-                          title={c.status === 'active' ? 'স্থগিত করুন' : 'সক্রিয় করুন'}
-                          onClick={() => handleToggle(c)}>
-                          <i className={`bi ${c.status === 'active' ? 'bi-pause-circle' : 'bi-play-circle'}`}></i>
-                        </button>
-                        <button className="btn btn-sm btn-outline-danger" title="মুছে ফেলুন"
-                          onClick={() => handleDelete(c)}>
-                          <i className="bi bi-trash"></i>
-                        </button>
+                          }}><i className="bi bi-pencil me-2"></i>সম্পাদনা</button></li>
+                          <li><button className={`dropdown-item ${c.status === 'active' ? 'text-warning' : 'text-success'}`} onClick={() => handleToggle(c)}>
+                            <i className={`bi ${c.status === 'active' ? 'bi-pause-circle' : 'bi-play-circle'} me-2`}></i>{c.status === 'active' ? 'স্থগিত করুন' : 'সক্রিয় করুন'}
+                          </button></li>
+                          <li><hr className="dropdown-divider my-1" /></li>
+                          <li><button className="dropdown-item text-danger" onClick={() => handleDelete(c)}><i className="bi bi-trash me-2"></i>মুছুন</button></li>
+                        </ul>
                       </div>
                     </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-        <div className="card-footer bg-white text-muted small px-4 py-3 border-top-0">
-          <i className="bi bi-database me-1"></i>মোট {total} টি কেন্দ্র
-          {selectedIds.size > 0 && (
-            <span className="ms-3"><i className="bi bi-check-square me-1"></i>{selectedIds.size} টি নির্বাচিত</span>
-          )}
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+        <div className="b-pagination d-flex justify-content-between align-items-center py-2 px-3">
+          <small className="text-secondary">মোট {total} টি কেন্দ্র</small>
         </div>
       </div>
 

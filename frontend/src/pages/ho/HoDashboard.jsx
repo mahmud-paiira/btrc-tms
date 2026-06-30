@@ -278,14 +278,14 @@ export default function HoDashboard() {
             <div className="card-header bg-light"><h6 className="mb-0"><i className="bi bi-briefcase me-2"></i>{t('hoDashboard.chartPlacementRate', 'চাকরি স্থাপনের হার')}</h6></div>
             <div className="card-body">
               <div className="table-responsive">
-                <table className="table table-sm table-bordered">
-                  <thead className="table-light">
+                <table className="b-form-table align-middle">
+                  <thead>
                     <tr>
                       <th>{t('batch.list.colBatchNo', 'ব্যাচ')}</th>
                       <th className="text-center">{t('job.summary.total', 'মোট')}</th>
                       <th className="text-center">{t('job.summary.placed', 'স্থাপিত')}</th>
                       <th className="text-center">{t('job.summary.rate', 'হার')}</th>
-                      <th style={{ width: '40%' }}>{t('dashboard.charts.progress', 'অগ্রগতি')}</th>
+                      <th>{t('dashboard.charts.progress', 'অগ্রগতি')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -298,9 +298,8 @@ export default function HoDashboard() {
                           <td className="text-center">{p.total_trainees}</td>
                           <td className="text-center">{p.placed_count}</td>
                           <td className="text-center">
-                            <span className={`badge ${p.placement_rate >= 60 ? 'bg-success' : p.placement_rate >= 40 ? 'bg-warning' : 'bg-danger'}`}>
+                            <span className={`status-dot ${p.placement_rate >= 60 ? 'dot-success' : p.placement_rate >= 40 ? 'dot-warning' : 'dot-danger'}`} />
                               {p.placement_rate}%
-                            </span>
                           </td>
                           <td>
                             <div className="progress" style={{ height: 8 }}>
@@ -361,7 +360,7 @@ export default function HoDashboard() {
                 { label: t('hoDashboard.attendanceWarning', 'কম উপস্থিতি'), count: summary?.attendance_warning_count || 0, color: attRate < 80 ? 'danger' : 'success', to: '/ho/reports' },
               ].map((item) => (
                 <div key={item.label} className="d-flex justify-content-between align-items-center mb-3 p-2 bg-light rounded">
-                  <span><span className={`badge bg-${item.color} me-2`}>{item.count}</span>{item.label}</span>
+                  <span><span className={`status-dot dot-${item.color}`} /> {item.count}</span>
                   <Link to={item.to} className="btn btn-sm btn-outline-secondary">{t('site.view', 'দেখুন')}</Link>
                 </div>
               ))}
@@ -378,19 +377,19 @@ export default function HoDashboard() {
             <div className="card-body">
               <div className="d-flex justify-content-between align-items-center mb-3 p-2 bg-light rounded">
                 <span><i className="bi bi-upc-scan me-2 text-primary"></i>{t('hoDashboard.apiStatus', 'API স্ট্যাটাস')}</span>
-                <span className="badge bg-success">{t('hoDashboard.online', 'অনলাইন')}</span>
+                <span><span className="status-dot dot-success"></span>{t('hoDashboard.online', 'অনলাইন')}</span>
               </div>
               <div className="d-flex justify-content-between align-items-center mb-3 p-2 bg-light rounded">
                 <span><i className="bi bi-database me-2 text-success"></i>{t('hoDashboard.dbStatus', 'ডাটাবেস')}</span>
-                <span className="badge bg-success">{t('hoDashboard.online', 'অনলাইন')}</span>
+                <span><span className="status-dot dot-success"></span>{t('hoDashboard.online', 'অনলাইন')}</span>
               </div>
               <div className="d-flex justify-content-between align-items-center mb-3 p-2 bg-light rounded">
                 <span><i className="bi bi bi-speedometer2 me-2 text-info"></i>{t('hoDashboard.attendanceRate', 'আজকের উপস্থিতি')}</span>
-                <span className={`badge bg-${attColor}`}>{attRate}%</span>
+                <span><span className={`status-dot dot-${attColor}`}></span>{attRate}%</span>
               </div>
               <div className="d-flex justify-content-between align-items-center p-2 bg-light rounded">
                 <span><i className="bi bi-people me-2 text-warning"></i>{t('hoDashboard.ocrStatus', 'OCR স্ট্যাটাস')}</span>
-                <span className="badge bg-info">{t('hoDashboard.ready', 'প্রস্তুত')}</span>
+                <span><span className="status-dot dot-info"></span>{t('hoDashboard.ready', 'প্রস্তুত')}</span>
               </div>
             </div>
           </div>
@@ -406,8 +405,8 @@ export default function HoDashboard() {
             </div>
             <div className="card-body p-0">
               <div className="table-responsive">
-                <table className="table table-sm table-bordered mb-0">
-                  <thead className="table-light">
+                <table className="b-form-table align-middle mb-0">
+                  <thead>
                     <tr>
                       <th>{t('site.user', 'ব্যবহারকারী')}</th>
                       <th>{t('site.action', 'কর্ম')}</th>
@@ -424,7 +423,7 @@ export default function HoDashboard() {
                           <td>{a.user}</td>
                           <td>{a.action}</td>
                           <td>{a.target_type ? `${a.target_type} #${a.target_id}` : '—'}</td>
-                          <td style={{ fontSize: 12, whiteSpace: 'nowrap' }}>{a.timestamp ? new Date(a.timestamp).toLocaleString('bn-BD') : '—'}</td>
+                          <td>{a.timestamp ? new Date(a.timestamp).toLocaleString('bn-BD') : '—'}</td>
                         </tr>
                       ))
                     )}

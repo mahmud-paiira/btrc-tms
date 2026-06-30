@@ -4,8 +4,6 @@ import { toast } from 'react-toastify';
 import { useTranslation } from '../../hooks/useTranslation';
 import traineeService from '../../services/traineeService';
 
-const STATUS_MAP = { scheduled: 'নির্ধারিত', running: 'চলমান', completed: 'সমাপ্ত', cancelled: 'বাতিল' };
-
 const APP_STATUS_BADGE = {
   pending: 'bg-warning text-dark', auto_rejected: 'bg-danger', selected: 'bg-success',
   rejected: 'bg-danger', waitlisted: 'bg-info text-dark', enrolled: 'bg-primary',
@@ -15,13 +13,13 @@ const BRAND = '#1b6b3b';
 
 function StatCard({ icon, label, value, color }) {
   return (
-    <div className="d-flex align-items-center gap-3 p-3 bg-white rounded-4 shadow-sm" style={{ minWidth: 0 }}>
-      <div className="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0" style={{ width: 44, height: 44, background: `${color}15` }}>
-        <i className={`bi ${icon}`} style={{ fontSize: '1.2rem', color }}></i>
+    <div className="d-flex align-items-start gap-2 p-3 bg-white rounded-4 shadow-sm h-100" style={{ minWidth: 0 }}>
+      <div className="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0 mt-1" style={{ width: 36, height: 36, background: `${color}15` }}>
+        <i className={`bi ${icon}`} style={{ fontSize: '1rem', color }}></i>
       </div>
-      <div className="min-width-0">
-        <div className="text-muted" style={{ fontSize: '0.7rem', letterSpacing: '0.3px', textTransform: 'uppercase' }}>{label}</div>
-        <div className="fw-bold text-truncate">{value || '—'}</div>
+      <div className="min-width-0" style={{ overflowWrap: 'break-word', wordBreak: 'break-word' }}>
+        <div className="text-muted" style={{ fontSize: '0.65rem', letterSpacing: '0.3px', textTransform: 'uppercase' }}>{label}</div>
+        <div className="fw-bold small">{value || '—'}</div>
       </div>
     </div>
   );
@@ -174,36 +172,6 @@ export default function TraineeDashboard() {
         </div>
       </div>
 
-      {/* ──────── Batch Status Cards ──────── */}
-      {batch && (
-        <div className="row g-3 g-md-4 mb-4">
-          <div className="col-6">
-            <div className="card border-0 h-100 shadow-sm" style={{ borderRadius: 20, background: 'linear-gradient(145deg, #ffffff, #f8f9fa)' }}>
-              <div className="card-body p-3 p-md-4 d-flex flex-column align-items-center text-center gap-2">
-                <div className="d-inline-flex align-items-center justify-content-center rounded-circle mb-2" style={{ width: 64, height: 64, background: 'linear-gradient(135deg, #e8f0fe, #d2e3fc)' }}>
-                  <i className="bi bi-layers text-primary fs-3"></i>
-                </div>
-                <div className="text-muted small fw-medium text-uppercase tracking-wide" style={{ fontSize: '0.7rem', letterSpacing: '0.5px' }}>ব্যাচ নম্বর</div>
-                <h4 className="mb-0 fw-bold">{batch.batch_no}</h4>
-                <div className="small text-primary fw-medium">{batch.name_bn}</div>
-              </div>
-            </div>
-          </div>
-          <div className="col-6">
-            <div className="card border-0 h-100 shadow-sm" style={{ borderRadius: 20, background: 'linear-gradient(145deg, #ffffff, #f8f9fa)' }}>
-              <div className="card-body p-3 p-md-4 d-flex flex-column align-items-center text-center gap-2">
-                <div className="d-inline-flex align-items-center justify-content-center rounded-circle mb-2" style={{ width: 64, height: 64, background: 'linear-gradient(135deg, #e6f9ed, #c8f0d5)' }}>
-                  <i className="bi bi-check2-circle text-success fs-3"></i>
-                </div>
-                <div className="text-muted small fw-medium text-uppercase tracking-wide" style={{ fontSize: '0.7rem', letterSpacing: '0.5px' }}>স্ট্যাটাস</div>
-                <h4 className="mb-0 fw-bold">{t(`batch.status.${batch.status}`, STATUS_MAP[batch.status] || batch.status)}</h4>
-                <div className="small text-success fw-medium">{batch.start_date} - {batch.end_date}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* ──────── Application + Attendance Row ──────── */}
       <div className="row g-4 mb-4">
         {/* Application Status */}
@@ -269,8 +237,8 @@ export default function TraineeDashboard() {
                   <i className="bi bi-check-circle text-muted fs-5"></i>
                 </div>
                 <div>
-                  <div className="fw-bold small text-uppercase" style={{ letterSpacing: '0.5px' }}>উপস্থিতির হার</div>
-                  <div className="small text-muted">ব্যাচে নথিভুক্ত নন</div>
+                  <div className="fw-bold small text-uppercase" style={{ letterSpacing: '0.5px' }}>উপস্থিতি</div>
+                  <div className="small text-muted">ব্যাচে নথিভুক্ত হলে উপস্থিতির তথ্য দেখা যাবে</div>
                 </div>
               </div>
             </div>

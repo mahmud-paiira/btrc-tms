@@ -40,3 +40,8 @@ docker-data/
 *.png
 *.pdf
 !**/assets/**/*.png
+
+# Logs
+*.log
+backend_err.log
+test_*.py

@@ -25,14 +25,17 @@ export default function QRCheckin() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [batchRes, enrollRes, trainerRes] = await Promise.all([
+      const [batchRes, enrollRes] = await Promise.all([
         api.get(`/batches/batches/${batchId}/`),
         api.get(`/batches/enrollments/`, { params: { batch: batchId } }),
-        api.get('/trainers/', { params: { status: 'active' } }),
       ]);
       setBatch(batchRes.data);
       const enrollments = enrollRes.data.results || enrollRes.data || [];
       setTrainees(enrollments);
+
+      const trainerRes = await api.get('/trainers/', {
+        params: { approval_status: 'approved', mapped_center: batchRes.data.center },
+      });
       setTrainers(trainerRes.data.results || trainerRes.data || []);
 
       const initial = {};
@@ -67,7 +70,7 @@ export default function QRCheckin() {
 
   const handleSave = async () => {
     if (!leadTrainer) {
-      toast.warning(t('attendance.mark.selectTrainerWarning', 'দয়া করে প্রধান প্রশিক্ষক নির্বাচন করুন'));
+      toast.warning(t('attendance.mark.selectTrainerWarning', 'দয়া করে প্রশিক্ষক নির্বাচন করুন'));
       return;
     }
 
@@ -143,7 +146,7 @@ export default function QRCheckin() {
 
           <div className="row g-3 mb-4">
             <div className="col-md-6">
-              <label className="form-label fw-bold">{t('attendance.qr.leadTrainer', 'প্রধান প্রশিক্ষক')}</label>
+              <label className="form-label fw-bold">{t('attendance.qr.leadTrainer', 'প্রশিক্ষক')}</label>
               <select
                 className="form-select"
                 value={leadTrainer}
@@ -152,7 +155,7 @@ export default function QRCheckin() {
                 <option value="">{t('site.select', '-- নির্বাচন করুন --')}</option>
                 {trainers.map((t) => (
                   <option key={t.id} value={t.id}>
-                    {t.user_email || t.trainer_no}
+                    {t.user_full_name_bn || t.user_email || t.trainer_no}
                   </option>
                 ))}
               </select>
@@ -174,8 +177,8 @@ export default function QRCheckin() {
           </div>
 
           <div className="table-responsive">
-            <table className="table table-hover table-bordered">
-              <thead className="table-dark">
+            <table className="b-form-table w-100">
+              <thead>
                 <tr>
                   <th>#</th>
                   <th>{t('attendance.qr.colTrainee', 'প্রশিক্ষণার্থী')}</th>

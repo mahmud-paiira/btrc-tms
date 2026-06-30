@@ -87,11 +87,11 @@ export default function HoCourseDetail() {
             }}>
             <i className="bi bi-filetype-pdf me-1"></i>পিডিএফ
           </button>
-          <span className={`badge bg-${STATUS_BG[course.status]} fs-6 px-3 py-2`}>
+          <span className={`status-dot dot-${STATUS_BG[course.status]}`}>
             {STATUS_MAP[course.status] || course.status}
           </span>
-          <span className="badge bg-info fs-6 px-3 py-2">{TYPE_MAP[course.course_type]}</span>
-          <span className="badge bg-secondary fs-6 px-3 py-2">{TERM_MAP[course.term]} - {SESSION_MAP[course.session]}</span>
+          <span className="status-dot dot-info">{TYPE_MAP[course.course_type]}</span>
+          <span className="status-dot dot-secondary">{TERM_MAP[course.term]} - {SESSION_MAP[course.session]}</span>
         </div>
       </div>
 
@@ -111,32 +111,32 @@ export default function HoCourseDetail() {
                 <div className="row g-4">
                   <div className="col-md-6">
                     <h6 className="fw-bold mb-3 text-muted text-uppercase small">মূল তথ্য</h6>
-                    <table className="table table-bordered align-middle">
+                    <table className="b-detail-table w-100">
                       <tbody>
-                        <tr><th className="bg-light" style={{ width: 130 }}>কোড</th><td>{course.code}</td></tr>
-                        <tr><th className="bg-light">নাম (বাংলা)</th><td>{course.name_bn}</td></tr>
-                        <tr><th className="bg-light">নাম (ইংরেজি)</th><td>{course.name_en || '—'}</td></tr>
-                        <tr><th className="bg-light">প্রকল্পের নাম</th><td>{course.project_name || '—'}</td></tr>
-                        <tr><th className="bg-light">প্রকল্পের স্পনসর</th><td>{course.project_sponsor || '—'}</td></tr>
-                        <tr><th className="bg-light">বিবরণ</th><td>{course.description || '—'}</td></tr>
-                        <tr><th className="bg-light">ধরন</th><td>{TYPE_MAP[course.course_type]}</td></tr>
-                        <tr><th className="bg-light">টার্ম</th><td>{TERM_MAP[course.term]}</td></tr>
-                        <tr><th className="bg-light">সেশন</th><td>{SESSION_MAP[course.session]}</td></tr>
+                        <tr><th >কোড</th><td>{course.code}</td></tr>
+                        <tr><th >নাম (বাংলা)</th><td>{course.name_bn}</td></tr>
+                        <tr><th >নাম (ইংরেজি)</th><td>{course.name_en || '—'}</td></tr>
+                        <tr><th >প্রকল্পের নাম</th><td>{course.project_name || '—'}</td></tr>
+                        <tr><th >প্রকল্পের স্পনসর</th><td>{course.project_sponsor || '—'}</td></tr>
+                        <tr><th >বিবরণ</th><td>{course.description || '—'}</td></tr>
+                        <tr><th >ধরন</th><td>{TYPE_MAP[course.course_type]}</td></tr>
+                        <tr><th >টার্ম</th><td>{TERM_MAP[course.term]}</td></tr>
+                        <tr><th >সেশন</th><td>{SESSION_MAP[course.session]}</td></tr>
                       </tbody>
                     </table>
                   </div>
                   <div className="col-md-6">
                     <h6 className="fw-bold mb-3 text-muted text-uppercase small">সময় ও ফি</h6>
-                    <table className="table table-bordered align-middle">
+                    <table className="b-detail-table w-100">
                       <tbody>
-                        <tr><th className="bg-light" style={{ width: 130 }}>মেয়াদ</th><td>
+                        <tr><th >মেয়াদ</th><td>
                           {course.duration_value ? <>{course.duration_value} {course.duration_unit === 'days' ? 'দিন' : course.duration_unit === 'weeks' ? 'সপ্তাহ' : 'মাস'}</> : <>{course.duration_months} মাস</>}
                         </td></tr>
-                        <tr><th className="bg-light">ঘন্টা</th><td>{course.duration_hours}</td></tr>
-                        <tr><th className="bg-light">প্রশিক্ষণ দিন</th><td>{course.total_training_days}</td></tr>
-                        <tr><th className="bg-light">ফি</th><td>৳{course.fee}</td></tr>
-                        <tr><th className="bg-light">স্টাইপেন্ড</th><td>{course.stipend_eligible ? 'হ্যাঁ' : 'না'}</td></tr>
-                        <tr><th className="bg-light">চাকরির উপযোগী</th><td>{course.employment_eligible ? 'হ্যাঁ' : 'না'}</td></tr>
+                        <tr><th >ঘন্টা</th><td>{course.duration_hours}</td></tr>
+                        <tr><th >প্রশিক্ষণ দিন</th><td>{course.total_training_days}</td></tr>
+                        <tr><th >ফি</th><td>৳{course.fee}</td></tr>
+                        <tr><th >স্টাইপেন্ড</th><td>{course.stipend_eligible ? 'হ্যাঁ' : 'না'}</td></tr>
+                        <tr><th >চাকরির উপযোগী</th><td>{course.employment_eligible ? 'হ্যাঁ' : 'না'}</td></tr>
                       </tbody>
                     </table>
                   </div>
@@ -147,11 +147,11 @@ export default function HoCourseDetail() {
             <div className="row g-4">
               <div className="col-md-6">
                 <h6 className="fw-bold mb-3 text-muted text-uppercase small">কনফিগারেশন</h6>
-                <table className="table table-bordered align-middle">
+                <table className="b-detail-table w-100">
                   <tbody>
-                    <tr><th className="bg-light" style={{ width: 140 }}>পাস মার্কস</th><td>{course.configuration?.passing_marks || 80}%</td></tr>
-                    <tr><th className="bg-light">উপস্থিতি</th><td>{course.configuration?.attendance_requirement || 80}%</td></tr>
-                    <tr><th className="bg-light">সার্টিফিকেট</th><td>{course.configuration?.certificate_template || '—'}</td></tr>
+                    <tr><th >পাস মার্কস</th><td>{course.configuration?.passing_marks || 80}%</td></tr>
+                    <tr><th >উপস্থিতি</th><td>{course.configuration?.attendance_requirement || 80}%</td></tr>
+                    <tr><th >সার্টিফিকেট</th><td>{course.configuration?.certificate_template || '—'}</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -166,8 +166,8 @@ export default function HoCourseDetail() {
 
           {tab === 'chapters' && (
             <div className="table-responsive">
-              <table className="table table-hover table-bordered align-middle">
-                <thead className="table-light">
+              <table className="b-detail-table w-100">
+                <thead >
                   <tr><th>নং</th><th>শিরোনাম (বাংলা)</th><th>শিরোনাম (ইংরেজি)</th><th>সময় (ঘন্টা)</th></tr>
                 </thead>
                 <tbody>
@@ -188,8 +188,8 @@ export default function HoCourseDetail() {
 
           {tab === 'competency' && (
             <div className="table-responsive">
-              <table className="table table-hover table-bordered align-middle">
-                <thead className="table-light">
+              <table className="b-detail-table w-100">
+                <thead >
                   <tr><th>কোড</th><th>নাম (বাংলা)</th><th>নাম (ইংরেজি)</th><th>মূল্যায়ন</th></tr>
                 </thead>
                 <tbody>
@@ -210,8 +210,8 @@ export default function HoCourseDetail() {
 
           {tab === 'bills' && (
             <div className="table-responsive">
-              <table className="table table-hover table-bordered align-middle">
-                <thead className="table-light">
+              <table className="b-detail-table w-100">
+                <thead >
                   <tr><th>বিল আইটেম</th><th>পরিমাণ</th><th>বাধ্যতামূলক</th></tr>
                 </thead>
                 <tbody>
@@ -221,7 +221,7 @@ export default function HoCourseDetail() {
                     <tr key={b.id}>
                       <td>{b.bill_item_bn} <small className="text-muted">({b.bill_item_en})</small></td>
                       <td className="fw-bold">৳{b.amount}</td>
-                      <td>{b.is_mandatory ? <span className="badge bg-success">হ্যাঁ</span> : <span className="badge bg-secondary">না</span>}</td>
+                      <td>{b.is_mandatory ? <span className="status-dot dot-success">হ্যাঁ</span> : <span className="status-dot dot-secondary">না</span>}</td>
                     </tr>
                   ))}
                 </tbody>

@@ -97,12 +97,11 @@ export default function ApplicationDetail() {
             <i className="bi bi-printer"></i>
             PDF
           </button>
-          <span className={`badge bg-${STATUS_BG[app.status] || 'secondary'} fs-6 px-3 py-2`}>
+          <span className={`status-dot dot-${STATUS_BG[app.status] || 'secondary'}`} />
             {app.status === 'pending' ? 'পেন্ডিং' :
              app.status === 'selected' ? 'নির্বাচিত' :
              app.status === 'rejected' ? 'বাতিল' :
              app.status === 'waitlisted' ? 'অপেক্ষমাণ' : app.status}
-          </span>
         </div>
       </div>
 
@@ -123,33 +122,32 @@ export default function ApplicationDetail() {
               <div className="row g-4">
                 <div className="col-md-6">
                   <h6 className="fw-bold mb-3 text-muted text-uppercase small">সার্কুলার</h6>
-                  <table className="table table-bordered align-middle">
+                  <table className="b-detail-table align-middle">
                     <tbody>
-                      <tr><th className="bg-light" style={{ width: 160 }}>সার্কুলার</th><td>{app.circular_title}</td></tr>
-                      <tr><th className="bg-light">কোর্স</th><td>{app.course_name || '—'}</td></tr>
-                      <tr><th className="bg-light">কেন্দ্র</th><td>{app.center_name || '—'}</td></tr>
+                      <tr><th>সার্কুলার</th><td>{app.circular_title}</td></tr>
+                      <tr><th>কোর্স</th><td>{app.course_name || '—'}</td></tr>
+                      <tr><th>কেন্দ্র</th><td>{app.center_name || '—'}</td></tr>
                     </tbody>
                   </table>
                 </div>
                 <div className="col-md-6">
                   <h6 className="fw-bold mb-3 text-muted text-uppercase small">অবস্থা</h6>
-                  <table className="table table-bordered align-middle">
+                  <table className="b-detail-table align-middle">
                     <tbody>
-                      <tr><th className="bg-light" style={{ width: 160 }}>আবেদনের তারিখ</th><td>{app.applied_at || '—'}</td></tr>
-                      <tr><th className="bg-light">অবস্থা</th>
+                      <tr><th>আবেদনের তারিখ</th><td>{app.applied_at || '—'}</td></tr>
+                      <tr><th>অবস্থা</th>
                         <td>
-                          <span className={`badge bg-${STATUS_BG[app.status] || 'secondary'}`}>
+                          <span className={`status-dot dot-${STATUS_BG[app.status] || 'secondary'}`} />
                             {app.status === 'pending' ? 'পেন্ডিং' :
                              app.status === 'selected' ? 'নির্বাচিত' :
                              app.status === 'rejected' ? 'বাতিল' :
                              app.status === 'waitlisted' ? 'অপেক্ষমাণ' : app.status}
-                          </span>
                         </td>
                       </tr>
-                      <tr><th className="bg-light">অটো স্ক্রিন</th>
+                      <tr><th>অটো স্ক্রিন</th>
                         <td>
-                          {app.auto_screen_pass === true ? <span className="badge bg-success">পাস</span> :
-                           app.auto_screen_pass === false ? <span className="badge bg-danger">ফেল</span> : '—'}
+                          {app.auto_screen_pass === true ? <><span className="status-dot dot-success"></span>হ্যাঁ</> :
+                           app.auto_screen_pass === false ? <><span className="status-dot dot-danger"></span>না</> : '—'}
                           {app.auto_screen_score != null && ` (${app.auto_screen_score})`}
                         </td>
                       </tr>
@@ -161,24 +159,24 @@ export default function ApplicationDetail() {
               <div className="row g-4 mt-2">
                 <div className="col-md-6">
                   <h6 className="fw-bold mb-3 text-muted text-uppercase small">ব্যক্তিগত তথ্য</h6>
-                  <table className="table table-bordered align-middle">
+                  <table className="b-detail-table align-middle">
                     <tbody>
-                      <tr><th className="bg-light" style={{ width: 160 }}>নাম (বাংলায়)</th><td>{app.name_bn}</td></tr>
-                      <tr><th className="bg-light">নাম (ইংরেজিতে)</th><td>{app.name_en || '—'}</td></tr>
-                      <tr><th className="bg-light">পিতার নাম</th><td>{app.father_name_bn}</td></tr>
-                      <tr><th className="bg-light">মাতার নাম</th><td>{app.mother_name_bn}</td></tr>
-                      <tr><th className="bg-light">জন্ম তারিখ</th><td>{app.date_of_birth}</td></tr>
-                      <tr><th className="bg-light">এনআইডি</th><td>{app.nid}</td></tr>
+                      <tr><th>নাম (বাংলায়)</th><td>{app.name_bn}</td></tr>
+                      <tr><th>নাম (ইংরেজিতে)</th><td>{app.name_en || '—'}</td></tr>
+                      <tr><th>পিতার নাম</th><td>{app.father_name_bn}</td></tr>
+                      <tr><th>মাতার নাম</th><td>{app.mother_name_bn}</td></tr>
+                      <tr><th>জন্ম তারিখ</th><td>{app.date_of_birth}</td></tr>
+                      <tr><th>এনআইডি</th><td>{app.nid}</td></tr>
                     </tbody>
                   </table>
                 </div>
                 <div className="col-md-6">
                   <h6 className="fw-bold mb-3 text-muted text-uppercase small">যোগাযোগ</h6>
-                  <table className="table table-bordered align-middle">
+                  <table className="b-detail-table align-middle">
                     <tbody>
-                      <tr><th className="bg-light" style={{ width: 160 }}>মোবাইল</th><td>{app.phone}</td></tr>
-                      <tr><th className="bg-light">বিকল্প মোবাইল</th><td>{app.alternate_phone || '—'}</td></tr>
-                      <tr><th className="bg-light">ইমেইল</th><td>{app.email || '—'}</td></tr>
+                      <tr><th>মোবাইল</th><td>{app.phone}</td></tr>
+                      <tr><th>বিকল্প মোবাইল</th><td>{app.alternate_phone || '—'}</td></tr>
+                      <tr><th>ইমেইল</th><td>{app.email || '—'}</td></tr>
                     </tbody>
                   </table>
                 </div>
@@ -187,19 +185,19 @@ export default function ApplicationDetail() {
               <div className="row g-4 mt-2">
                 <div className="col-md-6">
                   <h6 className="fw-bold mb-3 text-muted text-uppercase small">ঠিকানা</h6>
-                  <table className="table table-bordered align-middle">
+                  <table className="b-detail-table align-middle">
                     <tbody>
-                      <tr><th className="bg-light" style={{ width: 160 }}>বর্তমান ঠিকানা</th><td>{app.present_address}</td></tr>
-                      <tr><th className="bg-light">স্থায়ী ঠিকানা</th><td>{app.permanent_address || '—'}</td></tr>
+                      <tr><th>বর্তমান ঠিকানা</th><td>{app.present_address}</td></tr>
+                      <tr><th>স্থায়ী ঠিকানা</th><td>{app.permanent_address || '—'}</td></tr>
                     </tbody>
                   </table>
                 </div>
                 <div className="col-md-6">
                   <h6 className="fw-bold mb-3 text-muted text-uppercase small">শিক্ষা ও পেশা</h6>
-                  <table className="table table-bordered align-middle">
+                  <table className="b-detail-table align-middle">
                     <tbody>
-                      <tr><th className="bg-light" style={{ width: 160 }}>শিক্ষাগত যোগ্যতা</th><td>{app.education_qualification}</td></tr>
-                      <tr><th className="bg-light">পেশা</th><td>{app.profession || '—'}</td></tr>
+                      <tr><th>শিক্ষাগত যোগ্যতা</th><td>{app.education_qualification}</td></tr>
+                      <tr><th>পেশা</th><td>{app.profession || '—'}</td></tr>
                     </tbody>
                   </table>
                 </div>
@@ -209,11 +207,11 @@ export default function ApplicationDetail() {
                 <div className="row g-4 mt-2">
                   <div className="col-12">
                     <h6 className="fw-bold mb-3 text-muted text-uppercase small">পর্যালোচনা</h6>
-                    <table className="table table-bordered align-middle">
+                    <table className="b-detail-table align-middle">
                       <tbody>
-                        <tr><th className="bg-light" style={{ width: 160 }}>পর্যালোচনা করেছেন</th><td>{app.reviewed_by_name || '—'}</td></tr>
-                        <tr><th className="bg-light">পর্যালোচনার তারিখ</th><td>{app.reviewed_at || '—'}</td></tr>
-                        {app.remarks && <tr><th className="bg-light">মন্তব্য</th><td>{app.remarks}</td></tr>}
+                        <tr><th>পর্যালোচনা করেছেন</th><td>{app.reviewed_by_name || '—'}</td></tr>
+                        <tr><th>পর্যালোচনার তারিখ</th><td>{app.reviewed_at || '—'}</td></tr>
+                        {app.remarks && <tr><th>মন্তব্য</th><td>{app.remarks}</td></tr>}
                       </tbody>
                     </table>
                   </div>

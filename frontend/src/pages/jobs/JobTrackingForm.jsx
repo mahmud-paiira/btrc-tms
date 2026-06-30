@@ -136,7 +136,7 @@ export default function JobTrackingForm() {
             <h6 className="mb-0"><i className="bi bi-people me-2"></i>{t('job.tracking.placedTrainees', 'স্থাপিত প্রশিক্ষণার্থী')}</h6>
           </div>
           <div className="table-responsive">
-            <table className="table table-hover table-bordered mb-0 align-middle">
+            <table className="b-form-table align-middle mb-0">
               <thead className="table-dark">
                 <tr>
                   <th>#</th>
@@ -168,10 +168,10 @@ export default function JobTrackingForm() {
                       <td className="text-center">
                         {dueMonths.length > 0 ? (
                           dueMonths.map((dm) => (
-                            <span key={dm.value} className="badge bg-warning text-dark me-1">{dm.label}</span>
+                            <span key={dm.value}><span className="status-dot dot-warning"></span>{dm.label}</span>
                           ))
                         ) : (
-                          <span className="badge bg-success">{t('job.tracking.complete', 'সম্পূর্ণ')}</span>
+                          <><span className="status-dot dot-success"></span>{t('job.tracking.complete', 'সম্পূর্ণ')}</>
                         )}
                       </td>
                       <td className="text-center">

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from '../../services/api';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -6,20 +7,30 @@ import { formatDate } from '../../utils/dateFormatter';
 
 export default function HolidayList() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [holidays, setHolidays] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({ date: '', description_bn: '', description_en: '', is_government_holiday: true });
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const pageSize = 20;
 
   const fetch = useCallback(async () => {
     setLoading(true);
     try {
-      const { data } = await api.get('/batches/holidays/');
-      setHolidays(data.results || data);
+      const { data } = await api.get('/batches/holidays/', { params: { page, page_size: pageSize } });
+      if (data.results) {
+        setHolidays(data.results);
+        setTotal(data.count);
+      } else {
+        setHolidays(data);
+        setTotal(data.length || 0);
+      }
     } catch { toast.error('ছুটির তালিকা লোড করতে ব্যর্থ'); }
     setLoading(false);
-  }, []);
+  }, [page]);
 
   useEffect(() => { fetch(); }, [fetch]);
 
@@ -69,39 +80,66 @@ export default function HolidayList() {
         <button className="btn btn-primary" onClick={openCreate}><i className="bi bi-plus-lg me-1"></i>নতুন ছুটি</button>
       </div>
 
-      <div className="card">
-        <div className="card-body p-0">
-          <table className="table table-bordered align-middle mb-0">
-            <thead className="bg-light">
+      <div className="card shadow-sm table-card" style={{ borderRadius: 12, border: 'none' }}>
+        <div className="table-responsive">
+          <table className="b-table w-100">
+            <thead>
               <tr>
                 <th>#</th>
                 <th>তারিখ</th>
                 <th>বিবরণ (বাংলা)</th>
                 <th>বিবরণ (ইংরেজি)</th>
                 <th>সরকারি ছুটি</th>
-                <th>কর্ম</th>
+                <th className="text-center">কর্ম</th>
               </tr>
             </thead>
             <tbody>
-              {holidays.map((h, i) => (
-                <tr key={h.id}>
-                  <td>{i + 1}</td>
-                  <td>{formatDate(h.date)}</td>
-                  <td>{h.description_bn}</td>
-                  <td>{h.description_en || '-'}</td>
-                  <td>{h.is_government_holiday ? <span className="badge bg-danger">হ্যাঁ</span> : <span className="badge bg-info">না</span>}</td>
-                  <td>
-                    <button className="btn btn-sm btn-outline-primary me-1" onClick={() => openEdit(h)}><i className="bi bi-pencil"></i></button>
-                    <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(h.id)}><i className="bi bi-trash"></i></button>
-                  </td>
-                </tr>
-              ))}
-              {holidays.length === 0 && (
-                <tr><td colSpan={6} className="text-center text-muted py-4">কোন ছুটির দিন পাওয়া যায়নি</td></tr>
+              {loading ? (
+                <tr><td colSpan={6} className="text-center py-4"><div className="spinner-border spinner-border-sm me-2" />লোড হচ্ছে...</td></tr>
+              ) : holidays.length === 0 ? (
+                <tr><td colSpan={6} className="text-center text-secondary py-4">কোন ছুটির দিন পাওয়া যায়নি</td></tr>
+              ) : (
+                holidays.map((h, i) => (
+                  <tr key={h.id}>
+                    <td className="fw-semibold">{i + 1}</td>
+                    <td>{formatDate(h.date)}</td>
+                    <td>{h.description_bn}</td>
+                    <td>{h.description_en || '-'}</td>
+                    <td>
+                      <span className={`status-dot dot-${h.is_government_holiday ? 'active' : 'inactive'}`}></span>
+                      <span style={{fontSize:13,color:'#334155'}}>{h.is_government_holiday ? 'হ্যাঁ' : 'না'}</span>
+                    </td>
+                    <td className="act-col">
+                      <div className="dropdown act-dropdown">
+                        <button className="dropdown-toggle" data-bs-toggle="dropdown" type="button" data-bs-strategy="fixed">
+                          <i className="bi bi-three-dots-vertical"></i>
+                        </button>
+                        <ul className="dropdown-menu dropdown-menu-end">
+                          <li><button className="dropdown-item" onClick={() => openEdit(h)}><i className="bi bi-pencil me-2"></i>সম্পাদনা</button></li>
+                          <li><hr className="dropdown-divider my-1" /></li>
+                          <li><button className="dropdown-item text-danger" onClick={() => handleDelete(h.id)}><i className="bi bi-trash me-2"></i>মুছুন</button></li>
+                        </ul>
+                      </div>
+                    </td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>
         </div>
+        {total > 0 && (
+          <div className="b-pagination d-flex justify-content-between align-items-center py-2 px-3">
+            <span className="page-info">দেখানো হচ্ছে {Math.min((page - 1) * pageSize + 1, total)}-{Math.min(page * pageSize, total)} এর {total}</span>
+            <div className="d-flex gap-1">
+              <button className="page-btn" disabled={page <= 1} onClick={() => setPage(page - 1)}>
+                <i className="bi bi-chevron-left"></i>
+              </button>
+              <button className="page-btn" disabled={page >= Math.ceil(total / pageSize)} onClick={() => setPage(page + 1)}>
+                <i className="bi bi-chevron-right"></i>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {showModal && (

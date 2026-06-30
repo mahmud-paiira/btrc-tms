@@ -148,7 +148,7 @@ export default function AssessorDetailPage() {
           <button className="btn btn-outline-danger btn-sm rounded-pill px-3" onClick={handleDelete} disabled={deleting} style={{ fontSize: 13 }}>
             {deleting ? <><span className="spinner-border spinner-border-sm me-1" />মুছছে...</> : <><i className="bi bi-trash me-1"></i>মুছুন</>}
           </button>
-          <span className={`badge bg-${STATUS_BG[a.status] || 'secondary'} fs-6 px-3 py-2`}>
+          <span className={`status-dot dot-${STATUS_BG[a.status] || 'secondary'}`}>
             {STATUS_MAP[a.status] || a.status}
           </span>
         </div>
@@ -159,38 +159,38 @@ export default function AssessorDetailPage() {
           <div className="row g-4">
             <div className="col-md-6">
               <h6 className="fw-bold mb-3 text-muted text-uppercase small">ব্যক্তিগত তথ্য</h6>
-              <table className="table table-bordered align-middle">
+              <table className="b-detail-table w-100">
                 <tbody>
-                  <tr><th className="bg-light" style={{ width: 160 }}>প্রোফাইল ছবি</th><td>{u.profile_image ? <img src={imageUrl(u.profile_image)} alt="ছবি" className="rounded-circle" style={{ width: 60, height: 60, objectFit: 'cover' }} onError={(e) => { e.target.style.display = 'none'; }} /> : '—'}</td></tr>
-                  <tr><th className="bg-light" style={{ width: 160 }}>মূল্যায়নকারী নং</th><td>{a.assessor_no}</td></tr>
-                  <tr><th className="bg-light">নাম (বাংলা)</th><td>{u.full_name_bn || '—'}</td></tr>
-                  <tr><th className="bg-light">নাম (ইংরেজি)</th><td>{u.full_name_en || '—'}</td></tr>
-                  <tr><th className="bg-light">ইমেইল</th><td>{u.email || '—'}</td></tr>
-                  <tr><th className="bg-light">ফোন</th><td>{u.phone || '—'}</td></tr>
-                  <tr><th className="bg-light">এনআইডি</th><td>{a.nid || '—'}</td></tr>
-                  <tr><th className="bg-light">জন্ম নিবন্ধন</th><td>{a.birth_certificate_no || '—'}</td></tr>
-                  <tr><th className="bg-light">জন্ম তারিখ</th><td>{a.date_of_birth || '—'}</td></tr>
+                  <tr><th >প্রোফাইল ছবি</th><td>{u.profile_image ? <img src={imageUrl(u.profile_image)} alt="ছবি" className="rounded-circle" style={{ width: 60, height: 60, objectFit: 'cover' }} onError={(e) => { e.target.style.display = 'none'; }} /> : '—'}</td></tr>
+                  <tr><th >মূল্যায়নকারী নং</th><td>{a.assessor_no}</td></tr>
+                  <tr><th >নাম (বাংলা)</th><td>{u.full_name_bn || '—'}</td></tr>
+                  <tr><th >নাম (ইংরেজি)</th><td>{u.full_name_en || '—'}</td></tr>
+                  <tr><th >ইমেইল</th><td>{u.email || '—'}</td></tr>
+                  <tr><th >ফোন</th><td>{u.phone || '—'}</td></tr>
+                  <tr><th >এনআইডি</th><td>{a.nid || '—'}</td></tr>
+                  <tr><th >জন্ম নিবন্ধন</th><td>{a.birth_certificate_no || '—'}</td></tr>
+                  <tr><th >জন্ম তারিখ</th><td>{a.date_of_birth || '—'}</td></tr>
                 </tbody>
               </table>
             </div>
             <div className="col-md-6">
               <h6 className="fw-bold mb-3 text-muted text-uppercase small">পেশাগত তথ্য</h6>
-              <table className="table table-bordered align-middle">
+              <table className="b-detail-table w-100">
                 <tbody>
-                  <tr><th className="bg-light" style={{ width: 160 }}>পিতার নাম</th><td>{a.father_name_bn || '—'}</td></tr>
-                  <tr><th className="bg-light">মাতার নাম</th><td>{a.mother_name_bn || '—'}</td></tr>
-                  <tr><th className="bg-light">শিক্ষাগত যোগ্যতা</th><td>{a.education_name || a.education_qualification || '—'}</td></tr>
-                  <tr><th className="bg-light">অভিজ্ঞতা</th><td>{a.years_of_experience ? `${a.years_of_experience} বছর` : '—'}</td></tr>
-                  <tr><th className="bg-light">দক্ষতার ক্ষেত্র</th><td>{a.expertise_area || '—'}</td></tr>
-                  <tr><th className="bg-light">সার্টিফিকেশন</th><td>{a.certification || '—'}</td></tr>
-                  <tr><th className="bg-light">ব্যাংক একাউন্ট</th><td>{a.bank_account_no || '—'}</td></tr>
-                  <tr><th className="bg-light">ব্যাংকের নাম</th><td>{a.bank_name || '—'}</td></tr>
+                  <tr><th >পিতার নাম</th><td>{a.father_name_bn || '—'}</td></tr>
+                  <tr><th >মাতার নাম</th><td>{a.mother_name_bn || '—'}</td></tr>
+                  <tr><th >শিক্ষাগত যোগ্যতা</th><td>{a.education_name || a.education_qualification || '—'}</td></tr>
+                  <tr><th >অভিজ্ঞতা</th><td>{a.years_of_experience ? `${a.years_of_experience} বছর` : '—'}</td></tr>
+                  <tr><th >দক্ষতার ক্ষেত্র</th><td>{a.expertise_area || '—'}</td></tr>
+                  <tr><th >সার্টিফিকেশন</th><td>{a.certification || '—'}</td></tr>
+                  <tr><th >ব্যাংক একাউন্ট</th><td>{a.bank_account_no || '—'}</td></tr>
+                  <tr><th >ব্যাংকের নাম</th><td>{a.bank_name || '—'}</td></tr>
                 </tbody>
               </table>
             </div>
           </div>
           <div className="d-flex gap-2 mt-3">
-            <span className={`badge bg-${APPROVAL_BG[a.approval_status] || 'secondary'} fs-6 px-3 py-2`}>
+            <span className={`status-dot dot-${APPROVAL_BG[a.approval_status] || 'secondary'}`}>
               {APPROVAL_MAP[a.approval_status] || a.approval_status}
             </span>
           </div>

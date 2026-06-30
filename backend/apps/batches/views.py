@@ -15,9 +15,10 @@ from django.db.models import Q
 
 from apps.centers.models import Center
 from apps.trainers.models import Trainer, TrainerMapping
+from apps.assessors.models import Assessor, AssessorMapping
 from apps.trainees.models import Trainee
 from apps.trainees.serializers import TraineeListSerializer
-from .models import Batch, BatchWeekPlan, BatchEnrollment
+from .models import Batch, BatchWeekPlan, BatchEnrollment, BatchAssessor
 from .serializers import (
     BatchListSerializer,
     BatchDetailSerializer,
@@ -184,6 +185,69 @@ class BatchViewSet(viewsets.ModelViewSet):
             'associate_trainer_id': associate.id if associate else None,
         })
 
+    @action(detail=True, methods=['get'])
+    def assessor(self, request, pk=None):
+        batch = self.get_object()
+        assignments = BatchAssessor.objects.filter(batch=batch).select_related('assessor__user')
+        assessors_data = []
+        for a in assignments:
+            assessors_data.append({
+                'assessor_id': a.assessor_id,
+                'assessor_name': a.assessor.user.full_name_bn,
+                'assessor_no': a.assessor.assessor_no,
+                'assessment_type': a.assessment_type,
+                'assigned_at': a.assigned_at,
+            })
+        return Response({'assessors': assessors_data})
+
+    @action(detail=True, methods=['post'])
+    def assign_assessor(self, request, pk=None):
+        batch = self.get_object()
+        assessor_id = request.data.get('assessor_id')
+        assessment_type = request.data.get('assessment_type', 'pre_evaluation')
+
+        if not assessor_id:
+            return Response({'error': 'মূল্যায়নকারী নির্বাচন করুন।'}, status=400)
+
+        try:
+            assessor = Assessor.objects.select_related('user').get(
+                pk=assessor_id, approval_status='approved',
+            )
+        except Assessor.DoesNotExist:
+            return Response({'error': 'মূল্যায়নকারী খুঁজে পাওয়া যায়নি বা অনুমোদিত নন।'}, status=400)
+
+        mapping_exists = AssessorMapping.objects.filter(
+            assessor=assessor, center=batch.center, course=batch.course, status='active',
+        ).exists()
+        if not mapping_exists:
+            return Response({'error': 'মূল্যায়নকারী এই ব্যাচের কেন্দ্র ও কোর্সের জন্য নির্ধারিত নন।'}, status=400)
+
+        obj, created = BatchAssessor.objects.get_or_create(
+            batch=batch,
+            assessor=assessor,
+            defaults={'assessment_type': assessment_type},
+        )
+        if not created:
+            return Response({'error': 'এই মূল্যায়নকারী ইতিমধ্যে এই ব্যাচে নিয়োগ দেওয়া হয়েছে।'}, status=400)
+
+        return Response({
+            'created': 1,
+            'assessor_name': assessor.user.full_name_bn,
+            'assessor_id': assessor.id,
+            'assessment_type': assessment_type,
+        })
+
+    @action(detail=True, methods=['post'])
+    def remove_assessor(self, request, pk=None):
+        batch = self.get_object()
+        assessor_id = request.data.get('assessor_id')
+        if not assessor_id:
+            return Response({'error': 'মূল্যায়নকারী আইডি দিন।'}, status=400)
+        deleted, _ = BatchAssessor.objects.filter(batch=batch, assessor_id=assessor_id).delete()
+        if not deleted:
+            return Response({'error': 'এই মূল্যায়নকারী এই ব্যাচে নিয়োগ দেওয়া হয়নি।'}, status=404)
+        return Response({'deleted': deleted})
+
     def _create_default_week_plans(self, batch, lead, associate):
         from datetime import time as dt_time
         default_plans = [
@@ -234,6 +298,7 @@ class BatchViewSet(viewsets.ModelViewSet):
         created = []
         errors = []
         with transaction.atomic():
+            BatchWeekPlan.objects.filter(batch=batch).delete()
             for idx, plan_data in enumerate(data):
                 pdata = plan_data.copy() if hasattr(plan_data, 'copy') else dict(plan_data)
                 if not pdata.get('start_date') and batch.start_date:

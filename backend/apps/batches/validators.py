@@ -33,6 +33,8 @@ def validate_batch_hours_match_course(batch_id):
         batch=batch
     ).aggregate(Sum('duration_hours'))['duration_hours__sum'] or 0
     course_hours = batch.course.duration_hours
+    if not course_hours:
+        return True, total_planned, course_hours
     if abs(float(total_planned) - float(course_hours)) > 1.0:
         return False, total_planned, course_hours
     return True, total_planned, course_hours
