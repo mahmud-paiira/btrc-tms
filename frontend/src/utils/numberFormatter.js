@@ -59,7 +59,7 @@ export const toEnglishDigits = (str) => {
 };
 export const formatPercentage = (value) => {
   if (value === undefined || value === null) return '0%';
-  return `${Math.round(value)}%`;
+  return `${convertToBanglaDigits(Math.round(value))}%`;
 };
 export const formatCurrency = (value) => taka(value);
 

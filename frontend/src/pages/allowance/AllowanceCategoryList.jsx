@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import allowanceService from '../../services/allowanceService';
 import { useTranslation } from '../../hooks/useTranslation';
+import { convertToBanglaDigits, formatNumber } from '../../utils/numberFormatter';
 
 export default function AllowanceCategoryList() {
   const { t } = useTranslation();
@@ -89,10 +90,10 @@ export default function AllowanceCategoryList() {
               ) : (
                 categories.map((c, i) => (
                   <tr key={c.id}>
-                    <td>{i + 1}</td>
+                    <td>{convertToBanglaDigits(i + 1)}</td>
                     <td>{c.name_bn}</td>
                     <td>{c.name_en}</td>
-                    <td>{c.amount_per_session} টাকা</td>
+                    <td>{formatNumber(c.amount_per_session)} টাকা</td>
                     <td>
                       <span className={`status-dot dot-${c.is_active ? 'active' : 'inactive'}`}></span>
                       <span>{c.is_active ? 'হ্যাঁ' : 'না'}</span>

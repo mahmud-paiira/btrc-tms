@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import publicService from '../../services/publicService';
+import { convertToBanglaDigits } from '../../utils/numberFormatter';
 
 export default function ApplySuccess({ data }) {
   const handlePrint = async () => {
@@ -36,7 +37,7 @@ export default function ApplySuccess({ data }) {
 
                 <div className="bg-light rounded p-4 mb-4">
                   <p className="text-muted small mb-1">আবেদন নম্বর</p>
-                  <h2 className="fw-bold text-primary mb-0">{data.application_no}</h2>
+                  <h2 className="fw-bold text-primary mb-0">{convertToBanglaDigits(data.application_no)}</h2>
                 </div>
 
                 <div className="text-start bg-light rounded p-3 mb-4">
@@ -48,11 +49,11 @@ export default function ApplySuccess({ data }) {
                     <div className="col-6">
                       <span className="text-muted">এনআইডি:</span>
                     </div>
-                    <div className="col-6">{data.nid}</div>
+                    <div className="col-6">{convertToBanglaDigits(data.nid)}</div>
                     <div className="col-6">
                       <span className="text-muted">মোবাইল:</span>
                     </div>
-                    <div className="col-6">{data.phone}</div>
+                    <div className="col-6">{convertToBanglaDigits(data.phone)}</div>
                     <div className="col-6">
                       <span className="text-muted">কোর্স:</span>
                     </div>

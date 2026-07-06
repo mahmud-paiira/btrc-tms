@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import applicationService from '../../services/applicationService';
 import api from '../../services/api';
 import { formatDate, formatDateTime } from '../../utils/dateFormatter';
+import { convertToBanglaDigits } from '../../utils/numberFormatter';
 
 const STATUS_BG = { pending: 'secondary', selected: 'success', rejected: 'danger', waitlisted: 'warning' };
 const API_URL = '/api';
@@ -90,7 +91,7 @@ export default function ApplicationDetailPage() {
         </button>
         <div>
           <h4 className="mb-0 fw-bold">{app.name_bn}</h4>
-          <div className="text-muted small">আবেদন নং: {app.application_no}</div>
+          <div className="text-muted small">আবেদন নং: {convertToBanglaDigits(app.application_no)}</div>
         </div>
         <div className="ms-auto d-flex gap-2">
           <button className="btn btn-outline-primary btn-sm d-flex align-items-center gap-1 px-3"
@@ -162,7 +163,7 @@ export default function ApplicationDetailPage() {
                       <tr><th >পিতার নাম</th><td>{app.father_name_bn}</td></tr>
                       <tr><th >মাতার নাম</th><td>{app.mother_name_bn}</td></tr>
                       <tr><th >জন্ম তারিখ</th><td>{formatDate(app.date_of_birth)}</td></tr>
-                      <tr><th >এনআইডি</th><td>{app.nid}</td></tr>
+                      <tr><th >এনআইডি</th><td>{convertToBanglaDigits(app.nid)}</td></tr>
                     </tbody>
                   </table>
                 </div>
@@ -170,7 +171,7 @@ export default function ApplicationDetailPage() {
                   <h6 className="fw-bold mb-3 text-muted text-uppercase small">যোগাযোগ</h6>
                   <table className="b-detail-table w-100">
                     <tbody>
-                      <tr><th >মোবাইল</th><td>{app.phone}</td></tr>
+                      <tr><th >মোবাইল</th><td>{convertToBanglaDigits(app.phone)}</td></tr>
                       <tr><th >বিকল্প মোবাইল</th><td>{app.alternate_phone || '—'}</td></tr>
                       <tr><th >ইমেইল</th><td>{app.email || '—'}</td></tr>
                     </tbody>

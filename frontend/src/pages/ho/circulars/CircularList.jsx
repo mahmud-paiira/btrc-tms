@@ -5,6 +5,7 @@ import api from '../../../services/api';
 import hoService from '../../../services/hoService';
 import CircularForm from './CircularForm';
 import { formatDate } from '../../../utils/dateFormatter';
+import { convertToBanglaDigits, formatNumber } from '../../../utils/numberFormatter';
 
 export default function CircularList() {
   const navigate = useNavigate();
@@ -250,7 +251,7 @@ export default function CircularList() {
                       {c.all_centers ? 'সব কেন্দ্র' : (c.eligible_centers || []).map(ec => ec.code).join(', ')}
                     </td>
                     <td className="text-center">
-                      <span className="fw-bold">{c.remaining_seats}</span><small className="text-muted">/{c.total_seats}</small>
+                      <span className="fw-bold">{formatNumber(c.remaining_seats)}</span><small className="text-muted">/{formatNumber(c.total_seats)}</small>
                     </td>
                     <td className="d-none d-md-table-cell">
                       {formatDate(c.application_start_date)} → {formatDate(c.application_end_date)}

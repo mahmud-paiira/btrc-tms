@@ -5,6 +5,7 @@ import batchService from '../../services/batchService';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useAuth } from '../../contexts/AuthContext';
 import { formatDate } from '../../utils/dateFormatter';
+import { convertToBanglaDigits } from '../../utils/numberFormatter';
 import AddTraineeModal from '../../components/batches/AddTraineeModal';
 import TransferModal from '../../components/batches/TransferModal';
 import AssignTrainerModal from '../../components/batches/AssignTrainerModal';
@@ -89,7 +90,7 @@ export default function BatchDetail() {
         <span>প্রিন্টের তারিখ: ${formatDate(new Date())}</span>
       </div>
       <div class="info-grid">
-        <div><span class="label">ব্যাচ নং:</span> <strong>${batch.batch_no}</strong></div>
+        <div><span class="label">ব্যাচ নং:</span> <strong>${convertToBanglaDigits(batch.batch_no)}</strong></div>
         <div><span class="label">অবস্থা:</span> <strong>${statusLabel}</strong></div>
         <div><span class="label">নাম (বাংলা):</span> <strong>${batch.batch_name_bn || '-'}</strong></div>
         <div><span class="label">নাম (ইংরেজি):</span> <strong>${batch.batch_name_en || '-'}</strong></div>
@@ -98,14 +99,14 @@ export default function BatchDetail() {
         <div><span class="label">কেন্দ্র:</span> <strong>${batch.center_name || '-'}</strong></div>
         <div><span class="label">শুরুর তারিখ:</span> <strong>${batch.start_date ? formatDate(batch.start_date) : '-'}</strong></div>
         <div><span class="label">সমাপ্তির তারিখ:</span> <strong>${batch.end_date ? formatDate(batch.end_date) : '-'}</strong></div>
-        <div><span class="label">আসন:</span> <strong>${batch.filled_seats || 0} / ${batch.total_seats || 0}</strong></div>
+        <div><span class="label">আসন:</span> <strong>${convertToBanglaDigits(batch.filled_seats || 0)} / ${convertToBanglaDigits(batch.total_seats || 0)}</strong></div>
       </div>
       <table>
         <tr><th>ক্রমিক</th><th>রেজি. নং</th><th>নাম</th><th>মোবাইল</th><th>শিফট</th><th>নথিভুক্তির তারিখ</th><th>অবস্থা</th></tr>
         ${enrollments.length === 0 ? '<tr><td colspan="7" style="text-align:center">কোনো প্রশিক্ষণার্থী নথিভুক্ত নন</td></tr>' : enrollments.map((e, i) => `
           <tr>
-            <td>${i + 1}</td>
-            <td>${e.trainee_reg_no || '-'}</td>
+            <td>${convertToBanglaDigits(i + 1)}</td>
+            <td>${e.trainee_reg_no ? convertToBanglaDigits(e.trainee_reg_no) : '-'}</td>
             <td>${e.trainee_name || '-'}</td>
             <td>${e.trainee_phone || '-'}</td>
             <td>${e.batch_shift || '-'}</td>
@@ -217,7 +218,7 @@ export default function BatchDetail() {
               <div className="row">
                 <div className="col-sm-6 mb-2">
                   <small className="text-muted d-block">ব্যাচ নং</small>
-                  <strong>{batch.batch_no}</strong>
+                  <strong>{convertToBanglaDigits(batch.batch_no)}</strong>
                 </div>
                 <div className="col-sm-6 mb-2">
                   <small className="text-muted d-block">নাম (বাংলা)</small>
@@ -245,11 +246,11 @@ export default function BatchDetail() {
                 </div>
                 <div className="col-sm-6 mb-2">
                   <small className="text-muted d-block">আসন</small>
-                  <strong>{batch.filled_seats || 0} / {batch.total_seats || 0}</strong>
+                  <strong>{convertToBanglaDigits(batch.filled_seats || 0)} / {convertToBanglaDigits(batch.total_seats || 0)}</strong>
                 </div>
                 <div className="col-sm-6 mb-2">
                   <small className="text-muted d-block">কোর্সের মোট ঘন্টা</small>
-                  <strong>{batch.course_duration_hours || '-'} ঘন্টা</strong>
+                  <strong>{batch.course_duration_hours ? convertToBanglaDigits(batch.course_duration_hours) : '-'} ঘন্টা</strong>
                 </div>
               </div>
             </div>
@@ -335,7 +336,7 @@ export default function BatchDetail() {
 
       <div className="card">
         <div className="card-header d-flex justify-content-between align-items-center">
-          <span className="fw-bold">নথিভুক্ত প্রশিক্ষণার্থী ({enrollments.length})</span>
+          <span className="fw-bold">নথিভুক্ত প্রশিক্ষণার্থী ({convertToBanglaDigits(enrollments.length)})</span>
           <div className="d-flex gap-2">
             {isAdmin && (
               <button className="btn btn-sm btn-primary" onClick={() => setShowAddModal(true)}>
@@ -374,8 +375,8 @@ export default function BatchDetail() {
                   </tr>
                 ) : enrollments.map((e, i) => (
                   <tr key={e.id}>
-                    <td>{i + 1}</td>
-                    <td>{e.trainee_reg_no || '-'}</td>
+                    <td>{convertToBanglaDigits(i + 1)}</td>
+                    <td>{e.trainee_reg_no ? convertToBanglaDigits(e.trainee_reg_no) : '-'}</td>
                     <td>{e.trainee_name || '-'}</td>
                     <td>{e.trainee_phone || '-'}</td>
                     <td>{e.batch_shift || '-'}</td>

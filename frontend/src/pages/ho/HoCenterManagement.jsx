@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import hoService from '../../services/hoService';
 import BanglaInput from '../../components/common/BanglaInput';
+import { convertToBanglaDigits, formatNumber } from '../../utils/numberFormatter';
 
 const STATUS_MAP = { active: 'সক্রিয়', suspended: 'স্থগিত' };
 const INFRA_STATUSES = [
@@ -196,7 +197,7 @@ function CenterFormModal({ show, center, onClose, onSaved, usersList }) {
                   </div>
                   <div className="col-md-4">
                     <label className="form-label">ফোন <span className="text-danger">*</span></label>
-                    <input name="phone" className="form-control" value={form.phone} onChange={handleChange} required />
+                    <input name="phone" className="form-control" value={convertToBanglaDigits(form.phone)} onChange={handleChange} required />
                   </div>
                   <div className="col-md-4">
                     <label className="form-label">ইমেইল</label>
@@ -216,7 +217,7 @@ function CenterFormModal({ show, center, onClose, onSaved, usersList }) {
                   </div>
                   <div className="col-md-4">
                     <label className="form-label">যোগাযোগ মোবাইল</label>
-                    <input name="contact_person_phone" className="form-control" value={form.contact_person_phone} onChange={handleChange} />
+                    <input name="contact_person_phone" className="form-control" value={convertToBanglaDigits(form.contact_person_phone)} onChange={handleChange} />
                   </div>
                   <div className="col-12">
                     <label className="form-label">ঠিকানা</label>
@@ -336,7 +337,7 @@ function CenterFormModal({ show, center, onClose, onSaved, usersList }) {
                           <div className="col-md-3">
                             <label className="form-label small">কক্ষ নম্বর <span className="text-danger">*</span></label>
                             <input className="form-control form-control-sm" placeholder="যেমন: ১০১"
-                              value={infra.room_no} onChange={(e) => updateInfra(idx, 'room_no', e.target.value)} required />
+                              value={convertToBanglaDigits(infra.room_no)} onChange={(e) => updateInfra(idx, 'room_no', e.target.value)} required />
                           </div>
                           <div className="col-md-3">
                             <label className="form-label small">অবস্থান (বাংলা)</label>
@@ -351,7 +352,7 @@ function CenterFormModal({ show, center, onClose, onSaved, usersList }) {
                           <div className="col-md-2">
                             <label className="form-label small">ধারণক্ষমতা</label>
                             <input type="number" className="form-control form-control-sm" placeholder="৩০"
-                              value={infra.capacity} onChange={(e) => updateInfra(idx, 'capacity', e.target.value)} />
+                              value={formatNumber(infra.capacity)} onChange={(e) => updateInfra(idx, 'capacity', e.target.value)} />
                           </div>
                           <div className="col-md-2">
                             <label className="form-label small">স্ট্যাটাস</label>
@@ -403,7 +404,7 @@ function CenterFormModal({ show, center, onClose, onSaved, usersList }) {
                           <div className="col-md-3">
                             <label className="form-label small">কর্মচারী নং <span className="text-danger">*</span></label>
                             <input className="form-control form-control-sm" placeholder="EMP-001"
-                              value={emp.employee_no} onChange={(e) => updateEmployee(idx, 'employee_no', e.target.value)} required />
+                              value={convertToBanglaDigits(emp.employee_no)} onChange={(e) => updateEmployee(idx, 'employee_no', e.target.value)} required />
                           </div>
                           <div className="col-md-3">
                             <label className="form-label small">পদবী (বাংলা) <span className="text-danger">*</span></label>
@@ -550,8 +551,8 @@ function BulkImportModal({ show, onClose, onImported }) {
               <div>
                 <h6 className="fw-bold">ইম্পোর্ট ফলাফল</h6>
                 <div className="d-flex gap-3 mb-2">
-                  <div className="badge bg-success fs-6">তৈরি: {results.created}</div>
-                  <div className="badge bg-info fs-6">আপডেট: {results.updated}</div>
+                  <div className="badge bg-success fs-6">তৈরি: {formatNumber(results.created)}</div>
+                  <div className="badge bg-info fs-6">আপডেট: {formatNumber(results.updated)}</div>
                 </div>
                 {results.errors && results.errors.length > 0 && (
                   <div className="border rounded p-2 bg-danger bg-opacity-10" style={{ maxHeight: 200, overflowY: 'auto' }}>
@@ -714,10 +715,10 @@ export default function HoCenterManagement() {
         <tbody>
         ${rows.map((c, i) => `
           <tr>
-            <td class="text-center">${i + 1}</td>
+            <td class="text-center">${convertToBanglaDigits(i + 1)}</td>
             <td>${c.name_bn}</td>
             <td>${c.name_en || ''}</td>
-            <td>${c.phone || ''}</td>
+            <td>${convertToBanglaDigits(c.phone || '')}</td>
             <td>${c.email || ''}</td>
           </tr>
         `).join('')}
@@ -761,15 +762,15 @@ export default function HoCenterManagement() {
       </div>
 
       <div className="row g-3 mb-4">
-        <StatCard icon="bi-building" label="মোট কেন্দ্র" value={total} color="primary" />
-        <StatCard icon="bi-check-circle" label="সক্রিয়" value={active} color="success" />
-        <StatCard icon="bi-pause-circle" label="স্থগিত" value={suspended} color="warning" />
-        <StatCard icon="bi-geo-alt" label="সচল কেন্দ্র" value={active} color="info" />
+        <StatCard icon="bi-building" label="মোট কেন্দ্র" value={formatNumber(total)} color="primary" />
+        <StatCard icon="bi-check-circle" label="সক্রিয়" value={formatNumber(active)} color="success" />
+        <StatCard icon="bi-pause-circle" label="স্থগিত" value={formatNumber(suspended)} color="warning" />
+        <StatCard icon="bi-geo-alt" label="সচল কেন্দ্র" value={formatNumber(active)} color="info" />
       </div>
 
       {selectedIds.size > 0 && (
         <div className="alert alert-info py-2 d-flex justify-content-between align-items-center mb-3">
-          <span><i className="bi bi-check-square me-1"></i>{selectedIds.size} টি কেন্দ্র নির্বাচিত</span>
+          <span><i className="bi bi-check-square me-1"></i>{convertToBanglaDigits(selectedIds.size)} টি কেন্দ্র নির্বাচিত</span>
           <div className="d-flex gap-2">
             <button className="btn btn-sm btn-success" onClick={() => handleExport('xlsx')}>
               <i className="bi bi-download"></i> নির্বাচিত এক্সপোর্ট
@@ -805,8 +806,8 @@ export default function HoCenterManagement() {
             </div>
             <div className="col-md-5 d-flex gap-2 justify-content-end">
               <span className="text-muted small align-self-center">
-                {selectedIds.size > 0 ? `${selectedIds.size} নির্বাচিত | ` : ''}
-                মোট {total} টি
+                {selectedIds.size > 0 ? `${convertToBanglaDigits(selectedIds.size)} নির্বাচিত | ` : ''}
+                মোট {formatNumber(total)} টি
               </span>
             </div>
           </div>
@@ -843,13 +844,13 @@ export default function HoCenterManagement() {
                       checked={selectedIds.has(c.id)}
                       onChange={() => handleSelectOne(c.id)} /></td>
                     <td className="fw-semibold">
-                      <span className="badge bg-secondary bg-opacity-10 text-dark">{c.code}</span>
+                      <span className="badge bg-secondary bg-opacity-10 text-dark">{convertToBanglaDigits(c.code)}</span>
                     </td>
                     <td>
                       <div className="fw-semibold">{c.name_bn}</div>
                       {c.name_en && <small className="text-muted">{c.name_en}</small>}
                     </td>
-                    <td className="d-none d-md-table-cell">{c.phone || <span className="text-muted">—</span>}</td>
+                    <td className="d-none d-md-table-cell">{convertToBanglaDigits(c.phone) || <span className="text-muted">—</span>}</td>
                     <td className="d-none d-md-table-cell">{c.email || <span className="text-muted">—</span>}</td>
                     <td>
                       <span className={`status-dot dot-${c.status}`}></span>
@@ -887,7 +888,7 @@ export default function HoCenterManagement() {
           </table>
         </div>
         <div className="b-pagination d-flex justify-content-between align-items-center py-2 px-3">
-          <small className="text-secondary">মোট {total} টি কেন্দ্র</small>
+          <small className="text-secondary">মোট {formatNumber(total)} টি কেন্দ্র</small>
         </div>
       </div>
 

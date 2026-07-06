@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import hoService from '../../../services/hoService';
 import { useTranslation } from '../../../hooks/useTranslation';
 import { formatDate } from '../../../utils/dateFormatter';
+import { convertToBanglaDigits } from '../../../utils/numberFormatter';
 import { REPORT_TYPES } from './reportConfig';
 
 export default function ScheduledReports({ show, onClose }) {
@@ -83,7 +84,7 @@ export default function ScheduledReports({ show, onClose }) {
                     <tr key={s.id}>
                       <td style={{ fontSize: 13 }}>
                         {rt && <i className={`bi ${rt.icon} me-1`} style={{ color: rt.color }}></i>}
-                        {s.title}
+                        {convertToBanglaDigits(s.title)}
                       </td>
                       <td style={{ fontSize: 13 }}><span className="badge bg-info">{freqLabel[s.frequency] || s.frequency}</span></td>
                       <td style={{ fontSize: 12 }}>{s.recipients?.length > 30 ? s.recipients.slice(0, 30) + '...' : s.recipients}</td>

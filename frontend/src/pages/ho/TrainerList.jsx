@@ -6,6 +6,7 @@ import hoService from '../../services/hoService';
 import TrainerApprovalModal from './TrainerApprovalModal';
 import TrainerMapForm from './TrainerMapForm';
 import { formatDate } from '../../utils/dateFormatter';
+import { formatNumber } from '../../utils/numberFormatter';
 
 const TABS = [
   { key: 'all', label: 'সকল প্রশিক্ষক' },
@@ -321,7 +322,7 @@ export default function TrainerList() {
                     <td className="d-none d-xl-table-cell">{t.user_full_name_en || '-'}</td>
                     <td className="d-none d-lg-table-cell">{t.user_email || '-'}</td>
                     <td className="d-none d-md-table-cell">{t.user_phone || '-'}</td>
-                    <td className="d-none d-xl-table-cell">{t.years_of_experience ? `${t.years_of_experience} বছর` : '-'}</td>
+                    <td className="d-none d-xl-table-cell">{t.years_of_experience ? `${formatNumber(t.years_of_experience)} বছর` : '-'}</td>
                     <td className="d-none d-lg-table-cell">{t.center_names || '-'}</td>
                     <td>
                       <span className={`status-dot dot-${t.status}`}></span>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import batchService from '../../services/batchService';
 import { formatDate } from '../../utils/dateFormatter';
+import { convertToBanglaDigits } from '../../utils/numberFormatter';
 
 export default function TrainerSchedule() {
   const [batches, setBatches] = useState([]);
@@ -30,7 +31,7 @@ export default function TrainerSchedule() {
                 <div key={b.id} className="col-md-6">
                     <div className="border rounded-3 p-3 h-100">
                     <div className="d-flex justify-content-between align-items-start mb-2">
-                      <h6 className="fw-bold mb-0">{b.batch_name_bn || b.batch_name_en || `ব্যাচ #${b.batch_no}`}</h6>
+                      <h6 className="fw-bold mb-0">{b.batch_name_bn || b.batch_name_en || `ব্যাচ #${convertToBanglaDigits(b.batch_no)}`}</h6>
                       <span className={`badge ${b.status === 'running' ? 'bg-success' : b.status === 'completed' ? 'bg-secondary' : 'bg-warning'} ms-2 flex-shrink-0`}>
                         {b.status === 'running' ? 'চলমান' : b.status === 'completed' ? 'সমাপ্ত' : 'নির্ধারিত'}
                       </span>

@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import api from '../../services/api';
 import TrainerFormModal from './TrainerFormModal';
 import { formatDate } from '../../utils/dateFormatter';
+import { formatNumber } from '../../utils/numberFormatter';
 
 const API_URL = '/api';
 const STATUS_BG = { pending: 'warning', active: 'success', suspended: 'danger', inactive: 'secondary' };
@@ -146,7 +147,7 @@ export default function TrainerList() {
             <td>${t.user_full_name_en || '—'}</td>
             <td>${t.user_email || '—'}</td>
             <td>${t.user_phone || '—'}</td>
-            <td style="text-align:center;">${t.years_of_experience ? t.years_of_experience + ' বছর' : '—'}</td>
+            <td style="text-align:center;">${t.years_of_experience ? formatNumber(t.years_of_experience) + ' বছর' : '—'}</td>
           </tr>`;
         }).join('')}
       </table>
@@ -287,7 +288,7 @@ export default function TrainerList() {
                       <td className="d-none d-xl-table-cell">{t.user_full_name_en || '-'}</td>
                       <td className="d-none d-lg-table-cell">{t.user_email || '-'}</td>
                       <td className="d-none d-md-table-cell">{t.user_phone || '-'}</td>
-                      <td className="d-none d-xl-table-cell">{t.years_of_experience ? `${t.years_of_experience} বছর` : '-'}</td>
+                      <td className="d-none d-xl-table-cell">{t.years_of_experience ? `${formatNumber(t.years_of_experience)} বছর` : '-'}</td>
                       <td>
                         <span className={`status-dot dot-${t.status}`}></span>
                         <span style={{fontSize:13,color:'#334155'}}>{STATUS_MAP[t.status] || t.status}</span>

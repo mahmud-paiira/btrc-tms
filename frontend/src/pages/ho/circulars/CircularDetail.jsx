@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import hoService from '../../../services/hoService';
 import { formatDate } from '../../../utils/dateFormatter';
+import { convertToBanglaDigits, formatNumber } from '../../../utils/numberFormatter';
 
 const STATUS_BG = { draft: 'secondary', published: 'success', closed: 'danger', completed: 'info' };
 const APP_STATUS_BG = { pending: 'warning', selected: 'success', rejected: 'danger', waitlisted: 'info' };
@@ -104,7 +105,7 @@ export default function CircularDetail() {
         </button>
         <div>
           <h4 className="mb-0 fw-bold">{circular.title_bn}</h4>
-          <div className="text-muted small">{circular.course_code} - {circular.course_name}</div>
+          <div className="text-muted small">{convertToBanglaDigits(circular.course_code)} - {circular.course_name}</div>
         </div>
         <div className="d-flex align-items-center gap-2">
           <button className="btn btn-outline-danger btn-sm" title="পিডিএফ প্রিন্ট"
@@ -139,14 +140,14 @@ export default function CircularDetail() {
                   <tbody>
                     <tr><th>শিরোনাম (বাংলা)</th><td>{circular.title_bn}</td></tr>
                     <tr><th>শিরোনাম (ইংরেজি)</th><td>{circular.title_en}</td></tr>
-                    <tr><th>সার্কুলার নম্বর</th><td>{circular.circular_no || '-'}</td></tr>
-                    <tr><th>সংস্করণ</th><td>{circular.edition}</td></tr>
-                    <tr><th>কোর্স</th><td>{circular.course_code} - {circular.course_name}</td></tr>
+                    <tr><th>সার্কুলার নম্বর</th><td>{convertToBanglaDigits(circular.circular_no) || '-'}</td></tr>
+                    <tr><th>সংস্করণ</th><td>{convertToBanglaDigits(circular.edition)}</td></tr>
+                    <tr><th>কোর্স</th><td>{convertToBanglaDigits(circular.course_code)} - {circular.course_name}</td></tr>
                     <tr><th>কোর্সের ধরণ</th><td>{circular.course_type || '-'}</td></tr>
-                    <tr><th>মেয়াদ</th><td>{circular.course_duration ? `${circular.course_duration} মাস` : '-'}</td></tr>
-                    <tr><th>মোট আসন</th><td>{circular.total_seats}</td></tr>
-                    <tr><th>অবশিষ্ট আসন</th><td>{circular.remaining_seats}</td></tr>
-                    <tr><th>কোর্স ফি</th><td>{circular.fee ? `৳${circular.fee}` : 'ডিফল্ট'}</td></tr>
+                    <tr><th>মেয়াদ</th><td>{circular.course_duration ? `${formatNumber(circular.course_duration)} মাস` : '-'}</td></tr>
+                    <tr><th>মোট আসন</th><td>{formatNumber(circular.total_seats)}</td></tr>
+                    <tr><th>অবশিষ্ট আসন</th><td>{formatNumber(circular.remaining_seats)}</td></tr>
+                    <tr><th>কোর্স ফি</th><td>{circular.fee ? `৳${formatNumber(circular.fee)}` : 'ডিফল্ট'}</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -158,9 +159,9 @@ export default function CircularDetail() {
                     <tr><th>আবেদনের শেষ তারিখ</th><td>{formatDate(circular.application_end_date)}</td></tr>
                     <tr><th>প্রশিক্ষণ শুরুর তারিখ</th><td>{formatDate(circular.training_start_date)}</td></tr>
                     <tr><th>প্রশিক্ষণ শেষের তারিখ</th><td>{formatDate(circular.training_end_date)}</td></tr>
-                    <tr><th>উপযুক্ত কেন্দ্র</th><td>{circular.all_centers ? 'সব কেন্দ্র' : (circular.eligible_centers || []).map(c => `${c.code} - ${c.name_bn}`).join(', ')}</td></tr>
+                    <tr><th>উপযুক্ত কেন্দ্র</th><td>{circular.all_centers ? 'সব কেন্দ্র' : (circular.eligible_centers || []).map(c => `${convertToBanglaDigits(c.code)} - ${c.name_bn}`).join(', ')}</td></tr>
                     <tr><th>তৈরি করেছেন</th><td>{circular.created_by_name || '-'}</td></tr>
-                    <tr><th>প্রকাশের তারিখ</th><td>{circular.published_at || '-'}</td></tr>
+                    <tr><th>প্রকাশের তারিখ</th><td>{circular.published_at ? formatDate(circular.published_at) : '-'}</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -221,12 +222,12 @@ export default function CircularDetail() {
                       <tr><td colSpan={7} className="text-center text-muted py-4">কোনো আবেদন পাওয়া যায়নি</td></tr>
                     ) : applications.map(a => (
                       <tr key={a.id}>
-                        <td className="fw-semibold">{a.application_no}</td>
+                        <td className="fw-semibold">{convertToBanglaDigits(a.application_no)}</td>
                         <td>{a.name_bn}</td>
-                        <td>{a.nid}</td>
-                        <td>{a.phone || '-'}</td>
-                        <td>{a.applied_at?.slice(0, 10)}</td>
-                        <td><span className={`status-dot dot-${APP_STATUS_BG[a.status]}`} />{a.status}</td>
+                        <td>{convertToBanglaDigits(a.nid)}</td>
+                        <td>{convertToBanglaDigits(a.phone) || '-'}</td>
+                        <td>{formatDate(a.applied_at)}</td>
+                        <td><span className={`status-dot dot-${APP_STATUS_BG[a.status]}`} />{a.status_display || a.status}</td>
                         <td>
                           {a.status === 'pending' && (
                             <div className="d-flex gap-1">
@@ -253,19 +254,19 @@ export default function CircularDetail() {
                   <div className="row g-3 mb-4">
                     <div className="col-md-4">
                       <div className="card bg-primary bg-opacity-10 border-0 text-center py-3">
-                        <div className="fw-bold fs-4 text-primary">{analytics.applications_received}</div>
+                        <div className="fw-bold fs-4 text-primary">{formatNumber(analytics.applications_received)}</div>
                         <small className="text-muted">মোট আবেদন</small>
                       </div>
                     </div>
                     <div className="col-md-4">
                       <div className="card bg-success bg-opacity-10 border-0 text-center py-3">
-                        <div className="fw-bold fs-4 text-success">{analytics.selection_rate}%</div>
+                        <div className="fw-bold fs-4 text-success">{formatNumber(analytics.selection_rate)}%</div>
                         <small className="text-muted">নির্বাচনের হার</small>
                       </div>
                     </div>
                     <div className="col-md-4">
                       <div className="card bg-info bg-opacity-10 border-0 text-center py-3">
-                        <div className="fw-bold fs-4 text-info">{analytics.average_response_time_hours ?? '-'}</div>
+                        <div className="fw-bold fs-4 text-info">{analytics.average_response_time_hours != null ? formatNumber(analytics.average_response_time_hours) : '-'}</div>
                         <small className="text-muted">গড় প্রতিক্রিয়া (ঘন্টা)</small>
                       </div>
                     </div>
@@ -276,7 +277,7 @@ export default function CircularDetail() {
                       <h6 className="fw-bold mb-2">আবেদনের অবস্থা</h6>
                       <div className="d-flex flex-wrap gap-2">
                         {Object.entries(analytics.status_breakdown).map(([k, v]) => (
-                          <span key={k}><span className={`status-dot dot-${APP_STATUS_BG[k] || 'secondary'}`}></span>{k}: {v}</span>
+                          <span key={k}><span className={`status-dot dot-${APP_STATUS_BG[k] || 'secondary'}`}></span>{k === 'pending' ? 'পেন্ডিং' : k === 'selected' ? 'নির্বাচিত' : k === 'rejected' ? 'বাতিল' : k === 'waitlisted' ? 'অপেক্ষমাণ' : k}: {formatNumber(v)}</span>
                         ))}
                       </div>
                     </div>
@@ -288,7 +289,7 @@ export default function CircularDetail() {
                         <h6 className="fw-bold mb-2">লিঙ্গ অনুযায়ী</h6>
                         <div className="d-flex flex-wrap gap-2">
                           {Object.entries(analytics.applications_by_gender).map(([k, v]) => (
-                            <span key={k}><span className="status-dot dot-info"></span>{k === 'male' ? 'পুরুষ' : k === 'female' ? 'মহিলা' : k}: {v}</span>
+                            <span key={k}><span className="status-dot dot-info"></span>{k === 'male' ? 'পুরুষ' : k === 'female' ? 'মহিলা' : k}: {formatNumber(v)}</span>
                           ))}
                         </div>
                       </div>
@@ -301,7 +302,7 @@ export default function CircularDetail() {
                           <thead><tr><th>গ্রুপ</th><th>সংখ্যা</th></tr></thead>
                           <tbody>
                             {Object.entries(analytics.applications_by_age_group).map(([k, v]) => (
-                              <tr key={k}><td>{k}</td><td className="fw-bold">{v}</td></tr>
+                              <tr key={k}><td>{convertToBanglaDigits(k)}</td><td className="fw-bold">{formatNumber(v)}</td></tr>
                             ))}
                           </tbody>
                         </table>
@@ -317,7 +318,7 @@ export default function CircularDetail() {
                               <span style={{ fontSize: 13 }}>{k}</span>
                               <div className="d-flex align-items-center gap-2" style={{ flex: 1, maxWidth: 150 }}>
                                 <div className="bg-primary rounded" style={{ height: 8, width: `${Math.min(100, (v / Math.max(...Object.values(analytics.applications_by_district)) * 100))}%` }}></div>
-                                <span className="small fw-bold">{v}</span>
+                                <span className="small fw-bold">{formatNumber(v)}</span>
                               </div>
                             </div>
                           ))}

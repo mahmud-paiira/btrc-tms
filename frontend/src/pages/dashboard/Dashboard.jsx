@@ -5,7 +5,7 @@ import { useTranslation } from '../../hooks/useTranslation';
 import { useAuth } from '../../contexts/AuthContext';
 import centerDashboardService from '../../services/centerDashboardService';
 import { formatDate } from '../../utils/dateFormatter';
-import { formatNumber, formatPercentage } from '../../utils/numberFormatter';
+import { formatNumber, formatPercentage, convertToBanglaDigits } from '../../utils/numberFormatter';
 
 const SEVERITY_BADGE = {
   danger: 'danger', warning: 'warning', info: 'info', primary: 'primary', success: 'success',
@@ -95,7 +95,7 @@ export default function Dashboard() {
             <h2 className="mb-1 fw-bold text-heading">{center_name}</h2>
             <div className="d-flex align-items-center gap-2 text-muted">
               <i className="bi bi-geo-alt"></i>
-              <span>{t('dashboard.centerCode', 'কেন্দ্র কোড:')} <strong>{center_code}</strong></span>
+              <span>{t('dashboard.centerCode', 'কেন্দ্র কোড:')} <strong>{convertToBanglaDigits(center_code)}</strong></span>
             </div>
           </div>
           <div className="d-none d-md-block">
@@ -152,7 +152,7 @@ export default function Dashboard() {
                       {charts.attendance_trend.map((b) => (
                         <tr key={b.batch_id}>
                           <td>{b.batch_name}</td>
-                          <td className="text-center">{b.total_trainees}</td>
+                          <td className="text-center">{formatNumber(b.total_trainees)}</td>
                           <td className="text-center">
                             <span className={`status-dot ${b.avg_attendance >= 80 ? 'dot-success' : 'dot-danger'}`} />
                               {formatPercentage(b.avg_attendance, 'bn')}
@@ -188,9 +188,9 @@ export default function Dashboard() {
                       {charts.assessment_ratio.map((b) => (
                         <tr key={b.batch_id}>
                           <td>{b.batch_name}</td>
-                          <td className="text-center fw-bold text-success">{b.competent}</td>
-                          <td className="text-center fw-bold text-danger">{b.not_competent}</td>
-                          <td className="text-center text-secondary">{b.absent}</td>
+                          <td className="text-center fw-bold text-success">{formatNumber(b.competent)}</td>
+                          <td className="text-center fw-bold text-danger">{formatNumber(b.not_competent)}</td>
+                          <td className="text-center text-secondary">{formatNumber(b.absent)}</td>
                           <td className="text-center">
                             <span className={`status-dot ${b.pass_rate >= 80 ? 'dot-success' : b.pass_rate >= 60 ? 'dot-warning' : 'dot-danger'}`} />
                               {formatPercentage(b.pass_rate, 'bn')}
@@ -223,9 +223,9 @@ export default function Dashboard() {
                     const pct = (m.count / max) * 100;
                     return (
                       <div key={m.month} className="d-flex flex-column align-items-center flex-fill">
-                        <small className="fw-bold mb-2 text-primary">{m.count}</small>
+                        <small className="fw-bold mb-2 text-primary">{formatNumber(m.count)}</small>
                         <div className="rounded-top" style={{ width: '100%', height: `${Math.max(pct, 3)}%`, background: 'linear-gradient(to top, var(--bs-primary), #818cf8)' }} title={m.month} />
-                        <small className="mt-2 text-muted" style={{ fontSize: 10, transform: 'rotate(-45deg)', whiteSpace: 'nowrap' }}>{m.month.slice(5)}</small>
+                        <small className="mt-2 text-muted" style={{ fontSize: 10, transform: 'rotate(-45deg)', whiteSpace: 'nowrap' }}>{convertToBanglaDigits(m.month.slice(5))}</small>
                       </div>
                     );
                   })}
@@ -251,12 +251,12 @@ export default function Dashboard() {
                     <Link to="/center-admin/applications" className="list-group-item list-group-item-action py-3 d-flex justify-content-between align-items-center">
                       <span><i className="bi bi-file-earmark-text me-2 text-warning"></i>{t('dashboard.quickActions.reviewApplications', 'আবেদন পর্যালোচনা')}</span>
                       {actions?.pending_applications > 0 && (
-                        <span><span className="status-dot dot-danger"></span>{actions.pending_applications}</span>
+                        <span><span className="status-dot dot-danger"></span>{formatNumber(actions.pending_applications)}</span>
                       )}
                     </Link>
                     <Link to="/center-admin/certificates/issue" className="list-group-item list-group-item-action py-3 d-flex justify-content-between align-items-center">
                       <span><i className="bi bi-award me-2 text-info"></i>{t('dashboard.quickActions.issueCertificate', 'সার্টিফিকেট ইস্যু')}</span>
-                      {actions?.eligible_certificates > 0 && <span className="status-dot dot-success"></span>}{actions.eligible_certificates}
+                      {actions?.eligible_certificates > 0 && <span className="status-dot dot-success"></span>}{formatNumber(actions.eligible_certificates)}
                     </Link>
                   </div>
                 </div>
@@ -272,11 +272,11 @@ export default function Dashboard() {
                     <div className="d-grid gap-3">
                       <div className="d-flex justify-content-between align-items-center p-2 rounded bg-light">
                         <span className="small"><i className="bi bi-person-badge me-2 text-primary"></i>{t('dashboard.activity.pendingTrainers', 'পেন্ডিং প্রশিক্ষক')}</span>
-                        <span><span className="status-dot dot-primary"></span>{activity.pending_trainers}</span>
+                        <span><span className="status-dot dot-primary"></span>{formatNumber(activity.pending_trainers)}</span>
                       </div>
                       <div className="d-flex justify-content-between align-items-center p-2 rounded bg-light">
                         <span className="small"><i className="bi bi-person-check me-2 text-success"></i>{t('dashboard.activity.pendingAssessors', 'পেন্ডিং মূল্যায়নকারী')}</span>
-                        <span><span className="status-dot dot-success"></span>{activity.pending_assessors}</span>
+                        <span><span className="status-dot dot-success"></span>{formatNumber(activity.pending_assessors)}</span>
                       </div>
                     </div>
                   ) : (

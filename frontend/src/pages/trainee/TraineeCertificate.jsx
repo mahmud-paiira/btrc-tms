@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import traineeService from '../../services/traineeService';
 import { formatDate } from '../../utils/dateFormatter';
+import { convertToBanglaDigits } from '../../utils/numberFormatter';
 
 export default function TraineeCertificate() {
   const [data, setData] = useState(null);
@@ -47,13 +48,13 @@ export default function TraineeCertificate() {
       <div className="card shadow-sm mb-4">
         <div className="card-body text-center py-4">
           <i className="bi bi-award-fill text-warning" style={{ fontSize: 64 }}></i>
-          <h5 className="mt-3 mb-1">{data.certificate_no}</h5>
+          <h5 className="mt-3 mb-1">{convertToBanglaDigits(data.certificate_no)}</h5>
           <p className="text-muted mb-0">ইস্যুর তারিখ: {formatDate(data.issue_date, 'bn')}</p>
 
           {data.is_verified && (
             <p className="text-success mt-2 mb-0">
               <i className="bi bi-shield-check me-1"></i>
-              যাচাইকৃত ({data.verified_count} বার)
+              যাচাইকৃত ({convertToBanglaDigits(data.verified_count)} বার)
             </p>
           )}
 

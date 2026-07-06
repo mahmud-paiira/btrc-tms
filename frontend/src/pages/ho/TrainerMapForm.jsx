@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import hoService from '../../services/hoService';
+import { convertToBanglaDigits, formatNumber } from '../../utils/numberFormatter';
 
 export default function TrainerMapForm({ centers, onClose, onDone }) {
   const [trainerNo, setTrainerNo] = useState('');
@@ -66,12 +67,12 @@ export default function TrainerMapForm({ centers, onClose, onDone }) {
                 {trainers
                   .filter(t => !trainerSearch || t.trainer_no.includes(trainerSearch) || (t.user_email || '').toLowerCase().includes(trainerSearch.toLowerCase()))
                   .map(t => (
-                    <option key={t.id} value={t.id}>{t.trainer_no} - {t.user_email || ''}</option>
+                    <option key={t.id} value={t.id}>{convertToBanglaDigits(t.trainer_no)} - {t.user_email || ''}</option>
                   ))}
               </select>
               {selectedTrainer && (
                 <div className="mt-1 small text-muted">
-                  এনআইডি: {selectedTrainer.nid} | ফোন: {selectedTrainer.user_phone || '-'} | অভিজ্ঞতা: {selectedTrainer.years_of_experience} বছর
+                  এনআইডি: {convertToBanglaDigits(selectedTrainer.nid)} | ফোন: {convertToBanglaDigits(selectedTrainer.user_phone)} | অভিজ্ঞতা: {formatNumber(selectedTrainer.years_of_experience)} বছর
                 </div>
               )}
             </div>

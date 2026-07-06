@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import hoService from '../../services/hoService';
 import { useTranslation } from '../../hooks/useTranslation';
 import { formatDate, formatDateTime } from '../../utils/dateFormatter';
+import { convertToBanglaDigits, formatNumber } from '../../utils/numberFormatter';
 
 const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#f43f5e', '#0ea5e9', '#8b5cf6', '#f97316', '#14b8a6'];
 
@@ -97,7 +98,7 @@ export default function HoDashboard() {
               <div className="card-body d-flex align-items-center justify-content-between p-4">
                 <div>
                   <div className="text-white-50 small mb-1">{card.label}</div>
-                  <h2 className="mb-0 fw-bold">{card.value}</h2>
+                  <h2 className="mb-0 fw-bold">{formatNumber(card.value)}</h2>
                 </div>
                 <div className="bg-white bg-opacity-25 rounded-circle d-flex align-items-center justify-content-center" style={{ width: 56, height: 56 }}>
                   <i className={`bi ${card.icon} fs-3`}></i>
@@ -127,7 +128,7 @@ export default function HoDashboard() {
                   <div key={c.center_code} className="mb-3">
                     <div className="d-flex justify-content-between small mb-1">
                       <span className="fw-semibold">{c.center_name}</span>
-                      <span className="fw-bold text-primary">{c.trainee_count}</span>
+                      <span className="fw-bold text-primary">{formatNumber(c.trainee_count)}</span>
                     </div>
                     <div className="progress" style={{ height: 10, borderRadius: 5 }}>
                       <div
@@ -153,9 +154,9 @@ export default function HoDashboard() {
                   const pct = (m.count / max) * 100;
                   return (
                     <div key={m.month} className="d-flex flex-column align-items-center flex-fill">
-                      <small className="mb-2 fw-bold text-primary">{m.count}</small>
+                      <small className="mb-2 fw-bold text-primary">{formatNumber(m.count)}</small>
                       <div className="rounded-top" style={{ width: '100%', height: `${Math.max(pct, 2)}%`, background: 'linear-gradient(to top, var(--bs-primary), #818cf8)' }} title={m.month} />
-                      <small className="mt-2 text-muted" style={{ fontSize: 10, transform: 'rotate(-45deg)', whiteSpace: 'nowrap' }}>{m.month.slice(5)}</small>
+                      <small className="mt-2 text-muted" style={{ fontSize: 10, transform: 'rotate(-45deg)', whiteSpace: 'nowrap' }}>{convertToBanglaDigits(m.month.slice(5))}</small>
                     </div>
                   );
                 })}
@@ -180,7 +181,7 @@ export default function HoDashboard() {
                       <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="var(--bs-success)" strokeWidth="3" strokeDasharray={`${completion?.completion_rate || 0}, 100`} />
                     </svg>
                     <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
-                      <h3 className="mb-0 fw-bold">{completion?.completion_rate || 0}%</h3>
+                      <h3 className="mb-0 fw-bold">{formatNumber(completion?.completion_rate || 0)}%</h3>
                       <small className="text-muted d-block" style={{ fontSize: 10 }}>{t('hoDashboard.completed', 'সমাপ্ত')}</small>
                     </div>
                   </div>
@@ -188,13 +189,13 @@ export default function HoDashboard() {
                 <div className="col-md-7">
                   <div className="d-grid gap-2">
                     <div className="d-flex justify-content-between p-2 rounded bg-light border-start border-success border-4">
-                      <span className="small">{t('hoDashboard.completed', 'সমাপ্ত')}</span><span className="fw-bold text-success">{completion?.completed || 0}</span>
+                      <span className="small">{t('hoDashboard.completed', 'সমাপ্ত')}</span><span className="fw-bold text-success">{formatNumber(completion?.completed || 0)}</span>
                     </div>
                     <div className="d-flex justify-content-between p-2 rounded bg-light border-start border-primary border-4">
-                      <span className="small">{t('hoDashboard.enrolled', 'নথিভুক্ত')}</span><span className="fw-bold text-primary">{completion?.enrolled || 0}</span>
+                      <span className="small">{t('hoDashboard.enrolled', 'নথিভুক্ত')}</span><span className="fw-bold text-primary">{formatNumber(completion?.enrolled || 0)}</span>
                     </div>
                     <div className="d-flex justify-content-between p-2 rounded bg-light border-start border-danger border-4">
-                      <span className="small">{t('hoDashboard.failed', 'ব্যর্থ')}</span><span className="fw-bold text-danger">{completion?.failed || 0}</span>
+                      <span className="small">{t('hoDashboard.failed', 'ব্যর্থ')}</span><span className="fw-bold text-danger">{formatNumber(completion?.failed || 0)}</span>
                     </div>
                   </div>
                 </div>
@@ -212,7 +213,7 @@ export default function HoDashboard() {
                 <div key={b.status} className="mb-3 last-child-mb-0">
                   <div className="d-flex justify-content-between mb-1">
                     <span className="small fw-medium">{b.label}</span>
-                    <span className="small fw-bold">{b.count}</span>
+                    <span className="small fw-bold">{formatNumber(b.count)}</span>
                   </div>
                   <div className="progress" style={{ height: 8, borderRadius: 4 }}>
                     <div
@@ -239,28 +240,28 @@ export default function HoDashboard() {
                     <div className="col-md-3">
                       <div className="p-3 bg-light rounded text-center h-100">
                         <div className="text-primary mb-1"><i className="bi bi-file-earmark-text fs-4"></i></div>
-                        <div className="fw-bold fs-5">{activity.new_applications}</div>
+                        <div className="fw-bold fs-5">{formatNumber(activity.new_applications)}</div>
                         <small className="text-muted">{t('hoDashboard.recentApplications', 'নতুন আবেদন')}</small>
                       </div>
                     </div>
                     <div className="col-md-3">
                       <div className="p-3 bg-light rounded text-center h-100">
                         <div className="text-success mb-1"><i className="bi bi-person-plus fs-4"></i></div>
-                        <div className="fw-bold fs-5">{activity.new_enrollments}</div>
+                        <div className="fw-bold fs-5">{formatNumber(activity.new_enrollments)}</div>
                         <small className="text-muted">{t('hoDashboard.recentEnrollments', 'নতুন নথিভুক্তি')}</small>
                       </div>
                     </div>
                     <div className="col-md-3">
                       <div className="p-3 bg-light rounded text-center h-100">
                         <div className="text-info mb-1"><i className="bi bi-award fs-4"></i></div>
-                        <div className="fw-bold fs-5">{activity.new_certificates}</div>
+                        <div className="fw-bold fs-5">{formatNumber(activity.new_certificates)}</div>
                         <small className="text-muted">{t('hoDashboard.recentCertificates', 'নতুন সার্টিফিকেট')}</small>
                       </div>
                     </div>
                     <div className="col-md-3">
                       <div className="p-3 bg-light rounded text-center h-100">
                         <div className="text-warning mb-1"><i className="bi bi-briefcase fs-4"></i></div>
-                        <div className="fw-bold fs-5">{activity.new_placements}</div>
+                        <div className="fw-bold fs-5">{formatNumber(activity.new_placements)}</div>
                         <small className="text-muted">{t('hoDashboard.recentJobs', 'নতুন চাকরি')}</small>
                       </div>
                     </div>
@@ -296,11 +297,11 @@ export default function HoDashboard() {
                       placement.map((p) => (
                         <tr key={p.batch_id}>
                           <td>{p.batch_name}</td>
-                          <td className="text-center">{p.total_trainees}</td>
-                          <td className="text-center">{p.placed_count}</td>
+                          <td className="text-center">{formatNumber(p.total_trainees)}</td>
+                          <td className="text-center">{formatNumber(p.placed_count)}</td>
                           <td className="text-center">
                             <span className={`status-dot ${p.placement_rate >= 60 ? 'dot-success' : p.placement_rate >= 40 ? 'dot-warning' : 'dot-danger'}`} />
-                              {p.placement_rate}%
+                              {formatNumber(p.placement_rate)}%
                           </td>
                           <td>
                             <div className="progress" style={{ height: 8 }}>
@@ -361,7 +362,7 @@ export default function HoDashboard() {
                 { label: t('hoDashboard.attendanceWarning', 'কম উপস্থিতি'), count: summary?.attendance_warning_count || 0, color: attRate < 80 ? 'danger' : 'success', to: '/ho/reports' },
               ].map((item) => (
                 <div key={item.label} className="d-flex justify-content-between align-items-center mb-3 p-2 bg-light rounded">
-                  <span><span className={`status-dot dot-${item.color}`} /> {item.count}</span>
+                  <span><span className={`status-dot dot-${item.color}`} /> {formatNumber(item.count)}</span>
                   <Link to={item.to} className="btn btn-sm btn-outline-secondary">{t('site.view', 'দেখুন')}</Link>
                 </div>
               ))}
@@ -386,7 +387,7 @@ export default function HoDashboard() {
               </div>
               <div className="d-flex justify-content-between align-items-center mb-3 p-2 bg-light rounded">
                 <span><i className="bi bi bi-speedometer2 me-2 text-info"></i>{t('hoDashboard.attendanceRate', 'আজকের উপস্থিতি')}</span>
-                <span><span className={`status-dot dot-${attColor}`}></span>{attRate}%</span>
+                <span><span className={`status-dot dot-${attColor}`}></span>{formatNumber(attRate)}%</span>
               </div>
               <div className="d-flex justify-content-between align-items-center p-2 bg-light rounded">
                 <span><i className="bi bi-people me-2 text-warning"></i>{t('hoDashboard.ocrStatus', 'OCR স্ট্যাটাস')}</span>
@@ -423,7 +424,7 @@ export default function HoDashboard() {
                         <tr key={i}>
                           <td>{a.user}</td>
                           <td>{a.action}</td>
-                          <td>{a.target_type ? `${a.target_type} #${a.target_id}` : '—'}</td>
+                          <td>{a.target_type ? `${a.target_type} #${convertToBanglaDigits(a.target_id)}` : '—'}</td>
                           <td>{formatDateTime(a.timestamp)}</td>
                         </tr>
                       ))

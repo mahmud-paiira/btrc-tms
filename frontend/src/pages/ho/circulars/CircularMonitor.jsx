@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import hoService from '../../../services/hoService';
 import { useNavigate } from 'react-router-dom';
+import { convertToBanglaDigits, formatNumber } from '../../../utils/numberFormatter';
 
 const STATUS_BG = { draft: 'secondary', published: 'success', closed: 'danger', completed: 'info' };
 
@@ -52,14 +53,14 @@ export default function CircularMonitor() {
                   <span className={`badge bg-${STATUS_BG[c.status]}`} style={{ fontSize: 10 }}>{c.status_display}</span>
                 </div>
                 <div className="d-flex justify-content-between text-muted" style={{ fontSize: 11 }}>
-                  <span>{c.all_centers ? 'সব কেন্দ্র' : (c.eligible_centers || []).map(ec => ec.code).join(', ') || '-'} - {c.course_code}</span>
+                  <span>{c.all_centers ? 'সব কেন্দ্র' : (c.eligible_centers || []).map(ec => ec.code).join(', ') || '-'} - {convertToBanglaDigits(c.course_code)}</span>
                   <span className={daysLeft <= 3 ? 'text-danger fw-bold' : daysLeft <= 7 ? 'text-warning fw-bold' : ''}>
                     {daysLeft > 0 ? `বাকি ${daysLeft} দিন` : 'সময় শেষ'}
                   </span>
                 </div>
                 <div className="d-flex gap-3 mt-1" style={{ fontSize: 11 }}>
-                  <span>আবেদন: {c.total_seats - c.remaining_seats}/{c.total_seats}</span>
-                  <span>অবশিষ্ট: {c.remaining_seats}</span>
+                  <span>আবেদন: {formatNumber(c.total_seats - c.remaining_seats)}/{formatNumber(c.total_seats)}</span>
+                  <span>অবশিষ্ট: {formatNumber(c.remaining_seats)}</span>
                 </div>
                 <div className="progress mt-1" style={{ height: 4 }}>
                   <div className="progress-bar" style={{ width: `${seatsPct}%` }}></div>

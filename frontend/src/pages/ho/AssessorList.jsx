@@ -6,6 +6,7 @@ import hoService from '../../services/hoService';
 import TrainerToAssessorConversion from './TrainerToAssessorConversion';
 import AssessorMapForm from './AssessorMapForm';
 import { formatDate } from '../../utils/dateFormatter';
+import { formatNumber } from '../../utils/numberFormatter';
 
 const TABS = [
   { key: 'all', label: 'সকল মূল্যায়নকারী' },
@@ -306,7 +307,7 @@ export default function AssessorList() {
                     <td className="d-none d-xl-table-cell">{a.user_full_name_en || '-'}</td>
                     <td className="d-none d-lg-table-cell">{a.user_email || '-'}</td>
                     <td className="d-none d-md-table-cell">{a.user_phone || '-'}</td>
-                    <td className="d-none d-xl-table-cell">{a.years_of_experience ? `${a.years_of_experience} বছর` : '-'}</td>
+                    <td className="d-none d-xl-table-cell">{a.years_of_experience ? `${formatNumber(a.years_of_experience)} বছর` : '-'}</td>
                     <td className="d-none d-lg-table-cell">{a.center_names || '-'}</td>
                     <td>
                       <span className={`status-dot dot-${a.status}`}></span>

@@ -3,7 +3,7 @@ import { Modal, Form, Button } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import hoService from '../../../services/hoService';
 import { useTranslation } from '../../../hooks/useTranslation';
-import { taka } from '../../../utils/numberFormatter';
+import { taka, convertToBanglaDigits } from '../../../utils/numberFormatter';
 
 const VOUCHER_TYPES = [
   { value: 'journal', label: 'জার্নাল' },
@@ -394,7 +394,7 @@ export default function VoucherWorkflow() {
                 const rowBg = v.status === 'draft' ? '' : v.status === 'verified' ? 'table-info' : 'table-success';
                 return (
                   <tr key={v.id} className={rowBg}>
-                    <td style={{ fontSize: 13 }}>{v.voucher_no}</td>
+                    <td style={{ fontSize: 13 }}>{convertToBanglaDigits(v.voucher_no)}</td>
                     <td><span className="badge bg-secondary">{v.voucher_type_display}</span></td>
                     <td style={{ fontSize: 13 }}>{v.voucher_date}</td>
                     <td style={{ fontSize: 13 }}>{v.center_name || '-'}</td>
@@ -461,7 +461,7 @@ export default function VoucherWorkflow() {
               <div className="row g-3 mb-3">
                 <div className="col-md-4">
                   <small className="text-secondary d-block">{t('voucher.no', 'ভাউচার নং')}</small>
-                  <span className="fw-bold">{detailVoucher.voucher_no}</span>
+                  <span className="fw-bold">{convertToBanglaDigits(detailVoucher.voucher_no)}</span>
                 </div>
                 <div className="col-md-4">
                   <small className="text-secondary d-block">{t('voucher.type', 'ধরণ')}</small>

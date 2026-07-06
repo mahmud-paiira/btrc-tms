@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import hoService from '../../services/hoService';
+import { convertToBanglaDigits } from '../../utils/numberFormatter';
 
 export default function AssessorMapForm({ onClose, onDone }) {
   const [assessorId, setAssessorId] = useState('');
@@ -63,11 +64,11 @@ export default function AssessorMapForm({ onClose, onDone }) {
                 {assessors
                   .filter(a => !assessorSearch || a.assessor_no?.includes(assessorSearch) || (a.user_email || '').toLowerCase().includes(assessorSearch.toLowerCase()))
                   .map(a => (
-                    <option key={a.id} value={a.id}>{a.assessor_no} - {a.user_email || ''}</option>
+                    <option key={a.id} value={a.id}>{convertToBanglaDigits(a.assessor_no)} - {a.user_email || ''}</option>
                   ))}
               </select>
               {selected && (
-                <div className="mt-1 small text-muted">এনআইডি: {selected.nid} | ফোন: {selected.user_phone || '-'}</div>
+                <div className="mt-1 small text-muted">এনআইডি: {convertToBanglaDigits(selected.nid)} | ফোন: {convertToBanglaDigits(selected.user_phone)}</div>
               )}
             </div>
             <div className="mb-3">

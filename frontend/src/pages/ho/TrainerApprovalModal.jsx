@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import hoService from '../../services/hoService';
+import { convertToBanglaDigits, formatNumber } from '../../utils/numberFormatter';
 
 export default function TrainerApprovalModal({ trainer, onClose, onDone }) {
   const [action, setAction] = useState('');
@@ -38,11 +39,11 @@ export default function TrainerApprovalModal({ trainer, onClose, onDone }) {
           </div>
           <div className="modal-body">
             <div className="row mb-3">
-              <div className="col-6"><strong>প্রশিক্ষক নং:</strong> {trainer.trainer_no}</div>
-              <div className="col-6"><strong>এনআইডি:</strong> {trainer.nid}</div>
+              <div className="col-6"><strong>প্রশিক্ষক নং:</strong> {convertToBanglaDigits(trainer.trainer_no)}</div>
+              <div className="col-6"><strong>এনআইডি:</strong> {convertToBanglaDigits(trainer.nid)}</div>
               <div className="col-6"><strong>ইমেইল:</strong> {trainer.user_email || '-'}</div>
               <div className="col-6"><strong>ফোন:</strong> {trainer.user_phone || '-'}</div>
-              <div className="col-6"><strong>অভিজ্ঞতা:</strong> {trainer.years_of_experience} বছর</div>
+              <div className="col-6"><strong>অভিজ্ঞতা:</strong> {formatNumber(trainer.years_of_experience)} বছর</div>
               <div className="col-6"><strong>দক্ষতা:</strong> {trainer.expertise_area}</div>
             </div>
             <hr />

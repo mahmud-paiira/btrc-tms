@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from '../../services/api';
 import { formatDate } from '../../utils/dateFormatter';
+import { convertToBanglaDigits, formatNumber } from '../../utils/numberFormatter';
 
 const API_URL = '/api';
 const STATUS_BG = { pending: 'warning', active: 'success', suspended: 'danger', inactive: 'secondary' };
@@ -81,12 +82,12 @@ export default function TrainerDetailPage() {
       ${u.profile_image ? `<div class="photo"><img src="${imageUrl(u.profile_image)}" /></div>` : ''}
       <div class="section-title">ব্যক্তিগত তথ্য</div>
       <table>
-        <tr><th>প্রশিক্ষক নং</th><td>${t.trainer_no}</td></tr>
+<tr><th>প্রশিক্ষক নং</th><td>${convertToBanglaDigits(t.trainer_no)}</td></tr>
         <tr><th>নাম (বাংলা)</th><td><strong>${u.full_name_bn || '—'}</strong></td></tr>
         <tr><th>নাম (ইংরেজি)</th><td>${u.full_name_en || '—'}</td></tr>
         <tr><th>ইমেইল</th><td>${u.email || '—'}</td></tr>
-        <tr><th>ফোন</th><td>${u.phone || '—'}</td></tr>
-        <tr><th>এনআইডি</th><td>${t.nid || '—'}</td></tr>
+        <tr><th>ফোন</th><td>${convertToBanglaDigits(u.phone) || '—'}</td></tr>
+        <tr><th>এনআইডি</th><td>${convertToBanglaDigits(t.nid) || '—'}</td></tr>
         <tr><th>জন্ম নিবন্ধন</th><td>${t.birth_certificate_no || '—'}</td></tr>
         <tr><th>জন্ম তারিখ</th><td>${t.date_of_birth || '—'}</td></tr>
       </table>
@@ -95,9 +96,9 @@ export default function TrainerDetailPage() {
         <tr><th>পিতার নাম</th><td>${t.father_name_bn || '—'}</td></tr>
         <tr><th>মাতার নাম</th><td>${t.mother_name_bn || '—'}</td></tr>
         <tr><th>শিক্ষাগত যোগ্যতা</th><td>${t.education_name || t.education_qualification || '—'}</td></tr>
-        <tr><th>অভিজ্ঞতা</th><td>${t.years_of_experience ? t.years_of_experience + ' বছর' : '—'}</td></tr>
+        <tr><th>অভিজ্ঞতা</th><td>${t.years_of_experience ? formatNumber(t.years_of_experience) + ' বছর' : '—'}</td></tr>
         <tr><th>দক্ষতার ক্ষেত্র</th><td>${t.expertise_area || '—'}</td></tr>
-        <tr><th>ব্যাংক একাউন্ট</th><td>${t.bank_account_no || '—'}</td></tr>
+        <tr><th>ব্যাংক একাউন্ট</th><td>${convertToBanglaDigits(t.bank_account_no) || '—'}</td></tr>
         <tr><th>ব্যাংকের নাম</th><td>${t.bank_name || '—'}</td></tr>
       </table>
       <div class="footer">প্রশিক্ষকের বিবরণ - ${formatDate(new Date())}</div>
@@ -139,7 +140,7 @@ export default function TrainerDetailPage() {
         )}
         <div>
           <h4 className="mb-0 fw-bold">{u.full_name_bn || 'প্রশিক্ষক'}</h4>
-          <div className="text-muted small">প্রশিক্ষক নং: {t.trainer_no}</div>
+          <div className="text-muted small">প্রশিক্ষক নং: {convertToBanglaDigits(t.trainer_no)}</div>
         </div>
         <div className="ms-auto d-flex align-items-center gap-2">
           <button className="btn btn-outline-primary btn-sm rounded-pill px-3" onClick={handlePrint} style={{ fontSize: 13 }}>
@@ -162,12 +163,12 @@ export default function TrainerDetailPage() {
               <table className="b-detail-table w-100">
                 <tbody>
                   <tr><th >প্রোফাইল ছবি</th><td>{u.profile_image ? <img src={imageUrl(u.profile_image)} alt="ছবি" className="rounded-circle" style={{ width: 60, height: 60, objectFit: 'cover' }} onError={(e) => { e.target.style.display = 'none'; }} /> : '—'}</td></tr>
-                  <tr><th >প্রশিক্ষক নং</th><td>{t.trainer_no}</td></tr>
+                  <tr><th >প্রশিক্ষক নং</th><td>{convertToBanglaDigits(t.trainer_no)}</td></tr>
                   <tr><th >নাম (বাংলা)</th><td>{u.full_name_bn || '—'}</td></tr>
                   <tr><th >নাম (ইংরেজি)</th><td>{u.full_name_en || '—'}</td></tr>
                   <tr><th >ইমেইল</th><td>{u.email || '—'}</td></tr>
-                  <tr><th >ফোন</th><td>{u.phone || '—'}</td></tr>
-                  <tr><th >এনআইডি</th><td>{t.nid || '—'}</td></tr>
+                  <tr><th >ফোন</th><td>{convertToBanglaDigits(u.phone) || '—'}</td></tr>
+                  <tr><th >এনআইডি</th><td>{convertToBanglaDigits(t.nid) || '—'}</td></tr>
                   <tr><th >জন্ম নিবন্ধন</th><td>{t.birth_certificate_no || '—'}</td></tr>
                   <tr><th >জন্ম তারিখ</th><td>{t.date_of_birth || '—'}</td></tr>
                 </tbody>
@@ -180,9 +181,9 @@ export default function TrainerDetailPage() {
                   <tr><th >পিতার নাম</th><td>{t.father_name_bn || '—'}</td></tr>
                   <tr><th >মাতার নাম</th><td>{t.mother_name_bn || '—'}</td></tr>
                   <tr><th >শিক্ষাগত যোগ্যতা</th><td>{t.education_name || t.education_qualification || '—'}</td></tr>
-                  <tr><th >অভিজ্ঞতা</th><td>{t.years_of_experience ? `${t.years_of_experience} বছর` : '—'}</td></tr>
+                  <tr><th >অভিজ্ঞতা</th><td>{t.years_of_experience ? `${formatNumber(t.years_of_experience)} বছর` : '—'}</td></tr>
                   <tr><th >দক্ষতার ক্ষেত্র</th><td>{t.expertise_area || '—'}</td></tr>
-                  <tr><th >ব্যাংক একাউন্ট</th><td>{t.bank_account_no || '—'}</td></tr>
+                  <tr><th >ব্যাংক একাউন্ট</th><td>{convertToBanglaDigits(t.bank_account_no) || '—'}</td></tr>
                   <tr><th >ব্যাংকের নাম</th><td>{t.bank_name || '—'}</td></tr>
                 </tbody>
               </table>

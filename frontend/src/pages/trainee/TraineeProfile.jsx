@@ -3,6 +3,7 @@ import { toast } from 'react-toastify';
 import { useTranslation } from '../../hooks/useTranslation';
 import traineeService from '../../services/traineeService';
 import BanglaInput from '../../components/common/BanglaInput';
+import { convertToBanglaDigits } from '../../utils/numberFormatter';
 
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 const GENDERS = [
@@ -125,7 +126,7 @@ export default function TraineeProfile() {
                 </div>
                 <div className="mb-2">
                   <label className="form-label">{t('trainee.profile.mobile', 'মোবাইল')}</label>
-                  <input name="phone" className="form-control" value={form.phone} onChange={handleChange} />
+                  <input name="phone" className="form-control" value={convertToBanglaDigits(form.phone)} onChange={handleChange} />
                 </div>
                 <div className="mb-2">
                   <label className="form-label">{t('trainee.profile.registrationNo', 'রেজিস্ট্রেশন নং')}</label>
@@ -153,7 +154,7 @@ export default function TraineeProfile() {
               <form onSubmit={handleSubmit}>
                 <div className="mb-2">
                   <label className="form-label">{t('trainee.profile.bankAccount', 'ব্যাংক অ্যাকাউন্ট নং')}</label>
-                  <input name="bank_account_no" className="form-control" value={form.bank_account_no} onChange={handleChange} />
+                  <input name="bank_account_no" className="form-control" value={convertToBanglaDigits(form.bank_account_no)} onChange={handleChange} />
                 </div>
                 <div className="mb-2">
                   <label className="form-label">{t('trainee.profile.bankName', 'ব্যাংকের নাম')}</label>
@@ -174,7 +175,7 @@ export default function TraineeProfile() {
                 </div>
                 <div className="mb-2">
                   <label className="form-label">{t('trainee.profile.nomineeMobile', 'মোবাইল')}</label>
-                  <input name="nominee_phone" className="form-control" value={form.nominee_phone} onChange={handleChange} />
+                  <input name="nominee_phone" className="form-control" value={convertToBanglaDigits(form.nominee_phone)} onChange={handleChange} />
                 </div>
               </form>
             </div>

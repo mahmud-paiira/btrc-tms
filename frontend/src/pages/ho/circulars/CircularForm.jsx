@@ -4,6 +4,7 @@ import hoService from '../../../services/hoService';
 import BanglaInput from '../../../components/common/BanglaInput';
 import SimpleEditor from '../../../components/common/SimpleEditor';
 import { formatDate } from '../../../utils/dateFormatter';
+import { convertToBanglaDigits, formatNumber } from '../../../utils/numberFormatter';
 
 const CRITERIA_TYPES = [
   { value: 'age', label: 'বয়স', icon: 'bi-calendar' },
@@ -626,7 +627,7 @@ export default function CircularForm({ editData, onClose, onDone }) {
                       <tr><td className="text-muted py-1">শিরোনাম</td><td className="fw-semibold py-1">{form.title_bn || '-'}</td></tr>
                       <tr><td className="text-muted py-1">আবেদন</td><td className="fw-semibold py-1">{formatDate(form.application_start_date) || '?'} → {formatDate(form.application_end_date) || '?'}</td></tr>
                       <tr><td className="text-muted py-1">প্রশিক্ষণ</td><td className="fw-semibold py-1">{formatDate(form.training_start_date) || '?'} → {formatDate(form.training_end_date) || '?'}</td></tr>
-                      <tr><td className="text-muted py-1">আসন</td><td className="fw-semibold py-1">{form.total_seats || '?'}</td></tr>
+                      <tr><td className="text-muted py-1">আসন</td><td className="fw-semibold py-1">{formatNumber(form.total_seats) || '?'}</td></tr>
                     </tbody>
                   </table>
                 </div>

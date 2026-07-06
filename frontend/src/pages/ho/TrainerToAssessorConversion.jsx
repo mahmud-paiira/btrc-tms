@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { toast } from 'react-toastify';
 import hoService from '../../services/hoService';
+import { convertToBanglaDigits, formatNumber } from '../../utils/numberFormatter';
 
 export default function TrainerToAssessorConversion({ onClose, onDone }) {
   const [query, setQuery] = useState('');
@@ -32,7 +33,7 @@ export default function TrainerToAssessorConversion({ onClose, onDone }) {
         trainer_id: selected.id,
         retain_trainer_status: retain,
       });
-      toast.success(`রূপান্তর সফল! মূল্যায়নকারী নং: ${res.data.assessor_no}`);
+      toast.success(`রূপান্তর সফল! মূল্যায়নকারী নং: ${convertToBanglaDigits(res.data.assessor_no)}`);
       onDone();
     } catch (e) {
       toast.error(e.response?.data?.error || 'রূপান্তর ব্যর্থ হয়েছে');
@@ -67,8 +68,8 @@ export default function TrainerToAssessorConversion({ onClose, onDone }) {
                     <button key={t.id} className={`list-group-item list-group-item-action d-flex justify-content-between align-items-center ${selected?.id === t.id ? 'active' : ''}`}
                       onClick={() => setSelected(t)} style={{ fontSize: 13 }}>
                       <div>
-                        <strong>{t.trainer_no}</strong> - {t.name_bn || t.name_en || t.email}
-                        <br /><small className="text-muted">এনআইডি: {t.nid} | ফোন: {t.phone} | অভিজ্ঞতা: {t.years_of_experience} বছর</small>
+                        <strong>{convertToBanglaDigits(t.trainer_no)}</strong> - {t.name_bn || t.name_en || t.email}
+                        <br /><small className="text-muted">এনআইডি: {convertToBanglaDigits(t.nid)} | ফোন: {convertToBanglaDigits(t.phone)} | অভিজ্ঞতা: {formatNumber(t.years_of_experience)} বছর</small>
                       </div>
                       {selected?.id === t.id && <i className="bi bi-check-circle-fill text-white"></i>}
                     </button>
@@ -88,7 +89,7 @@ export default function TrainerToAssessorConversion({ onClose, onDone }) {
                   <strong>নির্বাচিত: </strong>
                   {selected.name_bn || selected.name_en} ({selected.trainer_no})<br />
                   <small className="text-muted">
-                    এনআইডি: {selected.nid} | ফোন: {selected.phone} | দক্ষতা: {selected.expertise_area}
+                    এনআইডি: {convertToBanglaDigits(selected.nid)} | ফোন: {convertToBanglaDigits(selected.phone)} | দক্ষতা: {selected.expertise_area}
                   </small>
                 </div>
               </div>

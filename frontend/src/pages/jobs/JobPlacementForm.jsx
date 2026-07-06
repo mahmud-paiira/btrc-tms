@@ -5,6 +5,7 @@ import jobService from '../../services/jobService';
 import { useTranslation } from '../../hooks/useTranslation';
 import './JobPlacement.css';
 import BanglaInput from '../../components/common/BanglaInput';
+import { convertToBanglaDigits } from '../../utils/numberFormatter';
 
 const defaultForm = {
   batch: '',
@@ -142,7 +143,7 @@ export default function JobPlacementForm() {
                       <option value="">{t('site.select', '-- নির্বাচন করুন --')}</option>
                       {batches.map((b) => (
                         <option key={b.id} value={b.id}>
-                          {b.batch_name_bn || b.batch_no}
+                          {b.batch_name_bn || convertToBanglaDigits(b.batch_no)}
                         </option>
                       ))}
                     </select>
@@ -228,7 +229,7 @@ export default function JobPlacementForm() {
                   </div>
                   <div className="col-md-4">
                     <label className="form-label fw-bold">{t('job.placement.contactPhone', 'যোগাযোগের মোবাইল')}</label>
-                    <input className="form-control" name="contact_phone" value={form.contact_phone} onChange={handleChange} placeholder={t('job.placement.contactPhonePlaceholder', '০১XXXXXXXXX')} />
+                    <input className="form-control" name="contact_phone" value={convertToBanglaDigits(form.contact_phone)} onChange={handleChange} placeholder={t('job.placement.contactPhonePlaceholder', '০১XXXXXXXXX')} />
                   </div>
                 </div>
               </div>

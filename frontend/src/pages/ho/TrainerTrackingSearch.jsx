@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import hoService from '../../services/hoService';
+import { convertToBanglaDigits, formatNumber } from '../../utils/numberFormatter';
 
 const SEARCH_TYPES = [
   { key: 'trainer_no', label: 'প্রশিক্ষক নং' },
@@ -68,13 +69,13 @@ export default function TrainerTrackingSearch() {
               <div className="table-responsive">
                 <table className="table table-bordered table-sm" style={{ fontSize: 13 }}>
                   <tbody>
-                    <tr><td className="fw-semibold" style={{ width: 160 }}>প্রশিক্ষক নং</td><td>{result.trainer_no}</td></tr>
+                    <tr><td className="fw-semibold" style={{ width: 160 }}>প্রশিক্ষক নং</td><td>{convertToBanglaDigits(result.trainer_no)}</td></tr>
                     <tr><td className="fw-semibold">নাম</td><td>{result.user?.full_name_bn || result.user?.full_name_en || '-'}</td></tr>
                     <tr><td className="fw-semibold">ইমেইল</td><td>{result.user?.email || '-'}</td></tr>
                     <tr><td className="fw-semibold">ফোন</td><td>{result.user?.phone || '-'}</td></tr>
-                    <tr><td className="fw-semibold">এনআইডি</td><td>{result.nid}</td></tr>
+                    <tr><td className="fw-semibold">এনআইডি</td><td>{convertToBanglaDigits(result.nid)}</td></tr>
                     <tr><td className="fw-semibold">জন্ম তারিখ</td><td>{result.date_of_birth || '-'}</td></tr>
-                    <tr><td className="fw-semibold">অভিজ্ঞতা</td><td>{result.years_of_experience} বছর</td></tr>
+                    <tr><td className="fw-semibold">অভিজ্ঞতা</td><td>{formatNumber(result.years_of_experience)} বছর</td></tr>
                     <tr><td className="fw-semibold">অবস্থা</td><td>{result.status}</td></tr>
                     <tr><td className="fw-semibold">অনুমোদন</td><td>{result.approval_status}</td></tr>
                   </tbody>

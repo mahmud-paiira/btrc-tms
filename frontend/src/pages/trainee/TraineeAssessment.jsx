@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import traineeService from '../../services/traineeService';
+import { formatNumber, formatPercentage } from '../../utils/numberFormatter';
 
 const STATUS_BADGE = {
   competent: 'success', not_competent: 'danger', absent: 'secondary',
@@ -40,19 +41,19 @@ export default function TraineeAssessment() {
       <div className="row g-2 mb-4">
         <div className="col-4">
           <div className="card text-bg-success text-center py-2">
-            <h4 className="mb-0">{competentCount}</h4>
+            <h4 className="mb-0">{formatNumber(competentCount)}</h4>
             <small>দক্ষ</small>
           </div>
         </div>
         <div className="col-4">
           <div className="card text-bg-danger text-center py-2">
-            <h4 className="mb-0">{notCompetentCount}</h4>
+            <h4 className="mb-0">{formatNumber(notCompetentCount)}</h4>
             <small>অদক্ষ</small>
           </div>
         </div>
         <div className="col-4">
           <div className="card text-bg-secondary text-center py-2">
-            <h4 className="mb-0">{absentCount}</h4>
+            <h4 className="mb-0">{formatNumber(absentCount)}</h4>
             <small>অনুপস্থিত</small>
           </div>
         </div>
@@ -94,9 +95,9 @@ export default function TraineeAssessment() {
                       {a.competency_status_display}
                     </span>
                   </td>
-                  <td>{a.marks_obtained ?? '—'}</td>
-                  <td>{a.total_marks ?? '—'}</td>
-                  <td>{a.percentage !== null ? `${a.percentage}%` : '—'}</td>
+                  <td>{a.marks_obtained != null ? formatNumber(a.marks_obtained) : '—'}</td>
+                  <td>{a.total_marks != null ? formatNumber(a.total_marks) : '—'}</td>
+                  <td>{a.percentage !== null ? formatPercentage(a.percentage) : '—'}</td>
                   <td>{a.is_reassessment ? <span className="badge bg-info">পুনঃমূল্যায়ন</span> : '—'}</td>
                 </tr>
               ))

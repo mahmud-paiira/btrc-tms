@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import hoService from '../../../services/hoService';
 import { useTranslation } from '../../../hooks/useTranslation';
-import { taka } from '../../../utils/numberFormatter';
+import { taka, convertToBanglaDigits } from '../../../utils/numberFormatter';
 
 export default function FinancialDashboard() {
   const navigate = useNavigate();
@@ -160,7 +160,7 @@ export default function FinancialDashboard() {
               {soeRecent.map((s, i) => (
                 <div key={i} className="d-flex justify-content-between align-items-center py-2 border-bottom border-light">
                   <div>
-                    <div className="fw-semibold" style={{ fontSize: 13 }}>{s.voucher_no}</div>
+                    <div className="fw-semibold" style={{ fontSize: 13 }}>{convertToBanglaDigits(s.voucher_no)}</div>
                     <small className="text-secondary">{s.voucher_date} - {s.center_name}</small>
                   </div>
                   <div className="text-danger fw-bold" style={{ fontSize: 13 }}>{taka(s.amount)}</div>

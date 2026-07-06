@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import hoService from '../../services/hoService';
 import api from '../../services/api';
 import { formatDate } from '../../utils/dateFormatter';
+import { convertToBanglaDigits, formatNumber } from '../../utils/numberFormatter';
 
 const TABS = [
   { key: 'trainers', label: 'প্রশিক্ষক', icon: 'bi-person-badge', color: '#6366f1' },
@@ -338,9 +339,9 @@ export default function HoApprovalManagement() {
                             <button className="btn btn-link btn-sm p-0 text-start fw-semibold"
                               style={{ color: '#2563eb', textDecoration: 'none' }}
                               onClick={(e) => { e.stopPropagation(); navigate(`/ho/applications/${item.id}`); }}>
-                              {item[f.key] || '—'}
+                              {convertToBanglaDigits(item[f.key]) || '—'}
                             </button>
-                          ) : f.render ? f.render(item) : item[f.key] || '—'}
+                          ) : f.render ? f.render(item) : ['nid', 'phone', 'trainer_no', 'assessor_no'].includes(f.key) ? (convertToBanglaDigits(item[f.key]) || '—') : item[f.key] || '—'}
                         </td>
                       ))}
                       <td className="act-col" onClick={e => e.stopPropagation()}>

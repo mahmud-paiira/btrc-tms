@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import hoService from '../../../services/hoService';
+import { convertToBanglaDigits, formatNumber } from '../../../utils/numberFormatter';
 
 export default function CircularStatsCard() {
   const [stats, setStats] = useState(null);
@@ -54,7 +55,7 @@ export default function CircularStatsCard() {
         <div className="d-flex justify-content-between" style={{ fontSize: 12 }}>
           <span>মোট আবেদন: <strong>{stats.total_applications}</strong></span>
           <span>সক্রিয়: <strong>{stats.active_applications}</strong></span>
-          <span>মোট আসন: <strong>{stats.total_seats}</strong></span>
+          <span>মোট আসন: <strong>{formatNumber(stats.total_seats)}</strong></span>
         </div>
       </div>
     </div>

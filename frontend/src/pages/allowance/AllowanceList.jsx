@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import allowanceService from '../../services/allowanceService';
 import batchService from '../../services/batchService';
 import { useTranslation } from '../../hooks/useTranslation';
+import { convertToBanglaDigits, formatNumber } from '../../utils/numberFormatter';
 
 const STATUS_BADGE = {
   calculated: 'secondary',
@@ -153,12 +154,12 @@ export default function AllowanceList() {
                   <tr key={a.id}>
                     <td>{i + 1}</td>
                     <td>{a.trainee_name}</td>
-                    <td>{a.registration_no}</td>
+                    <td>{convertToBanglaDigits(a.registration_no)}</td>
                     <td>{a.batch}</td>
                     <td>{a.category_name}</td>
                     <td>{a.attended_sessions}/{a.total_sessions}</td>
-                    <td>{a.calculated_amount} টাকা</td>
-                    <td>{a.approved_amount ? `${a.approved_amount} টাকা` : '-'}</td>
+                    <td>{formatNumber(a.calculated_amount)} টাকা</td>
+                    <td>{a.approved_amount ? `${formatNumber(a.approved_amount)} টাকা` : '-'}</td>
                     <td>
                       <span className={`status-dot dot-${a.status}`}></span>
                       <span>{a.status_display || a.status}</span>

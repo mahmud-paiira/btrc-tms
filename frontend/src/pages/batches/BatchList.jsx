@@ -6,6 +6,7 @@ import batchService from '../../services/batchService';
 import circularService from '../../services/circularService';
 import { useTranslation } from '../../hooks/useTranslation';
 import { formatDate } from '../../utils/dateFormatter';
+import { convertToBanglaDigits } from '../../utils/numberFormatter';
 
 const STATUS_BADGE = {
   scheduled: 'secondary',
@@ -213,7 +214,7 @@ export default function BatchList() {
                       <td>
                         <a href={`/center-admin/batches/${b.id}`} style={{ fontWeight: 600, color: '#0f172a', textDecoration: 'none' }}
                           onClick={e => { e.preventDefault(); navigate(`/center-admin/batches/${b.id}`); }}>
-                          {b.batch_no}
+                          {convertToBanglaDigits(b.batch_no)}
                         </a>
                       </td>
                       <td style={{ color: '#334155' }}>{b.batch_name_bn || b.batch_name_en || '—'}</td>

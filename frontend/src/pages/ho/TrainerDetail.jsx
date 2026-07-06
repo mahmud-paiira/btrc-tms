@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import hoService from '../../services/hoService';
+import { convertToBanglaDigits } from '../../utils/numberFormatter';
 
 const STATUS_BG = { pending: 'warning', active: 'success', suspended: 'danger' };
 
@@ -50,7 +51,7 @@ export default function TrainerDetail() {
         </button>
         <div>
           <h4 className="mb-0 fw-bold">{nameBn}</h4>
-          <div className="text-muted small">প্রশিক্ষক নং: {trainer.trainer_no}</div>
+          <div className="text-muted small">প্রশিক্ষক নং: {convertToBanglaDigits(trainer.trainer_no)}</div>
         </div>
         <div className="ms-auto d-flex gap-2">
           <span className={`status-dot dot-${STATUS_BG[trainer.status] || 'secondary'}`} />
@@ -78,13 +79,13 @@ export default function TrainerDetail() {
                 <h6 className="fw-bold mb-3 text-muted text-uppercase small">ব্যক্তিগত তথ্য</h6>
                 <table className="b-detail-table align-middle">
                   <tbody>
-                    <tr><th>প্রশিক্ষক নং</th><td>{trainer.trainer_no}</td></tr>
+                    <tr><th>প্রশিক্ষক নং</th><td>{convertToBanglaDigits(trainer.trainer_no)}</td></tr>
                     <tr><th>নাম (ইংরেজি)</th><td>{user.full_name_en || '-'}</td></tr>
                     <tr><th>নাম (বাংলা)</th><td>{nameBn}</td></tr>
                     <tr><th>ইমেইল</th><td>{user.email || '-'}</td></tr>
                     <tr><th>ফোন</th><td>{user.phone || '-'}</td></tr>
-                    <tr><th>এনআইডি</th><td>{trainer.nid}</td></tr>
-                    <tr><th>জন্ম নিবন্ধন</th><td>{trainer.birth_certificate_no || '-'}</td></tr>
+                    <tr><th>এনআইডি</th><td>{convertToBanglaDigits(trainer.nid)}</td></tr>
+                    <tr><th>জন্ম নিবন্ধন</th><td>{trainer.birth_certificate_no ? convertToBanglaDigits(trainer.birth_certificate_no) : '-'}</td></tr>
                     <tr><th>জন্ম তারিখ</th><td>{trainer.date_of_birth || '-'}</td></tr>
                   </tbody>
                 </table>
@@ -96,9 +97,9 @@ export default function TrainerDetail() {
                     <tr><th>পিতার নাম</th><td>{trainer.father_name_bn}</td></tr>
                     <tr><th>মাতার নাম</th><td>{trainer.mother_name_bn}</td></tr>
                     <tr><th>শিক্ষাগত যোগ্যতা</th><td>{trainer.education_qualification}</td></tr>
-                    <tr><th>অভিজ্ঞতা</th><td>{`${trainer.years_of_experience} বছর`}</td></tr>
+                    <tr><th>অভিজ্ঞতা</th><td>{convertToBanglaDigits(trainer.years_of_experience)} বছর</td></tr>
                     <tr><th>দক্ষতার ক্ষেত্র</th><td>{trainer.expertise_area}</td></tr>
-                    <tr><th>ব্যাংক একাউন্ট</th><td>{trainer.bank_account_no || '-'}</td></tr>
+                    <tr><th>ব্যাংক একাউন্ট</th><td>{trainer.bank_account_no ? convertToBanglaDigits(trainer.bank_account_no) : '-'}</td></tr>
                     <tr><th>ব্যাংকের নাম</th><td>{trainer.bank_name || '-'}</td></tr>
                     <tr><th>নিবন্ধনের তারিখ</th><td>{trainer.created_at || '-'}</td></tr>
                   </tbody>
@@ -115,7 +116,7 @@ export default function TrainerDetail() {
                 <tbody>
                   {trainer.mappings?.length > 0 ? trainer.mappings.map(m => (
                     <tr key={m.id}>
-                      <td>{m.center_code} - {m.center?.name_bn || ''}</td>
+                      <td>{convertToBanglaDigits(m.center_code)} - {m.center?.name_bn || ''}</td>
                       <td><span className={`status-dot dot-${STATUS_BG[m.status]}`}></span>{m.status}</td>
                     </tr>
                   )) : (
@@ -134,7 +135,7 @@ export default function TrainerDetail() {
                 <tbody>
                   {trainer.mappings?.length > 0 ? trainer.mappings.map(m => (
                     <tr key={m.id}>
-                      <td>{m.course_code} - {m.course?.name_bn || ''}</td>
+                      <td>{convertToBanglaDigits(m.course_code)} - {m.course?.name_bn || ''}</td>
                       <td>{m.is_primary ? <span className="status-dot dot-info" /> : 'না'}</td>
                       <td><span className={`status-dot dot-${STATUS_BG[m.status]}`}></span>{m.status}</td>
                     </tr>
@@ -150,10 +151,10 @@ export default function TrainerDetail() {
               <div className="col-md-6">
                 <table className="b-table align-middle">
                   <tbody>
-                    <tr><th>প্রশিক্ষক নং</th><td>{trainer.trainer_no}</td></tr>
-                    <tr><th>এনআইডি</th><td>{trainer.nid}</td></tr>
+                    <tr><th>প্রশিক্ষক নং</th><td>{convertToBanglaDigits(trainer.trainer_no)}</td></tr>
+                    <tr><th>এনআইডি</th><td>{convertToBanglaDigits(trainer.nid)}</td></tr>
                     <tr><th>মোবাইল</th><td>{user.phone || '-'}</td></tr>
-                    <tr><th>জন্ম নিবন্ধন</th><td>{trainer.birth_certificate_no || '-'}</td></tr>
+                    <tr><th>জন্ম নিবন্ধন</th><td>{trainer.birth_certificate_no ? convertToBanglaDigits(trainer.birth_certificate_no) : '-'}</td></tr>
                   </tbody>
                 </table>
               </div>

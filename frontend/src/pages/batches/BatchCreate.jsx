@@ -6,6 +6,7 @@ import batchService from '../../services/batchService';
 import WeekPlanBuilder from '../../components/batches/WeekPlanBuilder';
 import AssessorAssignmentCard from '../../components/batches/AssessorAssignmentCard';
 import { useTranslation } from '../../hooks/useTranslation';
+import { convertToBanglaDigits } from '../../utils/numberFormatter';
 import BanglaInput from '../../components/common/BanglaInput';
 
 const DAYS_OF_WEEK = [
@@ -193,7 +194,7 @@ export default function BatchCreate() {
                       <option value="">{t('site.select', '-- নির্বাচন করুন --')}</option>
                       {circulars.map((c) => (
                         <option key={c.id} value={c.id}>
-                          {c.title_bn || c.title_en} ({c.circular_no})
+                          {c.title_bn || c.title_en} ({convertToBanglaDigits(c.circular_no)})
                         </option>
                       ))}
                     </select>

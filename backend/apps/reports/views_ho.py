@@ -88,79 +88,79 @@ class HOReportViewSet(viewsets.ViewSet):
         )
         return Response(data)
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], url_path='center-wise')
     def center_wise(self, request):
         return self._generate(request, 'center-wise')
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], url_path='course-wise')
     def course_wise(self, request):
         return self._generate(request, 'course-wise')
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], url_path='trainer-performance')
     def trainer_performance(self, request):
         return self._generate(request, 'trainer-performance')
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], url_path='assessor-performance')
     def assessor_performance(self, request):
         return self._generate(request, 'assessor-performance')
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], url_path='trainee-demographics')
     def trainee_demographics(self, request):
         return self._generate(request, 'trainee-demographics')
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], url_path='attendance-compliance')
     def attendance_compliance(self, request):
         return self._generate(request, 'attendance-compliance')
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], url_path='assessment')
     def assessment(self, request):
         return self._generate(request, 'assessment')
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], url_path='certificate')
     def certificate(self, request):
         return self._generate(request, 'certificate')
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], url_path='job-placement')
     def job_placement(self, request):
         return self._generate(request, 'job-placement')
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], url_path='financial-soe')
     def financial_soe(self, request):
         return self._generate(request, 'financial-soe')
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], url_path='budget-vs-actual')
     def budget_vs_actual(self, request):
         return self._generate(request, 'budget-vs-actual')
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], url_path='batch-completion')
     def batch_completion(self, request):
         return self._generate(request, 'batch-completion')
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], url_path='application-funnel')
     def application_funnel(self, request):
         return self._generate(request, 'application-funnel')
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], url_path='revenue')
     def revenue(self, request):
         return self._generate(request, 'revenue')
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], url_path='gender-diversity')
     def gender_diversity(self, request):
         return self._generate(request, 'gender-diversity')
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], url_path='regional')
     def regional(self, request):
         return self._generate(request, 'regional')
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], url_path='monthly-trend')
     def monthly_trend(self, request):
         return self._generate(request, 'monthly-trend')
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], url_path='audit-log')
     def audit_log(self, request):
         return self._generate(request, 'audit-log')
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], url_path='compliance')
     def compliance(self, request):
         return self._generate(request, 'compliance')
 

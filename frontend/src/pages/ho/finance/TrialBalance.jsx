@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import hoService from '../../../services/hoService';
 import { useTranslation } from '../../../hooks/useTranslation';
-import { taka } from '../../../utils/numberFormatter';
+import { taka, convertToBanglaDigits } from '../../../utils/numberFormatter';
 
 export default function TrialBalance() {
   const { t } = useTranslation();
@@ -172,7 +172,7 @@ export default function TrialBalance() {
                         {ledgerEntries.map((e, i) => (
                           <tr key={i}>
                             <td style={{ fontSize: 12 }}>{e.voucher_date}</td>
-                            <td style={{ fontSize: 12 }}>{e.voucher_no}</td>
+                            <td style={{ fontSize: 12 }}>{convertToBanglaDigits(e.voucher_no)}</td>
                             <td style={{ fontSize: 12 }}>{e.description}</td>
                             <td className="text-end text-danger" style={{ fontSize: 12 }}>{taka(e.debit_amount)}</td>
                             <td className="text-end text-success" style={{ fontSize: 12 }}>{taka(e.credit_amount)}</td>

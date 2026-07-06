@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import hoService from '../../../services/hoService';
 import { useTranslation } from '../../../hooks/useTranslation';
 import UserForm from './UserForm';
+import { convertToBanglaDigits } from '../../../utils/numberFormatter';
 import UserDetail from './UserDetail';
 import BulkUserImport from './BulkUserImport';
 import RoleManagement from './RoleManagement';
@@ -191,7 +192,7 @@ export default function UserList() {
                     <td><span className="text-primary">{u.email}</span></td>
                     <td><span className="badge bg-info bg-opacity-10 text-info border border-info">{u.user_type_display}</span></td>
                     <td>{u.center_name || '-'}</td>
-                    <td>{u.phone}</td>
+                    <td>{convertToBanglaDigits(u.phone)}</td>
                     <td>
                       <span><span className={`status-dot dot-${u.is_active ? 'success' : 'secondary'}`}></span>{u.is_active ? t('common.active', 'সক্রিয়') : t('common.inactive', 'নিষ্ক্রিয়')}</span>
                     </td>
