@@ -88,7 +88,7 @@ export default function PublicCircularList() {
             <div className="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
               <div>
                 <h3 className="fw-bold mb-1">{circular.title_bn}</h3>
-                <div className="text-muted">{circular.course_code} - {circular.course_name}</div>
+                <div className="text-muted">(<span className="fw-semibold">{circular.course_code}</span>) - {circular.course_name}</div>
               </div>
               {!isExpired && !isFull && (
                 <button className="btn btn-success btn-lg px-5"
@@ -107,7 +107,7 @@ export default function PublicCircularList() {
                     <tr><th className="bg-light">শিরোনাম (ইংরেজি)</th><td>{circular.title_en}</td></tr>
                     <tr><th className="bg-light">সার্কুলার নম্বর</th><td>{circular.circular_no || '-'}</td></tr>
                     <tr><th className="bg-light">সংস্করণ</th><td>{circular.edition}</td></tr>
-                    <tr><th className="bg-light">কোর্স</th><td>{circular.course_code} - {circular.course_name}</td></tr>
+                    <tr><th className="bg-light">কোর্স</th><td>({circular.course_code}) - {circular.course_name}</td></tr>
                     <tr><th className="bg-light">মেয়াদ</th><td>{circular.course_duration ? `${circular.course_duration} মাস` : '-'}</td></tr>
                     <tr><th className="bg-light">মোট আসন</th><td>{circular.total_seats}</td></tr>
                     <tr><th className="bg-light">অবশিষ্ট আসন</th>
