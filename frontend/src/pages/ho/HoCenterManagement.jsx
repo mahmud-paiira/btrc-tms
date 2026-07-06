@@ -134,14 +134,14 @@ function CenterFormModal({ show, center, onClose, onSaved, usersList }) {
 
   return (
     <div className="modal d-block" style={{ background: 'rgba(0,0,0,.5)' }}>
-      <div className="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-        <div className="modal-content">
+      <div className="modal-dialog modal-xl" style={{ maxHeight: '85vh', marginTop: '5vh', marginBottom: '5vh' }}>
+        <div className="modal-content" style={{ maxHeight: '85vh', display: 'flex', flexDirection: 'column' }}>
           <div className="modal-header bg-primary text-white">
             <h5 className="modal-title">{center ? 'কেন্দ্র সম্পাদনা' : 'নতুন কেন্দ্র'}</h5>
             <button type="button" className="btn-close btn-close-white" onClick={onClose} />
           </div>
-          <form onSubmit={handleSubmit}>
-            <div className="modal-body p-0">
+          <form onSubmit={handleSubmit} className="d-flex flex-column" style={{ overflow: 'hidden', flex: '1 1 auto' }}>
+            <div className="modal-body p-0" style={{ overflowY: 'auto', flex: '1 1 auto' }}>
               <ul className="nav nav-tabs px-4 pt-3 bg-white sticky-top">
                 <li className="nav-item">
                   <button type="button" className={`nav-link ${formTab === 'overview' ? 'active fw-bold' : ''}`}
