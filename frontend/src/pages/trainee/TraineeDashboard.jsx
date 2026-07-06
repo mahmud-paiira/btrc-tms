@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useTranslation } from '../../hooks/useTranslation';
 import traineeService from '../../services/traineeService';
+import { formatDate } from '../../utils/dateFormatter';
 
 const APP_STATUS_BADGE = {
   pending: 'bg-warning text-dark', auto_rejected: 'bg-danger', selected: 'bg-success',
@@ -165,7 +166,7 @@ export default function TraineeDashboard() {
           <StatCard icon="bi-book" label="কোর্স" value={batch?.course_name || '—'} color="#16a34a" />
         </div>
         <div className="col-6 col-lg-3">
-          <StatCard icon="bi-calendar-range" label="সময়সীমা" value={batch ? `${batch.start_date} - ${batch.end_date}` : '—'} color="#d97706" />
+          <StatCard icon="bi-calendar-range" label="সময়সীমা" value={batch ? `${formatDate(batch.start_date)} - ${formatDate(batch.end_date)}` : '—'} color="#d97706" />
         </div>
         <div className="col-6 col-lg-3">
           <StatCard icon="bi-check-circle" label="উপস্থিতি" value={attPct !== null ? `${attPct}%` : '—'} color={warning ? '#dc3545' : '#198754'} />

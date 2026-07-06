@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import api from '../../../services/api';
 import hoService from '../../../services/hoService';
 import CircularForm from './CircularForm';
+import { formatDate } from '../../../utils/dateFormatter';
 
 export default function CircularList() {
   const navigate = useNavigate();
@@ -252,10 +253,10 @@ export default function CircularList() {
                       <span className="fw-bold">{c.remaining_seats}</span><small className="text-muted">/{c.total_seats}</small>
                     </td>
                     <td className="d-none d-md-table-cell">
-                      {c.application_start_date} → {c.application_end_date}
+                      {formatDate(c.application_start_date)} → {formatDate(c.application_end_date)}
                     </td>
                     <td className="d-none d-xl-table-cell">
-                      {c.training_start_date || '-'}
+                      {formatDate(c.training_start_date) || '-'}
                     </td>
                     <td>
                       <span className={`status-dot dot-${c.status}`}></span>

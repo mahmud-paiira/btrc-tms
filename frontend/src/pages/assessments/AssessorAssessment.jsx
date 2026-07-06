@@ -7,6 +7,7 @@ import AssessmentForm from '../../components/assessments/AssessmentForm';
 import ReassessmentRequest from '../../components/assessments/ReassessmentRequest';
 import { useTranslation } from '../../hooks/useTranslation';
 import './AssessorAssessment.css';
+import { formatDate } from '../../utils/dateFormatter';
 
 const ASSESSMENT_TYPES = [
   { value: 'pre_evaluation', label: 'পূর্ব-মূল্যায়ন' },
@@ -217,7 +218,7 @@ export default function AssessorAssessment() {
               </div>
               <div className="col-md-3">
                 <small className="text-muted d-block">{t('assessment.conduct.startDate', 'শুরুর তারিখ')}</small>
-                <strong>{batch.start_date || '—'}</strong>
+                <strong>{formatDate(batch.start_date) || '—'}</strong>
               </div>
               <div className="col-md-3">
                 <small className="text-muted d-block">{t('assessment.conduct.eligibleCount', 'প্রশিক্ষণার্থী')}</small>

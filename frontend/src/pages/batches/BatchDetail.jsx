@@ -96,8 +96,8 @@ export default function BatchDetail() {
         <div><span class="label">শিফট:</span> <strong>${batch.shift === 'shift_1' ? 'শিফট-১' : batch.shift === 'shift_2' ? 'শিফট-২' : '-'}</strong></div>
         <div><span class="label">কোর্স:</span> <strong>${batch.course_name}</strong></div>
         <div><span class="label">কেন্দ্র:</span> <strong>${batch.center_name || '-'}</strong></div>
-        <div><span class="label">শুরুর তারিখ:</span> <strong>${batch.start_date || '-'}</strong></div>
-        <div><span class="label">সমাপ্তির তারিখ:</span> <strong>${batch.end_date || '-'}</strong></div>
+        <div><span class="label">শুরুর তারিখ:</span> <strong>${batch.start_date ? formatDate(batch.start_date) : '-'}</strong></div>
+        <div><span class="label">সমাপ্তির তারিখ:</span> <strong>${batch.end_date ? formatDate(batch.end_date) : '-'}</strong></div>
         <div><span class="label">আসন:</span> <strong>${batch.filled_seats || 0} / ${batch.total_seats || 0}</strong></div>
       </div>
       <table>
@@ -109,7 +109,7 @@ export default function BatchDetail() {
             <td>${e.trainee_name || '-'}</td>
             <td>${e.trainee_phone || '-'}</td>
             <td>${e.batch_shift || '-'}</td>
-            <td>${e.enrollment_date || '-'}</td>
+            <td>${e.enrollment_date ? formatDate(e.enrollment_date) : '-'}</td>
             <td>${e.status === 'active' ? 'সক্রিয়' : e.status === 'completed' ? 'সমাপ্ত' : e.status === 'dropped' ? 'বাতিল' : e.status}</td>
           </tr>
         `).join('')}

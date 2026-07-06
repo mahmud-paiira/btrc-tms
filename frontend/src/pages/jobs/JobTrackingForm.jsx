@@ -4,6 +4,7 @@ import jobService from '../../services/jobService';
 import { useTranslation } from '../../hooks/useTranslation';
 import TrackingModal from '../../components/jobs/TrackingModal';
 import { formatCurrency } from '../../utils/numberFormatter';
+import { formatDate } from '../../utils/dateFormatter';
 import './JobPlacement.css';
 
 export default function JobTrackingForm() {
@@ -163,7 +164,7 @@ export default function JobTrackingForm() {
                       </td>
                       <td>{p.employer_name}</td>
                       <td>{p.designation_bn}</td>
-                      <td className="text-center">{p.start_date}</td>
+                      <td className="text-center">{formatDate(p.start_date)}</td>
                       <td className="text-end">{formatCurrency(p.salary, 'bn')}</td>
                       <td className="text-center">
                         {dueMonths.length > 0 ? (

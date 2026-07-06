@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import circularService from '../../services/circularService';
+import { formatDate } from '../../utils/dateFormatter';
 import './PublicCircular.css';
 
 export default function PublicCircularList() {
@@ -120,11 +121,11 @@ export default function PublicCircularList() {
                 <h6 className="fw-bold mb-3 text-muted text-uppercase small">সময়সীমা</h6>
                 <table className="table table-bordered align-middle">
                   <tbody>
-                    <tr><th className="bg-light" style={{ width: 160 }}>আবেদন শুরুর তারিখ</th><td>{circular.application_start_date}</td></tr>
+                    <tr><th className="bg-light" style={{ width: 160 }}>আবেদন শুরুর তারিখ</th><td>{formatDate(circular.application_start_date)}</td></tr>
                     <tr><th className="bg-light">আবেদনের শেষ তারিখ</th>
-                      <td className={`fw-bold ${isExpired ? 'text-danger' : ''}`}>{circular.application_end_date}</td></tr>
-                    <tr><th className="bg-light">প্রশিক্ষণ শুরুর তারিখ</th><td>{circular.training_start_date}</td></tr>
-                    <tr><th className="bg-light">প্রশিক্ষণ শেষের তারিখ</th><td>{circular.training_end_date}</td></tr>
+                      <td className={`fw-bold ${isExpired ? 'text-danger' : ''}`}>{formatDate(circular.application_end_date)}</td></tr>
+                    <tr><th className="bg-light">প্রশিক্ষণ শুরুর তারিখ</th><td>{formatDate(circular.training_start_date)}</td></tr>
+                    <tr><th className="bg-light">প্রশিক্ষণ শেষের তারিখ</th><td>{formatDate(circular.training_end_date)}</td></tr>
                     <tr><th className="bg-light">উপযুক্ত কেন্দ্র</th>
                       <td>{circular.all_centers ? 'সব কেন্দ্র' : centers.map(c => `${c.code} - ${c.name_bn}`).join(', ')}</td></tr>
                   </tbody>

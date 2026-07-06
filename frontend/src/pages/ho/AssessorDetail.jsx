@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import hoService from '../../services/hoService';
+import { formatDate } from '../../utils/dateFormatter';
 
 const STATUS_BG = { pending: 'warning', active: 'success', suspended: 'danger' };
 
@@ -191,8 +192,8 @@ export default function AssessorDetail() {
                       <td>{b.batch_name_bn}</td>
                       <td>{b.center_code} - {b.center_name}</td>
                       <td>{b.course_code} - {b.course_name}</td>
-                      <td>{b.start_date}</td>
-                      <td>{b.end_date}</td>
+                      <td>{formatDate(b.start_date)}</td>
+                      <td>{formatDate(b.end_date)}</td>
                       <td><span className={`status-dot dot-${STATUS_BG[b.status] || 'secondary'}`} />{b.status}</td>
                       <td className="text-center fw-bold">{b.assessments_count}</td>
                     </tr>

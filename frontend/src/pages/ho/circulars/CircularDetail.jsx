@@ -2,6 +2,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import hoService from '../../../services/hoService';
+import { formatDate } from '../../../utils/dateFormatter';
 
 const STATUS_BG = { draft: 'secondary', published: 'success', closed: 'danger', completed: 'info' };
 const APP_STATUS_BG = { pending: 'warning', selected: 'success', rejected: 'danger', waitlisted: 'info' };
@@ -153,10 +154,10 @@ export default function CircularDetail() {
                 <h6 className="fw-bold mb-3 text-muted text-uppercase small">সময়সীমা</h6>
                 <table className="b-detail-table align-middle">
                   <tbody>
-                    <tr><th>আবেদন শুরুর তারিখ</th><td>{circular.application_start_date}</td></tr>
-                    <tr><th>আবেদনের শেষ তারিখ</th><td>{circular.application_end_date}</td></tr>
-                    <tr><th>প্রশিক্ষণ শুরুর তারিখ</th><td>{circular.training_start_date}</td></tr>
-                    <tr><th>প্রশিক্ষণ শেষের তারিখ</th><td>{circular.training_end_date}</td></tr>
+                    <tr><th>আবেদন শুরুর তারিখ</th><td>{formatDate(circular.application_start_date)}</td></tr>
+                    <tr><th>আবেদনের শেষ তারিখ</th><td>{formatDate(circular.application_end_date)}</td></tr>
+                    <tr><th>প্রশিক্ষণ শুরুর তারিখ</th><td>{formatDate(circular.training_start_date)}</td></tr>
+                    <tr><th>প্রশিক্ষণ শেষের তারিখ</th><td>{formatDate(circular.training_end_date)}</td></tr>
                     <tr><th>উপযুক্ত কেন্দ্র</th><td>{circular.all_centers ? 'সব কেন্দ্র' : (circular.eligible_centers || []).map(c => `${c.code} - ${c.name_bn}`).join(', ')}</td></tr>
                     <tr><th>তৈরি করেছেন</th><td>{circular.created_by_name || '-'}</td></tr>
                     <tr><th>প্রকাশের তারিখ</th><td>{circular.published_at || '-'}</td></tr>
