@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import hoService from '../../../services/hoService';
+import { formatDateTime } from '../../../utils/dateFormatter';
 
 export default function SystemHealth() {
   const [health, setHealth] = useState(null);
@@ -41,7 +42,7 @@ export default function SystemHealth() {
     { label: 'সেলেরি', icon: 'bi-arrow-repeat', status: health.celery?.status, detail: health.celery?.workers?.join(', ') || health.celery?.broker || '-' },
     { label: 'স্টোরেজ', icon: 'bi-hdd', status: health.storage?.status, detail: health.storage ? `${health.storage.used_gb}GB / ${health.storage.total_gb}GB (${health.storage.used_percent}%)` : '-' },
     { label: 'API', icon: 'bi-globe', status: health.api?.status, detail: 'প্রতিক্রিয়াশীল' },
-    { label: 'ব্যাকআপ', icon: 'bi-cloud-arrow-up', status: health.backup?.is_active ? 'active' : 'inactive', detail: health.backup?.last_backup ? new Date(health.backup.last_backup).toLocaleString('bn-BD') : 'কখনো হয়নি' },
+    { label: 'ব্যাকআপ', icon: 'bi-cloud-arrow-up', status: health.backup?.is_active ? 'active' : 'inactive', detail: health.backup?.last_backup ? formatDateTime(health.backup.last_backup) : 'কখনো হয়নি' },
   ];
 
   const overall = health.status === 'ok' ? 'সব ঠিক আছে' : 'কিছু সমস্যা আছে';

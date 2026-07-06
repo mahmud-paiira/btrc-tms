@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import applicationService from '../../services/applicationService';
 import api from '../../services/api';
-import { formatDate } from '../../utils/dateFormatter';
+import { formatDate, formatDateTime } from '../../utils/dateFormatter';
 
 const STATUS_BG = { pending: 'secondary', selected: 'success', rejected: 'danger', waitlisted: 'warning' };
 const API_URL = '/api';
@@ -136,7 +136,7 @@ export default function ApplicationDetailPage() {
                   <h6 className="fw-bold mb-3 text-muted text-uppercase small">অবস্থা</h6>
                   <table className="b-detail-table w-100">
                     <tbody>
-                      <tr><th >আবেদনের তারিখ</th><td>{app.applied_at || '—'}</td></tr>
+                      <tr><th >আবেদনের তারিখ</th><td>{formatDate(app.applied_at)}</td></tr>
                       <tr><th >অবস্থা</th>
                         <td>
                           <span className={`status-dot dot-${STATUS_BG[app.status] || 'secondary'}`}>
@@ -161,7 +161,7 @@ export default function ApplicationDetailPage() {
                       <tr><th >নাম (ইংরেজিতে)</th><td>{app.name_en || '—'}</td></tr>
                       <tr><th >পিতার নাম</th><td>{app.father_name_bn}</td></tr>
                       <tr><th >মাতার নাম</th><td>{app.mother_name_bn}</td></tr>
-                      <tr><th >জন্ম তারিখ</th><td>{app.date_of_birth}</td></tr>
+                      <tr><th >জন্ম তারিখ</th><td>{formatDate(app.date_of_birth)}</td></tr>
                       <tr><th >এনআইডি</th><td>{app.nid}</td></tr>
                     </tbody>
                   </table>
@@ -206,7 +206,7 @@ export default function ApplicationDetailPage() {
                     <table className="b-detail-table w-100">
                       <tbody>
                         <tr><th >পর্যালোচনা করেছেন</th><td>{app.reviewed_by_name || '—'}</td></tr>
-                        <tr><th >পর্যালোচনার তারিখ</th><td>{app.reviewed_at || '—'}</td></tr>
+                        <tr><th >পর্যালোচনার তারিখ</th><td>{formatDate(app.reviewed_at)}</td></tr>
                         {app.remarks && <tr><th >মন্তব্য</th><td>{app.remarks}</td></tr>}
                       </tbody>
                     </table>

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from '../../services/api';
 import TrainerFormModal from './TrainerFormModal';
+import { formatDate } from '../../utils/dateFormatter';
 
 const API_URL = '/api';
 const STATUS_BG = { pending: 'warning', active: 'success', suspended: 'danger', inactive: 'secondary' };
@@ -134,7 +135,7 @@ export default function TrainerList() {
       </div>
       <div class="report-info">
         <span>মোট: ${items.length} জন</span>
-        <span>প্রিন্টের তারিখ: ${new Date().toLocaleDateString('bn-BD')}</span>
+        <span>প্রিন্টের তারিখ: ${formatDate(new Date())}</span>
       </div>
       <table>
         <tr><th>ক্রমিক</th><th>নাম (বাংলা)</th><th>নাম (ইংরেজি)</th><th>ইমেইল</th><th>ফোন</th><th>অভিজ্ঞতা</th></tr>
@@ -149,7 +150,7 @@ export default function TrainerList() {
           </tr>`;
         }).join('')}
       </table>
-      <div class="footer">প্রশিক্ষক তালিকা - ${new Date().toLocaleDateString('bn-BD')}</div>
+      <div class="footer">প্রশিক্ষক তালিকা - ${formatDate(new Date())}</div>
       <script>window.print();</script>
       </body></html>
     `);

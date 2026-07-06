@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import hoService from '../../../services/hoService';
 import { useTranslation } from '../../../hooks/useTranslation';
-import { formatDate } from '../../../utils/numberFormatter';
+import { formatDate } from '../../../utils/dateFormatter';
 
 const TABS = ['Overview', 'Login History', 'Audit Log'];
 

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from '../../services/api';
 import AssessorFormModal from './AssessorFormModal';
+import { formatDate } from '../../utils/dateFormatter';
 
 const API_URL = '/api';
 const STATUS_MAP = { pending: 'পেন্ডিং', active: 'সক্রিয়', suspended: 'স্থগিত', inactive: 'নিষ্ক্রিয়' };
@@ -132,7 +133,7 @@ export default function AssessorList() {
       </div>
       <div class="report-info">
         <span>মোট: ${printItems.length} জন</span>
-        <span>প্রিন্টের তারিখ: ${new Date().toLocaleDateString('bn-BD')}</span>
+        <span>প্রিন্টের তারিখ: ${formatDate(new Date())}</span>
       </div>
       <table>
         <tr><th>ক্রমিক</th><th>নাম (বাংলা)</th><th>নাম (ইংরেজি)</th><th>ইমেইল</th><th>ফোন</th><th>অভিজ্ঞতা</th></tr>
@@ -147,7 +148,7 @@ export default function AssessorList() {
           </tr>`;
         }).join('')}
       </table>
-      <div class="footer">মূল্যায়নকারী তালিকা - ${new Date().toLocaleDateString('bn-BD')}</div>
+      <div class="footer">মূল্যায়নকারী তালিকা - ${formatDate(new Date())}</div>
       <script>window.print();</script>
       </body></html>
     `);

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import hoService from '../../services/hoService';
 import api from '../../services/api';
+import { formatDate } from '../../utils/dateFormatter';
 
 const TABS = [
   { key: 'trainers', label: 'প্রশিক্ষক', icon: 'bi-person-badge', color: '#6366f1' },
@@ -166,7 +167,7 @@ export default function HoApprovalManagement() {
           }).join('')}
         </tbody>
       </table>
-      <p style="text-align:center;margin-top:20px;color:#666;font-size:11px;">প্রিন্টের তারিখ: ${new Date().toLocaleDateString('bn-BD')}</p>
+      <p style="text-align:center;margin-top:20px;color:#666;font-size:11px;">প্রিন্টের তারিখ: ${formatDate(new Date())}</p>
       <script>window.print();window.close();<\/script>
       </body></html>
     `);

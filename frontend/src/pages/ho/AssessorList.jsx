@@ -5,6 +5,7 @@ import api from '../../services/api';
 import hoService from '../../services/hoService';
 import TrainerToAssessorConversion from './TrainerToAssessorConversion';
 import AssessorMapForm from './AssessorMapForm';
+import { formatDate } from '../../utils/dateFormatter';
 
 const TABS = [
   { key: 'all', label: 'সকল মূল্যায়নকারী' },
@@ -151,7 +152,7 @@ export default function AssessorList() {
       </div>
       <div class="report-info">
         <span>মোট: ${printItems.length} জন</span>
-        <span>প্রিন্টের তারিখ: ${new Date().toLocaleDateString('bn-BD')}</span>
+        <span>প্রিন্টের তারিখ: ${formatDate(new Date())}</span>
       </div>
       <table>
         <tr><th>ক্রমিক</th><th>নাম (বাংলা)</th><th>নাম (ইংরেজি)</th><th>ইমেইল</th><th>ফোন</th><th>অভিজ্ঞতা</th></tr>
@@ -166,7 +167,7 @@ export default function AssessorList() {
           </tr>`;
         }).join('')}
       </table>
-      <div class="footer">মূল্যায়নকারী তালিকা - ${new Date().toLocaleDateString('bn-BD')}</div>
+      <div class="footer">মূল্যায়নকারী তালিকা - ${formatDate(new Date())}</div>
       <script>window.print();</script>
       </body></html>
     `);

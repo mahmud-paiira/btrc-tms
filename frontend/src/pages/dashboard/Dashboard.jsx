@@ -101,7 +101,7 @@ export default function Dashboard() {
           <div className="d-none d-md-block">
             <div className="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill fw-bold">
               <i className="bi bi-calendar3 me-2"></i>
-              {new Date().toLocaleDateString('bn-BD', { month: 'long', year: 'numeric' })}
+              {formatDate(new Date())}
             </div>
           </div>
         </div>

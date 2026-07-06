@@ -22,22 +22,19 @@ export function getBanglaWeekday(day, short = false) {
   return short ? BANGLA_WEEKDAYS_SHORT[day] : BANGLA_WEEKDAYS_LONG[day];
 }
 
+function toDDMMYYYY(d, lang) {
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  const formatted = `${day}/${month}/${year}`;
+  return lang === 'bn' ? convertToBanglaDigits(formatted) : formatted;
+}
+
 export function formatDate(date, lang = 'bn') {
   if (!date) return '';
   const d = typeof date === 'string' ? new Date(date) : date;
   if (isNaN(d.getTime())) return date;
-
-  const day = d.getDate();
-  const month = d.getMonth();
-  const year = d.getFullYear();
-
-  if (lang === 'bn') {
-    const bnDay = convertToBanglaDigits(day);
-    const bnYear = convertToBanglaDigits(year);
-    return `${bnDay} ${BANGLA_MONTHS[month]} ${bnYear}`;
-  }
-
-  return `${day} ${ENGLISH_MONTHS[month]} ${year}`;
+  return toDDMMYYYY(d, lang);
 }
 
 export function formatDateTime(date, lang = 'bn') {
@@ -45,7 +42,7 @@ export function formatDateTime(date, lang = 'bn') {
   const d = typeof date === 'string' ? new Date(date) : date;
   if (isNaN(d.getTime())) return date;
 
-  const datePart = formatDate(d, lang);
+  const datePart = toDDMMYYYY(d, lang);
 
   const hours = d.getHours();
   const minutes = String(d.getMinutes()).padStart(2, '0');
@@ -62,15 +59,4 @@ export function formatDateTime(date, lang = 'bn') {
   return `${datePart}, ${displayHour}:${minutes} ${period}`;
 }
 
-export function formatDateShort(date, lang = 'bn') {
-  if (!date) return '';
-  const d = typeof date === 'string' ? new Date(date) : date;
-  if (isNaN(d.getTime())) return date;
-
-  const day = String(d.getDate()).padStart(2, '0');
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const year = d.getFullYear();
-  const formatted = `${day}/${month}/${year}`;
-
-  return lang === 'bn' ? convertToBanglaDigits(formatted) : formatted;
-}
+export const formatDateShort = formatDate;

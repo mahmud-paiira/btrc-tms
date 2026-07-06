@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import hoService from '../../services/hoService';
+import { formatDate } from '../../utils/dateFormatter';
 
 const STATUS_MAP = { active: 'সক্রিয়', suspended: 'স্থগিত' };
 const STATUS_BG = { active: 'success', suspended: 'warning' };
@@ -138,7 +139,7 @@ export default function HoCenterDetail() {
                     <tr><th >ঠিকানা</th><td>{center.address || '—'}</td></tr>
                     <tr><th >যোগাযোগ ব্যক্তি</th><td>{center.contact_person_name || '—'}</td></tr>
                     <tr><th >যোগাযোগ মোবাইল</th><td>{center.contact_person_phone || '—'}</td></tr>
-                    <tr><th >তৈরির তারিখ</th><td>{center.created_at ? new Date(center.created_at).toLocaleDateString('bn-BD') : '—'}</td></tr>
+                    <tr><th >তৈরির তারিখ</th><td>{formatDate(center.created_at)}</td></tr>
                   </tbody>
                 </table>
               </div>

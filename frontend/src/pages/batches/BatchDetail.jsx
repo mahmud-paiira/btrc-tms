@@ -86,7 +86,7 @@ export default function BatchDetail() {
         <p>প্রশিক্ষণ ব্যবস্থাপনা সিস্টেম</p>
       </div>
       <div class="report-info">
-        <span>প্রিন্টের তারিখ: ${new Date().toLocaleDateString('bn-BD')}</span>
+        <span>প্রিন্টের তারিখ: ${formatDate(new Date())}</span>
       </div>
       <div class="info-grid">
         <div><span class="label">ব্যাচ নং:</span> <strong>${batch.batch_no}</strong></div>
@@ -114,7 +114,7 @@ export default function BatchDetail() {
           </tr>
         `).join('')}
       </table>
-      <div class="footer">ব্যাচ বিবরণ - ${new Date().toLocaleDateString('bn-BD')}</div>
+      <div class="footer">ব্যাচ বিবরণ - ${formatDate(new Date())}</div>
       <script>window.print();</script>
       </body></html>
     `);

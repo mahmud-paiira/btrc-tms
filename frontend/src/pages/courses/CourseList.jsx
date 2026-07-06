@@ -123,7 +123,7 @@ export default function CourseList() {
       </div>
       <div class="report-info">
         <span>মোট: ${items.length} টি</span>
-        <span>প্রিন্টের তারিখ: ${new Date().toLocaleDateString('bn-BD')}</span>
+        <span>প্রিন্টের তারিখ: ${formatDate(new Date())}</span>
       </div>
       <table>
         <tr><th>ক্রমিক</th><th>কোড</th><th>নাম (বাংলা)</th><th>নাম (ইংরেজি)</th><th>ধরণ</th><th>মেয়াদ</th><th>ফি</th></tr>
@@ -139,7 +139,7 @@ export default function CourseList() {
           </tr>`;
         }).join('')}
       </table>
-      <div class="footer">কোর্স তালিকা - ${new Date().toLocaleDateString('bn-BD')}</div>
+      <div class="footer">কোর্স তালিকা - ${formatDate(new Date())}</div>
       <script>window.print();</script>
       </body></html>
     `);

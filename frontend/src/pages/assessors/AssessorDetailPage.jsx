@@ -2,6 +2,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from '../../services/api';
+import { formatDate } from '../../utils/dateFormatter';
 
 const API_URL = '/api';
 const STATUS_BG = { pending: 'warning', active: 'success', suspended: 'danger', inactive: 'secondary' };
@@ -100,7 +101,7 @@ export default function AssessorDetailPage() {
         <tr><th>ব্যাংক একাউন্ট</th><td>${a.bank_account_no || '—'}</td></tr>
         <tr><th>ব্যাংকের নাম</th><td>${a.bank_name || '—'}</td></tr>
       </table>
-      <div class="footer">মূল্যায়নকারীর বিবরণ - ${new Date().toLocaleDateString('bn-BD')}</div>
+      <div class="footer">মূল্যায়নকারীর বিবরণ - ${formatDate(new Date())}</div>
       <script>window.print();</script>
       </body></html>
     `);

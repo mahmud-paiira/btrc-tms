@@ -3,7 +3,7 @@ import { Modal, Form, Button } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import hoService from '../../../services/hoService';
 import { useTranslation } from '../../../hooks/useTranslation';
-import { taka, formatDate } from '../../../utils/numberFormatter';
+import { taka } from '../../../utils/numberFormatter';
 
 const VOUCHER_TYPES = [
   { value: 'journal', label: 'জার্নাল' },

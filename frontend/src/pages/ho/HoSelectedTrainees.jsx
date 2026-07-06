@@ -114,7 +114,7 @@ export default function HoSelectedTrainees() {
       </div>
       <div class="report-info">
         <span>মোট: ${items.length} জন</span>
-        <span>প্রিন্টের তারিখ: ${new Date().toLocaleDateString('bn-BD')}</span>
+        <span>প্রিন্টের তারিখ: ${formatDate(new Date())}</span>
       </div>
       <table>
         <tr><th>ক্রমিক</th><th>রেজি. নং</th><th>নাম (বাংলা)</th><th>নাম (ইংরেজি)</th><th>ইমেইল</th><th>ফোন</th><th>কেন্দ্র</th><th>ব্যাচ</th><th>অবস্থা</th><th>নথিভুক্তির তারিখ</th></tr>
@@ -133,7 +133,7 @@ export default function HoSelectedTrainees() {
           </tr>`;
         }).join('')}
       </table>
-      <div class="footer">প্রশিক্ষণার্থী তালিকা - ${new Date().toLocaleDateString('bn-BD')}</div>
+      <div class="footer">প্রশিক্ষণার্থী তালিকা - ${formatDate(new Date())}</div>
       <script>window.print();</script>
       </body></html>
     `);

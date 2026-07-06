@@ -2,6 +2,7 @@
 import { Link } from 'react-router-dom';
 import hoService from '../../services/hoService';
 import { useTranslation } from '../../hooks/useTranslation';
+import { formatDate, formatDateTime } from '../../utils/dateFormatter';
 
 const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#f43f5e', '#0ea5e9', '#8b5cf6', '#f97316', '#14b8a6'];
 
@@ -70,7 +71,7 @@ export default function HoDashboard() {
       <div className="d-flex justify-content-between align-items-center mb-5">
         <div>
           <h2 className="mb-1 fw-bold text-heading">{t('hoDashboard.title', 'হেড অফিস ড্যাশবোর্ড')}</h2>
-          <p className="text-muted small mb-0">{new Date().toLocaleDateString('bn-BD', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+          <p className="text-muted small mb-0">{formatDate(new Date())}</p>
         </div>
         <button className="btn btn-primary shadow-sm" onClick={handleRefresh} disabled={refreshing}>
           <i className={`bi ${refreshing ? 'bi-arrow-repeat spin' : 'bi-arrow-clockwise'} me-2`}></i>
@@ -423,7 +424,7 @@ export default function HoDashboard() {
                           <td>{a.user}</td>
                           <td>{a.action}</td>
                           <td>{a.target_type ? `${a.target_type} #${a.target_id}` : '—'}</td>
-                          <td>{a.timestamp ? new Date(a.timestamp).toLocaleString('bn-BD') : '—'}</td>
+                          <td>{formatDateTime(a.timestamp)}</td>
                         </tr>
                       ))
                     )}

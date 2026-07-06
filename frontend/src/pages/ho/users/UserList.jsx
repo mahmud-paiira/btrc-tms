@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import hoService from '../../../services/hoService';
 import { useTranslation } from '../../../hooks/useTranslation';
-import { formatDate } from '../../../utils/numberFormatter';
 import UserForm from './UserForm';
 import UserDetail from './UserDetail';
 import BulkUserImport from './BulkUserImport';
