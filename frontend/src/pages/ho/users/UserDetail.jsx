@@ -3,7 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import hoService from '../../../services/hoService';
 import { useTranslation } from '../../../hooks/useTranslation';
-import { formatDate } from '../../../utils/numberFormatter';
+import { formatDate } from '../../../utils/dateFormatter';
+import { convertToBanglaDigits } from '../../../utils/numberFormatter';
 
 const TABS = ['Overview', 'Login History', 'Audit Log'];
 
@@ -131,11 +132,11 @@ export default function UserDetail() {
                   </div>
                   <div className="col-md-6">
                     <small className="text-muted d-block mb-1">{t('users.phone', 'ফোন')}</small>
-                    <div className="fw-semibold">{user.phone}</div>
+                    <div className="fw-semibold">{convertToBanglaDigits(user.phone)}</div>
                   </div>
                   <div className="col-md-6">
                     <small className="text-muted d-block mb-1">এনআইডি</small>
-                    <div className="fw-semibold">{user.nid}</div>
+                    <div className="fw-semibold">{convertToBanglaDigits(user.nid)}</div>
                   </div>
                   <div className="col-md-6">
                     <small className="text-muted d-block mb-1">{t('budget.center', 'কেন্দ্র')}</small>

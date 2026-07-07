@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import applicationService from '../../services/applicationService';
 import api from '../../services/api';
+import { formatDate } from '../../utils/dateFormatter';
+import { convertToBanglaDigits } from '../../utils/numberFormatter';
 import './ApplicationReview.css';
 
 const STATUS_OPTIONS = [
@@ -381,15 +383,15 @@ export default function ApplicationReview() {
                               checked={selectedIds.includes(app.id)} onChange={() => handleSelectOne(app.id)} />
                           </td>
                           <td className="text-muted small">{idx + 1}</td>
-                          <td className="fw-semibold">{app.application_no}</td>
+                          <td className="fw-semibold">{convertToBanglaDigits(app.application_no)}</td>
                           <td>
                             <span className="d-inline-block text-truncate" style={{ maxWidth: 160 }} title={app.name_bn}>
                               {app.name_bn}
                             </span>
                           </td>
-                          <td className="text-nowrap small">{app.nid}</td>
-                          <td className="text-nowrap small">{app.phone}</td>
-                          <td className="text-nowrap small">{app.applied_at ? new Date(app.applied_at).toLocaleDateString('bn-BD') : '—'}</td>
+                          <td className="text-nowrap small">{convertToBanglaDigits(app.nid)}</td>
+                          <td className="text-nowrap small">{convertToBanglaDigits(app.phone)}</td>
+                          <td className="text-nowrap small">{formatDate(app.applied_at)}</td>
                           <td>{statusBadge(pendingStatus[app.id] ?? app.status)}</td>
                           <td className="act-col">
                             <div className="dropdown act-dropdown">

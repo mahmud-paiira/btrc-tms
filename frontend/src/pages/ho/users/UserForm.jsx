@@ -3,6 +3,7 @@ import { toast } from 'react-toastify';
 import hoService from '../../../services/hoService';
 import { useTranslation } from '../../../hooks/useTranslation';
 import BanglaInput from '../../../components/common/BanglaInput';
+import { convertToBanglaDigits } from '../../../utils/numberFormatter';
 
 const USER_TYPES = [
   { value: 'head_office', label: 'হেড অফিস', icon: 'bi-building' },
@@ -297,7 +298,7 @@ export default function UserForm({ show, onClose, onSaved, user, centers }) {
                     <div className="input-group">
                       <span className="input-group-text bg-light border-0"><i className="bi bi-telephone text-muted"></i></span>
                       <input className="form-control border-0 bg-light py-2" style={{ fontSize: 13 }}
-                        value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} placeholder="০১XXXXXXXXX" />
+                        value={convertToBanglaDigits(form.phone)} onChange={e => setForm({ ...form, phone: e.target.value })} placeholder="০১XXXXXXXXX" />
                     </div>
                   </div>
                   {needsNid && (
@@ -306,7 +307,7 @@ export default function UserForm({ show, onClose, onSaved, user, centers }) {
                       <div className="input-group">
                         <span className="input-group-text bg-light border-0"><i className="bi bi-credit-card text-muted"></i></span>
                         <input className="form-control border-0 bg-light py-2" style={{ fontSize: 13 }}
-                          value={form.nid} onChange={e => setForm({ ...form, nid: e.target.value })} placeholder="এনআইডি নম্বর" />
+                          value={convertToBanglaDigits(form.nid)} onChange={e => setForm({ ...form, nid: e.target.value })} placeholder="এনআইডি নম্বর" />
                       </div>
                     </div>
                   )}

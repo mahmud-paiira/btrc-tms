@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import circularService from '../../services/circularService';
+import { formatDate } from '../../utils/dateFormatter';
+import { convertToBanglaDigits } from '../../utils/numberFormatter';
 import './PublicCircular.css';
 
 export default function PublicCircularList() {
@@ -87,7 +89,7 @@ export default function PublicCircularList() {
             <div className="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
               <div>
                 <h3 className="fw-bold mb-1">{circular.title_bn}</h3>
-                <div className="text-muted">{circular.course_code} - {circular.course_name}</div>
+                <div className="text-muted">{circular.course_name}</div>
               </div>
               {!isExpired && !isFull && (
                 <button className="btn btn-success btn-lg px-5"
@@ -104,15 +106,17 @@ export default function PublicCircularList() {
                   <tbody>
                     <tr><th className="bg-light" style={{ width: 160 }}>শিরোনাম (বাংলা)</th><td>{circular.title_bn}</td></tr>
                     <tr><th className="bg-light">শিরোনাম (ইংরেজি)</th><td>{circular.title_en}</td></tr>
-                    <tr><th className="bg-light">সার্কুলার নম্বর</th><td>{circular.circular_no || '-'}</td></tr>
-                    <tr><th className="bg-light">সংস্করণ</th><td>{circular.edition}</td></tr>
-                    <tr><th className="bg-light">কোর্স</th><td>{circular.course_code} - {circular.course_name}</td></tr>
+                    <tr><th className="bg-light">সার্কুলার নম্বর</th><td>{circular.circular_no ? convertToBanglaDigits(circular.circular_no) : '-'}</td></tr>
+                    <tr><th className="bg-light">সংস্করণ</th><td>{convertToBanglaDigits(circular.edition)}</td></tr>
+                    <tr><th className="bg-light">কোর্স</th><td>{circular.course_name}</td></tr>
                     <tr><th className="bg-light">মেয়াদ</th><td>{circular.course_duration ? `${circular.course_duration} মাস` : '-'}</td></tr>
-                    <tr><th className="bg-light">মোট আসন</th><td>{circular.total_seats}</td></tr>
+                    <tr><th className="bg-light">মোট আসন</th><td>{convertToBanglaDigits(circular.total_seats)}</td></tr>
                     <tr><th className="bg-light">অবশিষ্ট আসন</th>
-                      <td><span className={`fw-bold ${circular.remaining_seats <= 5 ? 'text-danger' : 'text-success'}`}>{circular.remaining_seats}</span></td>
+                      <td><span className={`fw-bold ${circular.remaining_seats <= 5 ? 'text-danger' : 'text-success'}`}>{convertToBanglaDigits(circular.remaining_seats)}</span></td>
                     </tr>
-                    <tr><th className="bg-light">কোর্স ফি</th><td>{circular.fee ? `৳${circular.fee}` : 'ডিফল্ট'}</td></tr>
+                    {circular.fee ? (
+                      <tr><th className="bg-light">কোর্স ফি</th><td>৳{circular.fee}</td></tr>
+                    ) : null}
                   </tbody>
                 </table>
               </div>
@@ -120,11 +124,11 @@ export default function PublicCircularList() {
                 <h6 className="fw-bold mb-3 text-muted text-uppercase small">সময়সীমা</h6>
                 <table className="table table-bordered align-middle">
                   <tbody>
-                    <tr><th className="bg-light" style={{ width: 160 }}>আবেদন শুরুর তারিখ</th><td>{circular.application_start_date}</td></tr>
+                    <tr><th className="bg-light" style={{ width: 160 }}>আবেদন শুরুর তারিখ</th><td>{formatDate(circular.application_start_date)}</td></tr>
                     <tr><th className="bg-light">আবেদনের শেষ তারিখ</th>
-                      <td className={`fw-bold ${isExpired ? 'text-danger' : ''}`}>{circular.application_end_date}</td></tr>
-                    <tr><th className="bg-light">প্রশিক্ষণ শুরুর তারিখ</th><td>{circular.training_start_date}</td></tr>
-                    <tr><th className="bg-light">প্রশিক্ষণ শেষের তারিখ</th><td>{circular.training_end_date}</td></tr>
+                      <td className={`fw-bold ${isExpired ? 'text-danger' : ''}`}>{formatDate(circular.application_end_date)}</td></tr>
+                    <tr><th className="bg-light">প্রশিক্ষণ শুরুর তারিখ</th><td>{formatDate(circular.training_start_date)}</td></tr>
+                    <tr><th className="bg-light">প্রশিক্ষণ শেষের তারিখ</th><td>{formatDate(circular.training_end_date)}</td></tr>
                     <tr><th className="bg-light">উপযুক্ত কেন্দ্র</th>
                       <td>{circular.all_centers ? 'সব কেন্দ্র' : centers.map(c => `${c.code} - ${c.name_bn}`).join(', ')}</td></tr>
                   </tbody>

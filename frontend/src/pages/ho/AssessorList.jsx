@@ -5,6 +5,8 @@ import api from '../../services/api';
 import hoService from '../../services/hoService';
 import TrainerToAssessorConversion from './TrainerToAssessorConversion';
 import AssessorMapForm from './AssessorMapForm';
+import { formatDate } from '../../utils/dateFormatter';
+import { formatNumber } from '../../utils/numberFormatter';
 
 const TABS = [
   { key: 'all', label: 'সকল মূল্যায়নকারী' },
@@ -151,7 +153,7 @@ export default function AssessorList() {
       </div>
       <div class="report-info">
         <span>মোট: ${printItems.length} জন</span>
-        <span>প্রিন্টের তারিখ: ${new Date().toLocaleDateString('bn-BD')}</span>
+        <span>প্রিন্টের তারিখ: ${formatDate(new Date())}</span>
       </div>
       <table>
         <tr><th>ক্রমিক</th><th>নাম (বাংলা)</th><th>নাম (ইংরেজি)</th><th>ইমেইল</th><th>ফোন</th><th>অভিজ্ঞতা</th></tr>
@@ -166,7 +168,7 @@ export default function AssessorList() {
           </tr>`;
         }).join('')}
       </table>
-      <div class="footer">মূল্যায়নকারী তালিকা - ${new Date().toLocaleDateString('bn-BD')}</div>
+      <div class="footer">মূল্যায়নকারী তালিকা - ${formatDate(new Date())}</div>
       <script>window.print();</script>
       </body></html>
     `);
@@ -305,7 +307,7 @@ export default function AssessorList() {
                     <td className="d-none d-xl-table-cell">{a.user_full_name_en || '-'}</td>
                     <td className="d-none d-lg-table-cell">{a.user_email || '-'}</td>
                     <td className="d-none d-md-table-cell">{a.user_phone || '-'}</td>
-                    <td className="d-none d-xl-table-cell">{a.years_of_experience ? `${a.years_of_experience} বছর` : '-'}</td>
+                    <td className="d-none d-xl-table-cell">{a.years_of_experience ? `${formatNumber(a.years_of_experience)} বছর` : '-'}</td>
                     <td className="d-none d-lg-table-cell">{a.center_names || '-'}</td>
                     <td>
                       <span className={`status-dot dot-${a.status}`}></span>

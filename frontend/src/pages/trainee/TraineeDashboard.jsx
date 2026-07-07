@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useTranslation } from '../../hooks/useTranslation';
 import traineeService from '../../services/traineeService';
+import { formatDate } from '../../utils/dateFormatter';
+import { convertToBanglaDigits } from '../../utils/numberFormatter';
 
 const APP_STATUS_BADGE = {
   pending: 'bg-warning text-dark', auto_rejected: 'bg-danger', selected: 'bg-success',
@@ -35,7 +37,7 @@ function AttendanceRing({ pct }) {
     <svg width="100" height="100" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
       <circle cx="50" cy="50" r={r} fill="none" stroke="#e9ecef" strokeWidth="8" />
       <circle cx="50" cy="50" r={r} fill="none" stroke={color} strokeWidth="8" strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round" />
-      <text x="50" y="50" textAnchor="middle" dy="5" fill={color} fontSize="18" fontWeight="bold" transform="rotate(90 50 50)">{pct}%</text>
+      <text x="50" y="50" textAnchor="middle" dy="5" fill={color} fontSize="18" fontWeight="bold" transform="rotate(90 50 50)">{convertToBanglaDigits(pct)}%</text>
     </svg>
   );
 }
@@ -138,7 +140,7 @@ export default function TraineeDashboard() {
               <h2 className="mb-1 fw-bold text-white" style={{ fontSize: 'clamp(1.2rem, 3vw, 1.7rem)' }}>{displayName}</h2>
               <div className="d-flex flex-wrap gap-2 mt-2">
                 <span className="d-inline-flex align-items-center gap-1 bg-white bg-opacity-10 rounded-pill px-3 py-1 small text-white-50">
-                  <i className="bi bi-person-badge" />{registration_no}
+                  <i className="bi bi-person-badge" />{convertToBanglaDigits(registration_no)}
                 </span>
                 {center_name && (
                   <span className="d-inline-flex align-items-center gap-1 bg-white bg-opacity-10 rounded-pill px-3 py-1 small text-white-50">
@@ -147,7 +149,7 @@ export default function TraineeDashboard() {
                 )}
                 {phone && (
                   <span className="d-inline-flex align-items-center gap-1 bg-white bg-opacity-10 rounded-pill px-3 py-1 small text-white-50">
-                    <i className="bi bi-telephone" />{phone}
+                    <i className="bi bi-telephone" />{convertToBanglaDigits(phone)}
                   </span>
                 )}
               </div>
@@ -159,16 +161,16 @@ export default function TraineeDashboard() {
       {/* ──────── Stats Row ──────── */}
       <div className="row g-3 mb-4">
         <div className="col-6 col-lg-3">
-          <StatCard icon="bi-layers" label="ব্যাচ" value={batch ? batch.batch_no : 'নথিভুক্ত নন'} color={BRAND} />
+          <StatCard icon="bi-layers" label="ব্যাচ" value={batch ? convertToBanglaDigits(batch.batch_no) : 'নথিভুক্ত নন'} color={BRAND} />
         </div>
         <div className="col-6 col-lg-3">
           <StatCard icon="bi-book" label="কোর্স" value={batch?.course_name || '—'} color="#16a34a" />
         </div>
         <div className="col-6 col-lg-3">
-          <StatCard icon="bi-calendar-range" label="সময়সীমা" value={batch ? `${batch.start_date} - ${batch.end_date}` : '—'} color="#d97706" />
+          <StatCard icon="bi-calendar-range" label="সময়সীমা" value={batch ? `${formatDate(batch.start_date)} - ${formatDate(batch.end_date)}` : '—'} color="#d97706" />
         </div>
         <div className="col-6 col-lg-3">
-          <StatCard icon="bi-check-circle" label="উপস্থিতি" value={attPct !== null ? `${attPct}%` : '—'} color={warning ? '#dc3545' : '#198754'} />
+          <StatCard icon="bi-check-circle" label="উপস্থিতি" value={attPct !== null ? `${convertToBanglaDigits(attPct)}%` : '—'} color={warning ? '#dc3545' : '#198754'} />
         </div>
       </div>
 
@@ -191,7 +193,7 @@ export default function TraineeDashboard() {
                   </div>
                   <div className="flex-grow-1 min-width-0">
                     <div className="fw-bold" style={{ wordBreak: 'break-word' }}>{application.circular_title}</div>
-                    <div className="small text-muted">{application.application_no}</div>
+                    <div className="small text-muted">{convertToBanglaDigits(application.application_no)}</div>
                     <div className="mt-1">
                       <span className={`badge ${APP_STATUS_BADGE[application.status] || 'bg-secondary'} rounded-pill`}>{application.status_display}</span>
                     </div>

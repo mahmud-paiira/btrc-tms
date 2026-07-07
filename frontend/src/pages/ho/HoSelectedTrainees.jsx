@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import hoService from '../../services/hoService';
 import { useTranslation } from '../../hooks/useTranslation';
 import { formatDate } from '../../utils/dateFormatter';
+import { convertToBanglaDigits, formatNumber } from '../../utils/numberFormatter';
 
 export default function HoSelectedTrainees() {
   const navigate = useNavigate();
@@ -114,18 +115,18 @@ export default function HoSelectedTrainees() {
       </div>
       <div class="report-info">
         <span>মোট: ${items.length} জন</span>
-        <span>প্রিন্টের তারিখ: ${new Date().toLocaleDateString('bn-BD')}</span>
+        <span>প্রিন্টের তারিখ: ${formatDate(new Date())}</span>
       </div>
       <table>
         <tr><th>ক্রমিক</th><th>রেজি. নং</th><th>নাম (বাংলা)</th><th>নাম (ইংরেজি)</th><th>ইমেইল</th><th>ফোন</th><th>কেন্দ্র</th><th>ব্যাচ</th><th>অবস্থা</th><th>নথিভুক্তির তারিখ</th></tr>
         ${items.map((t, i) => {
           return `<tr>
             <td style="text-align:center;width:40px;">${i + 1}</td>
-            <td><strong>${t.registration_no || '—'}</strong></td>
+            <td><strong>${convertToBanglaDigits(t.registration_no) || '—'}</strong></td>
             <td>${t.user_name || '—'}</td>
             <td>${t.user_name_en || '—'}</td>
             <td>${t.user_email || '—'}</td>
-            <td>${t.user_phone || '—'}</td>
+            <td>${convertToBanglaDigits(t.user_phone) || '—'}</td>
             <td>${t.center_name || '—'}</td>
             <td>${t.batch_name || '—'}</td>
             <td>${t.status_display || t.status || '—'}</td>
@@ -133,7 +134,7 @@ export default function HoSelectedTrainees() {
           </tr>`;
         }).join('')}
       </table>
-      <div class="footer">প্রশিক্ষণার্থী তালিকা - ${new Date().toLocaleDateString('bn-BD')}</div>
+      <div class="footer">প্রশিক্ষণার্থী তালিকা - ${formatDate(new Date())}</div>
       <script>window.print();</script>
       </body></html>
     `);
@@ -234,10 +235,10 @@ export default function HoSelectedTrainees() {
                 trainees.map(t => (
                     <tr key={t.id} className={selectedIds.has(t.id) ? 'table-active' : ''} onClick={() => navigate(`/ho/trainees/${t.id}`)}>
                       <td onClick={e => e.stopPropagation()}><input type="checkbox" className="form-check-input" checked={selectedIds.has(t.id)} onChange={() => handleSelectOne(t.id)} /></td>
-                      <td className="fw-semibold">{t.registration_no || '-'}</td>
+                      <td className="fw-semibold">{convertToBanglaDigits(t.registration_no) || '-'}</td>
                       <td>{t.user_name || '-'}</td>
                       <td className="d-none d-xl-table-cell">{t.user_name_en || '-'}</td>
-                      <td className="d-none d-md-table-cell">{t.user_phone || '-'}</td>
+                      <td className="d-none d-md-table-cell">{convertToBanglaDigits(t.user_phone) || '-'}</td>
                       <td className="d-none d-lg-table-cell">{t.center_name || '-'}</td>
                       <td>{t.batch_name || '-'}</td>
                       <td>

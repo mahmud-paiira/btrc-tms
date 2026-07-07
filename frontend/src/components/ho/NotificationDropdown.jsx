@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useStore from '../../store/useStore';
 import hoService from '../../services/hoService';
+import { formatDateTime } from '../../utils/dateFormatter';
 
 export default function NotificationDropdown() {
   const navigate = useNavigate();
@@ -72,7 +73,7 @@ export default function NotificationDropdown() {
                     <div>
                       <div style={{ fontSize: 12, lineHeight: 1.3 }}>{n.message}</div>
                       <small className="text-secondary" style={{ fontSize: 10 }}>
-                        {new Date(n.time).toLocaleString('bn-BD')}
+                        {formatDateTime(n.time)}
                       </small>
                     </div>
                   </div>

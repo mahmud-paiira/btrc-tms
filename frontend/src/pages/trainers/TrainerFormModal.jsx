@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
 import api from '../../services/api';
+import { convertToBanglaDigits, formatNumber } from '../../utils/numberFormatter';
 
 const STEPS = [
   { key: 'basic', label: 'মৌলিক তথ্য', icon: 'bi-person-badge' },
@@ -390,8 +391,8 @@ export default function TrainerFormModal({ show, editData, onClose, onSaved }) {
                         ['ইমেইল', form.email || '-'],
                         ['বাংলা নাম', form.full_name_bn],
                         ['ইংরেজি নাম', form.full_name_en || '-'],
-                        ['ফোন', form.phone],
-                        ['এনআইডি', form.nid],
+                        ['ফোন', convertToBanglaDigits(form.phone)],
+                        ['এনআইডি', convertToBanglaDigits(form.nid)],
                         ['জন্ম নিবন্ধন', form.birth_certificate_no || '-'],
                       ].map(([k, v], i) => (
                         <div key={i} className="d-flex justify-content-between py-1 border-bottom border-white">
@@ -406,7 +407,7 @@ export default function TrainerFormModal({ show, editData, onClose, onSaved }) {
                     <div className="p-3 rounded-3 bg-light" style={{ fontSize: 12 }}>
                       {[
                         ['জন্ম তারিখ', form.date_of_birth || '-'],
-                        ['অভিজ্ঞতা', form.years_of_experience ? `${form.years_of_experience} বছর` : '-'],
+                        ['অভিজ্ঞতা', form.years_of_experience ? `${formatNumber(form.years_of_experience)} বছর` : '-'],
                         ['শিক্ষাগত যোগ্যতা', educations.find(e => e.id == form.education)?.name_bn || form.education_qualification || '-'],
                         ['শিক্ষাগত যোগ্যতা (বিস্তারিত)', form.education_qualification || '-'],
                         ['পিতার নাম', form.father_name_bn || '-'],

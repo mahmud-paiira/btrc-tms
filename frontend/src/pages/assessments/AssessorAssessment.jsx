@@ -7,6 +7,8 @@ import AssessmentForm from '../../components/assessments/AssessmentForm';
 import ReassessmentRequest from '../../components/assessments/ReassessmentRequest';
 import { useTranslation } from '../../hooks/useTranslation';
 import './AssessorAssessment.css';
+import { formatDate } from '../../utils/dateFormatter';
+import { convertToBanglaDigits, formatNumber, formatPercentage } from '../../utils/numberFormatter';
 
 const ASSESSMENT_TYPES = [
   { value: 'pre_evaluation', label: 'পূর্ব-মূল্যায়ন' },
@@ -209,7 +211,7 @@ export default function AssessorAssessment() {
             <div className="row g-3">
               <div className="col-md-3">
                 <small className="text-muted d-block">{t('assessment.conduct.batch', 'ব্যাচ')}</small>
-                <strong>{batch.batch_name_bn || batch.batch_no}</strong>
+                <strong>{batch.batch_name_bn || convertToBanglaDigits(batch.batch_no)}</strong>
               </div>
               <div className="col-md-3">
                 <small className="text-muted d-block">{t('assessment.conduct.course', 'কোর্স')}</small>
@@ -217,11 +219,11 @@ export default function AssessorAssessment() {
               </div>
               <div className="col-md-3">
                 <small className="text-muted d-block">{t('assessment.conduct.startDate', 'শুরুর তারিখ')}</small>
-                <strong>{batch.start_date || '—'}</strong>
+                <strong>{formatDate(batch.start_date) || '—'}</strong>
               </div>
               <div className="col-md-3">
                 <small className="text-muted d-block">{t('assessment.conduct.eligibleCount', 'প্রশিক্ষণার্থী')}</small>
-                <strong className="text-success">{trainees.length} জন</strong>
+                <strong className="text-success">{formatNumber(trainees.length)} জন</strong>
               </div>
               <div className="col-md-3">
                 <small className="text-muted d-block">মূল্যায়নকারী</small>
@@ -274,7 +276,7 @@ export default function AssessorAssessment() {
                 ) : (
                   <>
                     <i className="bi bi-save2 me-1"></i>
-                    {t('assessment.conduct.saveAll', 'সব সংরক্ষণ')} ({totalEvaluated})
+                    {t('assessment.conduct.saveAll', 'সব সংরক্ষণ')} ({formatNumber(totalEvaluated)})
                   </>
                 )}
               </button>
@@ -291,7 +293,7 @@ export default function AssessorAssessment() {
               <div className="d-flex justify-content-between mb-2">
                 <span className="fw-bold">মূল্যায়নের অগ্রগতি</span>
                 <span className="text-muted">
-                  {totalEvaluated} / {trainees.length} জন ({progressPct}%)
+                  {formatNumber(totalEvaluated)} / {formatNumber(trainees.length)} জন ({formatPercentage(progressPct)})
                 </span>
               </div>
               <div className="progress" style={{ height: 20 }}>
@@ -299,7 +301,7 @@ export default function AssessorAssessment() {
                   className="progress-bar bg-success"
                   style={{ width: `${progressPct}%` }}
                 >
-                  {progressPct > 10 ? `${progressPct}%` : ''}
+                  {progressPct > 10 ? formatPercentage(progressPct) : ''}
                 </div>
               </div>
             </div>
@@ -309,17 +311,17 @@ export default function AssessorAssessment() {
           <div className="card shadow-sm h-100">
             <div className="card-body d-flex align-items-center justify-content-around text-center">
               <div>
-                <h5 className="text-success mb-0">{competentCount}</h5>
+                <h5 className="text-success mb-0">{formatNumber(competentCount)}</h5>
                 <small className="text-muted">দক্ষ</small>
               </div>
               <div className="vr"></div>
               <div>
-                <h5 className="text-danger mb-0">{notCompetentCount}</h5>
+                <h5 className="text-danger mb-0">{formatNumber(notCompetentCount)}</h5>
                 <small className="text-muted">অদক্ষ</small>
               </div>
               <div className="vr"></div>
               <div>
-                <h5 className="text-secondary mb-0">{absenteeCount}</h5>
+                <h5 className="text-secondary mb-0">{formatNumber(absenteeCount)}</h5>
                 <small className="text-muted">অনুপস্থিত</small>
               </div>
             </div>
@@ -336,7 +338,7 @@ export default function AssessorAssessment() {
           </h6>
           {eligibleData && (
             <span className="badge bg-light text-dark">
-              মোট: {trainees.length} জন
+              মোট: {formatNumber(trainees.length)} জন
             </span>
           )}
         </div>

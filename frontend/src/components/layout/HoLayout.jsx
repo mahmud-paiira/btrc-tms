@@ -30,7 +30,6 @@ const SECTIONS = [
       { to: '/ho/reports', icon: 'bi-file-earmark-bar-graph', labelKey: 'nav.reports', labelBn: 'প্রতিবেদন', module: 'reports' },
       { to: '/ho/users', icon: 'bi-people', labelKey: 'nav.users', labelBn: 'ব্যবহারকারী', module: 'users' },
       { to: '/ho/master-data', icon: 'bi-database', labelKey: 'nav.masterData', labelBn: 'মাস্টার ডাটা', module: null },
-      { to: '/ho/allowance-categories', icon: 'bi-wallet2', labelKey: 'nav.allowanceCategories', labelBn: 'ভাতার শ্রেণী', module: null },
     ],
   },
   {
@@ -50,6 +49,7 @@ const SECTIONS = [
           { to: '/ho/finance/vouchers', labelKey: 'navSub.financeVouchers', labelBn: 'ভাউচার' },
           { to: '/ho/finance/soe', labelKey: 'navSub.financeSoe', labelBn: 'ব্যয় বিবরণী' },
           { to: '/ho/finance/trial-balance', labelKey: 'navSub.financeTrialBalance', labelBn: 'ট্রায়াল ব্যালেন্স' },
+          { to: '/ho/allowance-categories', icon: 'bi-wallet2', labelKey: 'nav.allowanceCategories', labelBn: 'ভাতার শ্রেণী' },
         ],
       },
       {

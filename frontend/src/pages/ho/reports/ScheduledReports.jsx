@@ -3,6 +3,8 @@ import { Modal, Button } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import hoService from '../../../services/hoService';
 import { useTranslation } from '../../../hooks/useTranslation';
+import { formatDate } from '../../../utils/dateFormatter';
+import { convertToBanglaDigits } from '../../../utils/numberFormatter';
 import { REPORT_TYPES } from './reportConfig';
 
 export default function ScheduledReports({ show, onClose }) {
@@ -82,12 +84,12 @@ export default function ScheduledReports({ show, onClose }) {
                     <tr key={s.id}>
                       <td style={{ fontSize: 13 }}>
                         {rt && <i className={`bi ${rt.icon} me-1`} style={{ color: rt.color }}></i>}
-                        {s.title}
+                        {convertToBanglaDigits(s.title)}
                       </td>
                       <td style={{ fontSize: 13 }}><span className="badge bg-info">{freqLabel[s.frequency] || s.frequency}</span></td>
                       <td style={{ fontSize: 12 }}>{s.recipients?.length > 30 ? s.recipients.slice(0, 30) + '...' : s.recipients}</td>
                       <td style={{ fontSize: 13 }}><span className="badge bg-secondary">{s.export_format?.toUpperCase()}</span></td>
-                      <td style={{ fontSize: 12 }}>{s.last_run_at ? new Date(s.last_run_at).toLocaleDateString() : '-'}</td>
+                      <td style={{ fontSize: 12 }}>{formatDate(s.last_run_at)}</td>
                       <td>
                         <span className={`badge ${s.is_active ? 'bg-success' : 'bg-secondary'}`}>
                           {s.is_active ? t('common.active', 'সক্রিয়') : t('common.inactive', 'নিষ্ক্রিয়')}

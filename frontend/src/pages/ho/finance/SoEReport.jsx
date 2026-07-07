@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import hoService from '../../../services/hoService';
 import { useTranslation } from '../../../hooks/useTranslation';
-import { taka, formatDate } from '../../../utils/numberFormatter';
+import { taka, convertToBanglaDigits } from '../../../utils/numberFormatter';
 
 export default function SoEReport() {
   const { t } = useTranslation();
@@ -117,7 +117,7 @@ export default function SoEReport() {
               {!loading && items.map((item, idx) => (
                 <tr key={idx}>
                   <td style={{ fontSize: 13 }}>{item.voucher_date}</td>
-                  <td style={{ fontSize: 13 }} className="fw-semibold">{item.voucher_no}</td>
+                  <td style={{ fontSize: 13 }} className="fw-semibold">{convertToBanglaDigits(item.voucher_no)}</td>
                   <td style={{ fontSize: 13 }}>{item.description}</td>
                   <td style={{ fontSize: 13 }} className="text-danger fw-semibold">{taka(item.amount)}</td>
                   <td style={{ fontSize: 13 }}>{item.approved_by || '-'}</td>

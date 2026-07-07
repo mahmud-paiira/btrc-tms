@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import traineeService from '../../services/traineeService';
+import { formatDate } from '../../utils/dateFormatter';
 
 export default function TraineeSchedule() {
   const [data, setData] = useState(null);
@@ -79,7 +80,7 @@ export default function TraineeSchedule() {
                     style={{ opacity: isPast && !isToday ? 0.6 : 1 }}
                   >
                     <td>{i + 1}</td>
-                    <td>{s.start_date}{s.end_date !== s.start_date ? ` - ${s.end_date}` : ''}</td>
+                    <td>{formatDate(s.start_date)}{s.end_date !== s.start_date ? ` - ${formatDate(s.end_date)}` : ''}</td>
                     <td>{s.day_of_week_display}</td>
                     <td>{s.start_time} - {s.end_time}</td>
                     <td><span className="badge bg-info">{s.class_type_display}</span></td>

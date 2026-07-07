@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import hoService from '../../../services/hoService';
 import { useTranslation } from '../../../hooks/useTranslation';
-import { taka, pct } from '../../../utils/numberFormatter';
+import { taka, pct, convertToBanglaDigits } from '../../../utils/numberFormatter';
 import BudgetForm from './BudgetForm';
 
 export default function BudgetManagement() {
@@ -136,7 +136,7 @@ export default function BudgetManagement() {
                 const alertClass = p > 90 ? 'bg-danger bg-opacity-10 border-danger' : p > 75 ? 'bg-warning bg-opacity-10' : '';
                 return (
                   <tr key={b.id} className={alertClass}>
-                    <td style={{ fontSize: 13 }}>{b.center_name || b.center_code}</td>
+                    <td style={{ fontSize: 13 }}>{b.center_name || convertToBanglaDigits(b.center_code)}</td>
                     <td style={{ fontSize: 13 }}>{b.fiscal_year}</td>
                     <td style={{ fontSize: 13 }}>{taka(b.allocated_amount)}</td>
                     <td style={{ fontSize: 13 }}>{taka(b.expended_amount)}</td>

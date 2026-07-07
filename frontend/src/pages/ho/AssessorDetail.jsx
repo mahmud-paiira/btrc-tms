@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import hoService from '../../services/hoService';
+import { formatDate } from '../../utils/dateFormatter';
+import { convertToBanglaDigits, formatNumber, formatPercentage } from '../../utils/numberFormatter';
 
 const STATUS_BG = { pending: 'warning', active: 'success', suspended: 'danger' };
 
@@ -79,7 +81,7 @@ export default function AssessorDetail() {
         </button>
         <div>
           <h4 className="mb-0 fw-bold">{nameBn}</h4>
-          <div className="text-muted small">মূল্যায়নকারী নং: {assessor.assessor_no}</div>
+          <div className="text-muted small">মূল্যায়নকারী নং: {convertToBanglaDigits(assessor.assessor_no)}</div>
         </div>
         <div className="ms-auto d-flex gap-2">
           <span className={`status-dot dot-${STATUS_BG[assessor.status] || 'secondary'}`} />
@@ -107,13 +109,13 @@ export default function AssessorDetail() {
                 <h6 className="fw-bold mb-3 text-muted text-uppercase small">ব্যক্তিগত তথ্য</h6>
                 <table className="b-detail-table align-middle">
                   <tbody>
-                    <tr><th>মূল্যায়নকারী নং</th><td>{assessor.assessor_no}</td></tr>
+                    <tr><th>মূল্যায়নকারী নং</th><td>{convertToBanglaDigits(assessor.assessor_no)}</td></tr>
                     <tr><th>নাম (ইংরেজি)</th><td>{user.full_name_en || '-'}</td></tr>
                     <tr><th>নাম (বাংলা)</th><td>{nameBn}</td></tr>
                     <tr><th>ইমেইল</th><td>{user.email || '-'}</td></tr>
                     <tr><th>ফোন</th><td>{user.phone || '-'}</td></tr>
-                    <tr><th>এনআইডি</th><td>{assessor.nid}</td></tr>
-                    <tr><th>জন্ম নিবন্ধন</th><td>{assessor.birth_certificate_no || '-'}</td></tr>
+                    <tr><th>এনআইডি</th><td>{convertToBanglaDigits(assessor.nid)}</td></tr>
+                    <tr><th>জন্ম নিবন্ধন</th><td>{assessor.birth_certificate_no ? convertToBanglaDigits(assessor.birth_certificate_no) : '-'}</td></tr>
                     <tr><th>জন্ম তারিখ</th><td>{assessor.date_of_birth || '-'}</td></tr>
                   </tbody>
                 </table>
@@ -125,10 +127,10 @@ export default function AssessorDetail() {
                     <tr><th>পিতার নাম</th><td>{assessor.father_name_bn}</td></tr>
                     <tr><th>মাতার নাম</th><td>{assessor.mother_name_bn}</td></tr>
                     <tr><th>শিক্ষাগত যোগ্যতা</th><td>{assessor.education_qualification}</td></tr>
-                    <tr><th>অভিজ্ঞতা</th><td>{`${assessor.years_of_experience} বছর`}</td></tr>
+                    <tr><th>অভিজ্ঞতা</th><td>{convertToBanglaDigits(assessor.years_of_experience)} বছর</td></tr>
                     <tr><th>দক্ষতার ক্ষেত্র</th><td>{assessor.expertise_area}</td></tr>
                     <tr><th>সার্টিফিকেশন</th><td>{assessor.certification || '-'}</td></tr>
-                    <tr><th>ব্যাংক একাউন্ট</th><td>{assessor.bank_account_no || '-'}</td></tr>
+                    <tr><th>ব্যাংক একাউন্ট</th><td>{assessor.bank_account_no ? convertToBanglaDigits(assessor.bank_account_no) : '-'}</td></tr>
                     <tr><th>ব্যাংকের নাম</th><td>{assessor.bank_name || '-'}</td></tr>
                   </tbody>
                 </table>
@@ -144,7 +146,7 @@ export default function AssessorDetail() {
                 <tbody>
                   {assessor.mappings?.length > 0 ? assessor.mappings.map(m => (
                     <tr key={m.id}>
-                      <td>{m.center_code} - {m.center?.name_bn || ''}</td>
+                      <td>{convertToBanglaDigits(m.center_code)} - {m.center?.name_bn || ''}</td>
                       <td><span className={`status-dot dot-${STATUS_BG[m.status]}`}></span>{m.status}</td>
                     </tr>
                   )) : (
@@ -163,7 +165,7 @@ export default function AssessorDetail() {
                 <tbody>
                   {assessor.mappings?.length > 0 ? assessor.mappings.map(m => (
                     <tr key={m.id}>
-                      <td>{m.course_code} - {m.course?.name_bn || ''}</td>
+                      <td>{convertToBanglaDigits(m.course_code)} - {m.course?.name_bn || ''}</td>
                       <td>{m.is_primary ? <><span className="status-dot dot-info"></span>হ্যাঁ</> : 'না'}</td>
                       <td><span className={`status-dot dot-${STATUS_BG[m.status]}`}></span>{m.status}</td>
                     </tr>
@@ -187,14 +189,14 @@ export default function AssessorDetail() {
                     <tr><td colSpan={8} className="text-center text-muted py-4">কোনো ব্যাচে মূল্যায়ন করা হয়নি</td></tr>
                   ) : batches.map(b => (
                     <tr key={b.id}>
-                      <td className="fw-bold">{b.batch_no}</td>
+                      <td className="fw-bold">{convertToBanglaDigits(b.batch_no)}</td>
                       <td>{b.batch_name_bn}</td>
-                      <td>{b.center_code} - {b.center_name}</td>
-                      <td>{b.course_code} - {b.course_name}</td>
-                      <td>{b.start_date}</td>
-                      <td>{b.end_date}</td>
+                      <td>{convertToBanglaDigits(b.center_code)} - {b.center_name}</td>
+                      <td>{convertToBanglaDigits(b.course_code)} - {b.course_name}</td>
+                      <td>{formatDate(b.start_date)}</td>
+                      <td>{formatDate(b.end_date)}</td>
                       <td><span className={`status-dot dot-${STATUS_BG[b.status] || 'secondary'}`} />{b.status}</td>
-                      <td className="text-center fw-bold">{b.assessments_count}</td>
+                      <td className="text-center fw-bold">{formatNumber(b.assessments_count)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -216,12 +218,12 @@ export default function AssessorDetail() {
                     <tr key={a.id}>
                       <td>{a.assessment_date}</td>
                       <td>{a.trainee_name}</td>
-                      <td>{a.trainee_reg_no}</td>
+                      <td>{convertToBanglaDigits(a.trainee_reg_no)}</td>
                       <td>{a.batch}</td>
                       <td>{a.assessment_type_display}</td>
-                      <td>{a.marks_obtained}</td>
-                      <td>{a.total_marks}</td>
-                      <td>{a.percentage?.toFixed(1)}%</td>
+                      <td>{formatNumber(a.marks_obtained)}</td>
+                      <td>{formatNumber(a.total_marks)}</td>
+                      <td>{formatPercentage(a.percentage)}</td>
                       <td><span className={`status-dot dot-${a.competency_status === 'competent' ? 'success' : a.competency_status === 'not_competent' ? 'danger' : 'secondary'}`} />{a.competency_status_display}</td>
                     </tr>
                   ))}
@@ -234,10 +236,10 @@ export default function AssessorDetail() {
               <div className="col-md-6">
                 <table className="b-table align-middle">
                   <tbody>
-                    <tr><th>মূল্যায়নকারী নং</th><td>{assessor.assessor_no}</td></tr>
-                    <tr><th>এনআইডি</th><td>{assessor.nid}</td></tr>
+                    <tr><th>মূল্যায়নকারী নং</th><td>{convertToBanglaDigits(assessor.assessor_no)}</td></tr>
+                    <tr><th>এনআইডি</th><td>{convertToBanglaDigits(assessor.nid)}</td></tr>
                     <tr><th>মোবাইল</th><td>{user.phone || '-'}</td></tr>
-                    <tr><th>জন্ম নিবন্ধন</th><td>{assessor.birth_certificate_no || '-'}</td></tr>
+                    <tr><th>জন্ম নিবন্ধন</th><td>{assessor.birth_certificate_no ? convertToBanglaDigits(assessor.birth_certificate_no) : '-'}</td></tr>
                   </tbody>
                 </table>
               </div>

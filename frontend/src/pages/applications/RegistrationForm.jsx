@@ -5,6 +5,7 @@ import circularService from '../../services/circularService';
 import ApplySuccess from './ApplySuccess';
 import './RegistrationForm.css';
 import BanglaInput from '../../components/common/BanglaInput';
+import { convertToBanglaDigits } from '../../utils/numberFormatter';
 
 const CRITERIA_INPUT_TYPES = {
   age: 'date',
@@ -449,7 +450,7 @@ export default function RegistrationForm() {
       <div>
         <div className="verified-badge mb-4">
           <i className="bi bi-check2-circle text-success me-2"></i>
-          <span className="fw-medium">এনআইডি: {form.nid}</span>
+          <span className="fw-medium">এনআইডি: {convertToBanglaDigits(form.nid)}</span>
           <span className="mx-2 text-muted">|</span>
           <span className="fw-medium">জন্ম তারিখ: {form.date_of_birth}</span>
         </div>
@@ -683,7 +684,7 @@ export default function RegistrationForm() {
     const chosenCenter = centers.find(c => c.id === Number(form.chosen_center_id));
 
     const reviewRows = [
-      ['এনআইডি', form.nid],
+      ['এনআইডি', convertToBanglaDigits(form.nid)],
       ['জন্ম তারিখ', form.date_of_birth],
       ['কেন্দ্র', chosenCenter?.name_bn || form.chosen_center_id],
       ['নাম (বাংলায়)', form.name_bn],

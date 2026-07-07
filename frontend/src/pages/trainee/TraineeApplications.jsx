@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import traineeService from '../../services/traineeService';
+import { formatDate } from '../../utils/dateFormatter';
+import { convertToBanglaDigits } from '../../utils/numberFormatter';
 
 const STATUS_BADGE = {
   pending: 'bg-warning text-dark',
@@ -53,7 +55,7 @@ export default function TraineeApplications() {
                   <div>
                     <h6 className="mb-1 fw-bold">{app.circular_title}</h6>
                     <div className="small text-muted">
-                      <span className="text-nowrap"><i className="bi bi-hash me-1"></i>{app.application_no}</span>
+                      <span className="text-nowrap"><i className="bi bi-hash me-1"></i>{convertToBanglaDigits(app.application_no)}</span>
                       {app.center_name && <span className="ms-3 text-nowrap"><i className="bi bi-geo-alt me-1"></i>{app.center_name}</span>}
                     </div>
                   </div>
@@ -62,7 +64,7 @@ export default function TraineeApplications() {
                   </span>
                 </div>
                 <div className="d-flex flex-wrap gap-3 small text-muted mt-2">
-                  <span><i className="bi bi-clock me-1"></i>{new Date(app.applied_at).toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                  <span><i className="bi bi-clock me-1"></i>{formatDate(app.applied_at)}</span>
                   {app.merit_score != null && (
                     <span><i className="bi bi-trophy me-1"></i>মেধা স্কোর: {app.merit_score}</span>
                   )}

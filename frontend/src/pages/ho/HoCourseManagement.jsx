@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import hoService from '../../services/hoService';
 import BanglaInput from '../../components/common/BanglaInput';
+import { convertToBanglaDigits } from '../../utils/numberFormatter';
 
 const TYPE_MAP = { driver: 'ড্রাইভার', mechanic: 'মেকানিক', supervisor: 'সুপারভাইজার' };
 const STATUS_MAP = { draft: 'খসড়া', active: 'সক্রিয়', completed: 'সমাপ্ত' };
@@ -409,14 +410,14 @@ export default function HoCourseManagement() {
                               <input type="checkbox" className="form-check-input"
                                 checked={selectedIds.includes(c.id)} onChange={() => handleSelectOne(c.id)} />
                             </td>
-                            <td><strong>{c.code}</strong></td>
+                            <td><strong>{convertToBanglaDigits(c.code)}</strong></td>
                             <td><button className="btn btn-link btn-sm p-0 text-decoration-none fw-semibold" onClick={() => navigate('/ho/courses/' + c.id)}>{c.name_bn}</button></td>
                             <td>
-                              {c.duration_value ? (
-                                <>{c.duration_value} {c.duration_unit === 'days' ? 'দিন' : c.duration_unit === 'weeks' ? 'সপ্তাহ' : 'মাস'}</>
-                              ) : (
-                                c.duration_months ? <>{c.duration_months} মাস</> : <span className="text-muted">—</span>
-                              )}
+{c.duration_value ? (
+                        <>{convertToBanglaDigits(c.duration_value)} {c.duration_unit === 'days' ? 'দিন' : c.duration_unit === 'weeks' ? 'সপ্তাহ' : 'মাস'}</>
+                      ) : (
+                        c.duration_months ? <>{convertToBanglaDigits(c.duration_months)} মাস</> : <span className="text-muted">—</span>
+                      )}
                             </td>
                             <td>{c.project_name || '—'}</td>
                             <td>{c.project_sponsor || '—'}</td>

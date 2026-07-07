@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { formatDate } from '../../utils/dateFormatter';
 
 export default function CircularCard({ circular, lang, isRtl }) {
   const navigate = useNavigate();
@@ -71,7 +72,7 @@ export default function CircularCard({ circular, lang, isRtl }) {
           </div>
           <div className="meta-item">
             <i className="bi bi-calendar me-1"></i>
-            <span>{t.deadline}: {circular.application_end_date}</span>
+            <span>{t.deadline}: {formatDate(circular.application_end_date)}</span>
           </div>
           <div className="meta-item">
             <i className="bi bi-geo-alt me-1"></i>

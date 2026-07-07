@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import hoService from '../../services/hoService';
+import { formatDate } from '../../utils/dateFormatter';
+import { formatNumber, convertToBanglaDigits, formatPercentage } from '../../utils/numberFormatter';
 
 const STATUS_MAP = { active: 'সক্রিয়', suspended: 'স্থগিত' };
 const STATUS_BG = { active: 'success', suspended: 'warning' };
@@ -89,7 +91,7 @@ export default function HoCenterDetail() {
         </button>
         <div>
           <h4 className="mb-0 fw-bold">{center.name_bn}</h4>
-          <div className="text-muted small">কেন্দ্র কোড: {center.code}</div>
+          <div className="text-muted small">কেন্দ্র কোড: {convertToBanglaDigits(center.code)}</div>
         </div>
         <div className="ms-auto">
            <span className={`status-dot dot-${STATUS_BG[center.status] || 'secondary'}`}>
@@ -100,10 +102,10 @@ export default function HoCenterDetail() {
 
       {stats && (
         <div className="row g-3 mb-4">
-          <div className="col-md-3"><StatsCard label="মোট প্রশিক্ষণার্থী" value={stats.trainee_count} color="primary" icon="bi-people" /></div>
-          <div className="col-md-3"><StatsCard label="সক্রিয় ব্যাচ" value={stats.active_batch_count} color="success" icon="bi-layers" /></div>
-          <div className="col-md-3"><StatsCard label="উপস্থিতির হার" value={`${stats.attendance_rate}%`} color="info" icon="bi-graph-up" /></div>
-          <div className="col-md-3"><StatsCard label="চাকরি স্থাপনের হার" value={`${stats.placement_rate}%`} color="warning" icon="bi-briefcase" /></div>
+          <div className="col-md-3"><StatsCard label="মোট প্রশিক্ষণার্থী" value={formatNumber(stats.trainee_count)} color="primary" icon="bi-people" /></div>
+          <div className="col-md-3"><StatsCard label="সক্রিয় ব্যাচ" value={formatNumber(stats.active_batch_count)} color="success" icon="bi-layers" /></div>
+          <div className="col-md-3"><StatsCard label="উপস্থিতির হার" value={formatPercentage(stats.attendance_rate)} color="info" icon="bi-graph-up" /></div>
+          <div className="col-md-3"><StatsCard label="চাকরি স্থাপনের হার" value={formatPercentage(stats.placement_rate)} color="warning" icon="bi-briefcase" /></div>
         </div>
       )}
 
@@ -123,7 +125,7 @@ export default function HoCenterDetail() {
                 <h6 className="fw-bold mb-3 text-muted text-uppercase small">মূল তথ্য</h6>
                 <table className="b-detail-table w-100">
                   <tbody>
-                    <tr><th >কোড</th><td>{center.code}</td></tr>
+                    <tr><th >কোড</th><td>{convertToBanglaDigits(center.code)}</td></tr>
                     <tr><th >নাম (বাংলা)</th><td>{center.name_bn}</td></tr>
                     <tr><th >নাম (ইংরেজি)</th><td>{center.name_en || '—'}</td></tr>
                     <tr><th >ফোন</th><td>{center.phone || '—'}</td></tr>
@@ -138,7 +140,7 @@ export default function HoCenterDetail() {
                     <tr><th >ঠিকানা</th><td>{center.address || '—'}</td></tr>
                     <tr><th >যোগাযোগ ব্যক্তি</th><td>{center.contact_person_name || '—'}</td></tr>
                     <tr><th >যোগাযোগ মোবাইল</th><td>{center.contact_person_phone || '—'}</td></tr>
-                    <tr><th >তৈরির তারিখ</th><td>{center.created_at ? new Date(center.created_at).toLocaleDateString('bn-BD') : '—'}</td></tr>
+                    <tr><th >তৈরির তারিখ</th><td>{formatDate(center.created_at)}</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -156,9 +158,9 @@ export default function HoCenterDetail() {
                     <tr><td colSpan={5} className="text-center text-muted py-4">কোন কক্ষ পাওয়া যায়নি</td></tr>
                   ) : infra.map((r) => (
                     <tr key={r.id}>
-                      <td className="fw-bold">{r.room_no}</td>
+                      <td className="fw-bold">{convertToBanglaDigits(r.room_no)}</td>
                       <td>{r.location_bn || r.location_en || '—'}</td>
-                      <td>{r.capacity} জন</td>
+                      <td>{formatNumber(r.capacity)} জন</td>
                       <td style={{ maxWidth: 300 }}>{r.equipment || '—'}</td>
                       <td><span className={`status-dot dot-${r.status === 'available' ? 'success' : r.status === 'maintenance' ? 'warning' : 'danger'}`}>{r.status}</span></td>
                     </tr>
@@ -179,7 +181,7 @@ export default function HoCenterDetail() {
                     <tr><td colSpan={5} className="text-center text-muted py-4">কোন কর্মচারী নেই</td></tr>
                   ) : employees.map((e) => (
                     <tr key={e.id}>
-                      <td className="fw-bold">{e.employee_no}</td>
+                      <td className="fw-bold">{convertToBanglaDigits(e.employee_no)}</td>
                       <td>{e.user_full_name_bn || e.user_email || '—'}</td>
                       <td>{e.designation_bn || '—'}</td>
                       <td>{e.user_email || '—'}</td>
@@ -204,7 +206,7 @@ export default function HoCenterDetail() {
                 ].map((s, idx) => (
                   <div className="col-md-4 col-lg-2" key={idx}>
                     <div className={`card bg-${s.color} bg-opacity-10 border-${s.color} h-100 text-center py-3`}>
-                      <div className={`fw-bold fs-4 text-${s.color}`}>{s.value}</div>
+                      <div className={`fw-bold fs-4 text-${s.color}`}>{formatNumber(s.value)}</div>
                       <small className="text-muted">{s.label}</small>
                     </div>
                   </div>
@@ -220,7 +222,7 @@ export default function HoCenterDetail() {
                       const pct = (m.count / max) * 100;
                       return (
                         <div key={m.month} className="d-flex flex-column align-items-center flex-fill">
-                          <small className="mb-2 fw-bold text-primary" style={{ fontSize: 10 }}>{m.count}</small>
+                          <small className="mb-2 fw-bold text-primary" style={{ fontSize: 10 }}>{formatNumber(m.count)}</small>
                           <div className="bg-primary rounded-top" style={{ width: '100%', height: `${Math.max(pct, 4)}%`, background: 'linear-gradient(to top, var(--bs-primary), #818cf8)' }} title={m.month} />
                           <small className="mt-2 text-muted" style={{ fontSize: 10, transform: 'rotate(-45deg)', whiteSpace: 'nowrap' }}>{m.month.slice(5)}</small>
                         </div>

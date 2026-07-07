@@ -5,6 +5,7 @@ import api from '../../services/api';
 import certificateService from '../../services/certificateService';
 import { useTranslation } from '../../hooks/useTranslation';
 import './CertificateIssue.css';
+import { convertToBanglaDigits } from '../../utils/numberFormatter';
 
 export default function CertificateIssue() {
   const navigate = useNavigate();
@@ -143,7 +144,7 @@ export default function CertificateIssue() {
                 <option value="">{t('certificate.issue.allBatches', '-- সমাপ্ত ব্যাচ --')}</option>
                 {batches.map((b) => (
                   <option key={b.id} value={b.id}>
-                    {b.batch_name_bn || b.batch_no}
+                    {b.batch_name_bn || convertToBanglaDigits(b.batch_no)}
                     {b.course ? ` - ${b.course.name_bn || ''}` : ''}
                   </option>
                 ))}
@@ -270,7 +271,7 @@ export default function CertificateIssue() {
                             </td>
                             <td>{tr.trainee_reg_no}</td>
                             <td className="text-center">
-                              <small className="text-muted">{tr.trainee_nid || '—'}</small>
+                              <small className="text-muted">{convertToBanglaDigits(tr.trainee_nid) || '—'}</small>
                             </td>
                             <td className="text-center">
                               <button

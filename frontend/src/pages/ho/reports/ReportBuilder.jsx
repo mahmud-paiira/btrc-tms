@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import hoService from '../../../services/hoService';
 import { useTranslation } from '../../../hooks/useTranslation';
 import { REPORT_TYPES } from './reportConfig';
+import { convertToBanglaDigits } from '../../../utils/numberFormatter';
 
 export default function ReportBuilder({ show, onClose, centers, courses, batches }) {
   const { t } = useTranslation();
@@ -158,7 +159,7 @@ export default function ReportBuilder({ show, onClose, centers, courses, batches
               <label className="fw-semibold mb-1">{t('batch.title', 'ব্যাচ')}</label>
               <select className="form-select form-select-sm" multiple size={3} value={form.batches}
                 onChange={e => setForm({ ...form, batches: Array.from(e.target.selectedOptions, o => o.value) })}>
-                {batches.map(b => <option key={b.id} value={b.id}>{b.batch_no} - {b.batch_name_bn}</option>)}
+                {batches.map(b => <option key={b.id} value={b.id}>{convertToBanglaDigits(b.batch_no)} - {b.batch_name_bn}</option>)}
               </select>
             </div>
 
@@ -223,7 +224,7 @@ export default function ReportBuilder({ show, onClose, centers, courses, batches
           <div className="col-md-7">
             {previewData ? (
               <div>
-                <h6 className="fw-bold mb-2">{previewData.title}</h6>
+                <h6 className="fw-bold mb-2">{convertToBanglaDigits(previewData.title)}</h6>
                 <div className="table-responsive" style={{ maxHeight: 500, overflowY: 'auto' }}>
                   <table className="table table-sm table-bordered table-hover">
                     <thead className="table-light sticky-top">
@@ -237,7 +238,7 @@ export default function ReportBuilder({ show, onClose, centers, courses, batches
                       {(previewData.rows || []).map((row, ri) => (
                         <tr key={ri}>
                           {row.map((cell, ci) => (
-                            <td key={ci} style={{ fontSize: 12 }}>{cell}</td>
+                            <td key={ci} style={{ fontSize: 12 }}>{convertToBanglaDigits(cell)}</td>
                           ))}
                         </tr>
                       ))}

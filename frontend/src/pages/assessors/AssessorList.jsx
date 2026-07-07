@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from '../../services/api';
 import AssessorFormModal from './AssessorFormModal';
+import { formatDate } from '../../utils/dateFormatter';
+import { formatNumber } from '../../utils/numberFormatter';
 
 const API_URL = '/api';
 const STATUS_MAP = { pending: 'পেন্ডিং', active: 'সক্রিয়', suspended: 'স্থগিত', inactive: 'নিষ্ক্রিয়' };
@@ -132,7 +134,7 @@ export default function AssessorList() {
       </div>
       <div class="report-info">
         <span>মোট: ${printItems.length} জন</span>
-        <span>প্রিন্টের তারিখ: ${new Date().toLocaleDateString('bn-BD')}</span>
+        <span>প্রিন্টের তারিখ: ${formatDate(new Date())}</span>
       </div>
       <table>
         <tr><th>ক্রমিক</th><th>নাম (বাংলা)</th><th>নাম (ইংরেজি)</th><th>ইমেইল</th><th>ফোন</th><th>অভিজ্ঞতা</th></tr>
@@ -143,11 +145,11 @@ export default function AssessorList() {
             <td>${a.user_full_name_en || '—'}</td>
             <td>${a.user_email || '—'}</td>
             <td>${a.user_phone || '—'}</td>
-            <td style="text-align:center;">${a.years_of_experience ? a.years_of_experience + ' বছর' : '—'}</td>
+            <td style="text-align:center;">${a.years_of_experience ? formatNumber(a.years_of_experience) + ' বছর' : '—'}</td>
           </tr>`;
         }).join('')}
       </table>
-      <div class="footer">মূল্যায়নকারী তালিকা - ${new Date().toLocaleDateString('bn-BD')}</div>
+      <div class="footer">মূল্যায়নকারী তালিকা - ${formatDate(new Date())}</div>
       <script>window.print();</script>
       </body></html>
     `);
@@ -284,7 +286,7 @@ export default function AssessorList() {
                       <td className="d-none d-xl-table-cell" style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 100 }}>{a.user_full_name_en || '-'}</td>
                       <td className="d-none d-lg-table-cell" style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 120 }}>{a.user_email || '-'}</td>
                       <td className="d-none d-md-table-cell" style={{ whiteSpace: 'nowrap' }}>{a.user_phone || '-'}</td>
-                      <td className="d-none d-xl-table-cell" style={{ whiteSpace: 'nowrap' }}>{a.years_of_experience ? `${a.years_of_experience} বছর` : '-'}</td>
+                      <td className="d-none d-xl-table-cell" style={{ whiteSpace: 'nowrap' }}>{a.years_of_experience ? `${formatNumber(a.years_of_experience)} বছর` : '-'}</td>
                       <td style={{ whiteSpace: 'nowrap' }}>
                         <span className={`status-dot dot-${a.status}`}></span>
                         <span style={{ fontSize: 13, color: '#334155' }}>{STATUS_MAP[a.status] || a.status}</span>

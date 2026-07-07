@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import hoService from '../../services/hoService';
+import { convertToBanglaDigits, formatNumber } from '../../utils/numberFormatter';
 
 const TYPE_MAP = { driver: 'ড্রাইভার', mechanic: 'মেকানিক', supervisor: 'সুপারভাইজার' };
 const STATUS_MAP = { draft: 'খসড়া', active: 'সক্রিয়', completed: 'সমাপ্ত' };
@@ -77,7 +78,7 @@ export default function HoCourseDetail() {
         </button>
         <div>
           <h4 className="mb-0 fw-bold">{course.name_bn}</h4>
-          <div className="text-muted small">কোর্স কোড: {course.code}</div>
+          <div className="text-muted small">কোর্স কোড: {convertToBanglaDigits(course.code)}</div>
         </div>
         <div className="ms-auto d-flex align-items-center gap-2">
           <button className="btn btn-outline-danger btn-sm" title="পিডিএফ প্রিন্ট"
@@ -101,7 +102,7 @@ export default function HoCourseDetail() {
             {TABS.map(t => (
               <li className="nav-item" key={t.key}>
                 <button className={`nav-link ${tab === t.key ? 'active fw-bold' : ''}`}
-                  onClick={() => setTab(t.key)}>{t.label} {t.key === 'chapters' ? `(${chapters.length})` : t.key === 'competency' ? `(${competencies.length})` : t.key === 'bills' ? `(${bills.length})` : ''}</button>
+                  onClick={() => setTab(t.key)}>{t.label} {t.key === 'chapters' ? `(${convertToBanglaDigits(chapters.length)})` : t.key === 'competency' ? `(${convertToBanglaDigits(competencies.length)})` : t.key === 'bills' ? `(${convertToBanglaDigits(bills.length)})` : ''}</button>
               </li>
             ))}
           </ul>
@@ -113,7 +114,7 @@ export default function HoCourseDetail() {
                     <h6 className="fw-bold mb-3 text-muted text-uppercase small">মূল তথ্য</h6>
                     <table className="b-detail-table w-100">
                       <tbody>
-                        <tr><th >কোড</th><td>{course.code}</td></tr>
+                        <tr><th >কোড</th><td>{convertToBanglaDigits(course.code)}</td></tr>
                         <tr><th >নাম (বাংলা)</th><td>{course.name_bn}</td></tr>
                         <tr><th >নাম (ইংরেজি)</th><td>{course.name_en || '—'}</td></tr>
                         <tr><th >প্রকল্পের নাম</th><td>{course.project_name || '—'}</td></tr>
@@ -130,11 +131,11 @@ export default function HoCourseDetail() {
                     <table className="b-detail-table w-100">
                       <tbody>
                         <tr><th >মেয়াদ</th><td>
-                          {course.duration_value ? <>{course.duration_value} {course.duration_unit === 'days' ? 'দিন' : course.duration_unit === 'weeks' ? 'সপ্তাহ' : 'মাস'}</> : <>{course.duration_months} মাস</>}
+                          {course.duration_value ? <>{formatNumber(course.duration_value)} {course.duration_unit === 'days' ? 'দিন' : course.duration_unit === 'weeks' ? 'সপ্তাহ' : 'মাস'}</> : <>{formatNumber(course.duration_months)} মাস</>}
                         </td></tr>
-                        <tr><th >ঘন্টা</th><td>{course.duration_hours}</td></tr>
-                        <tr><th >প্রশিক্ষণ দিন</th><td>{course.total_training_days}</td></tr>
-                        <tr><th >ফি</th><td>৳{course.fee}</td></tr>
+                        <tr><th >ঘন্টা</th><td>{formatNumber(course.duration_hours)}</td></tr>
+                        <tr><th >প্রশিক্ষণ দিন</th><td>{formatNumber(course.total_training_days)}</td></tr>
+                        <tr><th >ফি</th><td>৳{formatNumber(course.fee)}</td></tr>
                         <tr><th >স্টাইপেন্ড</th><td>{course.stipend_eligible ? 'হ্যাঁ' : 'না'}</td></tr>
                         <tr><th >চাকরির উপযোগী</th><td>{course.employment_eligible ? 'হ্যাঁ' : 'না'}</td></tr>
                       </tbody>
@@ -149,8 +150,8 @@ export default function HoCourseDetail() {
                 <h6 className="fw-bold mb-3 text-muted text-uppercase small">কনফিগারেশন</h6>
                 <table className="b-detail-table w-100">
                   <tbody>
-                    <tr><th >পাস মার্কস</th><td>{course.configuration?.passing_marks || 80}%</td></tr>
-                    <tr><th >উপস্থিতি</th><td>{course.configuration?.attendance_requirement || 80}%</td></tr>
+                    <tr><th >পাস মার্কস</th><td>{formatNumber(course.configuration?.passing_marks || 80)}%</td></tr>
+                    <tr><th >উপস্থিতি</th><td>{formatNumber(course.configuration?.attendance_requirement || 80)}%</td></tr>
                     <tr><th >সার্টিফিকেট</th><td>{course.configuration?.certificate_template || '—'}</td></tr>
                   </tbody>
                 </table>
@@ -175,10 +176,10 @@ export default function HoCourseDetail() {
                     <tr><td colSpan={4} className="text-center text-muted py-4">কোন অধ্যায় নেই</td></tr>
                   ) : chapters.map((c) => (
                     <tr key={c.id || c.chapter_no}>
-                      <td className="fw-bold">{c.chapter_no}</td>
+                      <td className="fw-bold">{convertToBanglaDigits(c.chapter_no)}</td>
                       <td>{c.title_bn}</td>
                       <td>{c.title_en || '—'}</td>
-                      <td>{c.duration_hours}</td>
+                      <td>{formatNumber(c.duration_hours)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -220,7 +221,7 @@ export default function HoCourseDetail() {
                   ) : bills.map((b) => (
                     <tr key={b.id}>
                       <td>{b.bill_item_bn} <small className="text-muted">({b.bill_item_en})</small></td>
-                      <td className="fw-bold">৳{b.amount}</td>
+                      <td className="fw-bold">৳{formatNumber(b.amount)}</td>
                       <td>{b.is_mandatory ? <span className="status-dot dot-success">হ্যাঁ</span> : <span className="status-dot dot-secondary">না</span>}</td>
                     </tr>
                   ))}

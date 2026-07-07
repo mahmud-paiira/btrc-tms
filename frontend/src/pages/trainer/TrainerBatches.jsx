@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import batchService from '../../services/batchService';
 import { formatDate } from '../../utils/dateFormatter';
+import { convertToBanglaDigits, formatNumber } from '../../utils/numberFormatter';
 
 const STATUS_LABELS = {
   scheduled: 'নির্ধারিত', running: 'চলমান', completed: 'সমাপ্ত', cancelled: 'বাতিল',
@@ -26,7 +27,7 @@ export default function TrainerBatches() {
       <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <h4 className="fw-bold mb-0"><i className="bi bi-layers me-2"></i>আমার ব্যাচ</h4>
         <span className="text-secondary" style={{ fontSize: 13 }}>
-          মোট: {batches.length} টি ব্যাচ
+          মোট: {formatNumber(batches.length)} টি ব্যাচ
         </span>
       </div>
 
@@ -47,7 +48,7 @@ export default function TrainerBatches() {
                 <div className="card-body d-flex flex-column">
                   <div className="d-flex justify-content-between align-items-start mb-2">
                     <h6 className="fw-bold mb-0" style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>
-                      {b.batch_name_bn || b.batch_name_en || `ব্যাচ #${b.batch_no}`}
+                      {b.batch_name_bn || b.batch_name_en || `ব্যাচ #${convertToBanglaDigits(b.batch_no)}`}
                     </h6>
                     <span className={`badge bg-${STATUS_BG[b.status] || 'secondary'} ms-2 flex-shrink-0`}>
                       {STATUS_LABELS[b.status] || b.status}
@@ -60,7 +61,7 @@ export default function TrainerBatches() {
                       <tr><td className="text-secondary">কেন্দ্র</td><td className="fw-semibold">{b.center_name || '-'}</td></tr>
                       <tr><td className="text-secondary">শুরুর তারিখ</td><td>{b.start_date ? formatDate(b.start_date) : '-'}</td></tr>
                       <tr><td className="text-secondary">শেষ তারিখ</td><td>{b.end_date ? formatDate(b.end_date) : '-'}</td></tr>
-                      <tr><td className="text-secondary">আসন</td><td>{b.filled_seats || 0}/{b.total_seats || 0}</td></tr>
+                      <tr><td className="text-secondary">আসন</td><td>{formatNumber(b.filled_seats || 0)}/{formatNumber(b.total_seats || 0)}</td></tr>
                     </tbody>
                   </table>
 

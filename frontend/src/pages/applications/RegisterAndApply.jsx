@@ -4,6 +4,7 @@ import publicService from '../../services/publicService';
 import circularService from '../../services/circularService';
 import BanglaInput from '../../components/common/BanglaInput';
 import { useAuth } from '../../contexts/AuthContext';
+import { convertToBanglaDigits } from '../../utils/numberFormatter';
 import ApplySuccess from './ApplySuccess';
 import './RegistrationForm.css';
 
@@ -582,15 +583,15 @@ export default function RegisterAndApply() {
                               </div>
                               <div className="col-md-6">
                                 <label className="form-label">মোবাইল নম্বর <span className="text-danger">*</span></label>
-                                <input className={`form-control ${regErrors.phone ? 'is-invalid' : ''}`} name="phone" value={regForm.phone} onChange={handleRegChange} placeholder="01XXXXXXXXX" />
+                                <input className={`form-control ${regErrors.phone ? 'is-invalid' : ''}`} name="phone" value={convertToBanglaDigits(regForm.phone)} onChange={handleRegChange} placeholder="01XXXXXXXXX" />
                                 {regErrors.phone && <div className="invalid-feedback">{regErrors.phone}</div>}
                               </div>
                               <div className="col-md-6">
                                 <label className="form-label">জাতীয় পরিচয়পত্র নম্বর <span className="text-danger">*</span></label>
-                                <input className={`form-control ${regErrors.nid ? 'is-invalid' : ''}`} name="nid" value={regForm.nid} onChange={handleRegChange} placeholder="১০ বা ১৭ ডিজিট" />
+                                <input className={`form-control ${regErrors.nid ? 'is-invalid' : ''}`} name="nid" value={convertToBanglaDigits(regForm.nid)} onChange={handleRegChange} placeholder="১০ বা ১৭ ডিজিট" />
                                 {regErrors.nid && <div className="invalid-feedback">{regErrors.nid}</div>}
                               </div>
-                              <div className="col-md-6">
+                              <div className="col-12">
                                 <label className="form-label">জন্ম তারিখ <span className="text-danger">*</span></label>
                                 <div className="row g-1">
                                   <div className="col-4">
@@ -685,7 +686,7 @@ export default function RegisterAndApply() {
                         <h5 className="mb-0">
                           {mode === 'register' ? 'একাউন্ট তৈরী হয়েছে' : 'লগইন সফল হয়েছে'}
                         </h5>
-                        <small className="text-muted">{form.name_bn} ({form.phone})</small>
+                        <small className="text-muted">{form.name_bn} ({convertToBanglaDigits(form.phone)})</small>
                       </div>
                     </div>
 
@@ -715,11 +716,11 @@ export default function RegisterAndApply() {
                           </div>
                           <div className="col-md-6">
                             <label className="form-label fw-medium">মোবাইল নম্বর</label>
-                            <input className="form-control bg-light" value={form.phone} readOnly />
+                            <input className="form-control bg-light" value={convertToBanglaDigits(form.phone)} readOnly />
                           </div>
                           <div className="col-md-6">
                             <label className="form-label fw-medium">এনআইডি নম্বর</label>
-                            <input className="form-control bg-light" value={form.nid} readOnly />
+                            <input className="form-control bg-light" value={convertToBanglaDigits(form.nid)} readOnly />
                           </div>
                           <div className="col-md-6">
                             <label className="form-label fw-medium">জন্ম তারিখ</label>
@@ -1013,8 +1014,8 @@ export default function RegisterAndApply() {
                                   ['নাম (ইংরেজিতে)', form.name_en || '—'],
                                   ['পিতার নাম', form.father_name_bn],
                                   ['মাতার নাম', form.mother_name_bn],
-                                  ['মোবাইল', form.phone],
-                                  ['এনআইডি', form.nid],
+                                  ['মোবাইল', convertToBanglaDigits(form.phone)],
+                                  ['এনআইডি', convertToBanglaDigits(form.nid)],
                                   ['ইমেইল', form.email || '—'],
                                   ['লিঙ্গ', genders.find(g => g.id === Number(form.gender_id))?.name_bn || '—'],
                                   ['জন্ম তারিখ', form.date_of_birth],

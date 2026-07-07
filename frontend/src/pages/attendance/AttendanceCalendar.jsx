@@ -6,6 +6,7 @@ import AttendanceModal from '../../components/attendance/AttendanceModal';
 import QRCodeGenerator from '../../components/attendance/QRCodeGenerator';
 import { useTranslation } from '../../hooks/useTranslation';
 import { formatDate, getBanglaMonthName, getBanglaWeekday } from '../../utils/dateFormatter';
+import { convertToBanglaDigits } from '../../utils/numberFormatter';
 import './AttendanceCalendar.css';
 
 const VIEWS = [
@@ -160,7 +161,7 @@ export default function AttendanceCalendar() {
           className={`day-cell ${status === 'full' ? 'bg-success' : ''} ${status === 'partial' ? 'bg-warning' : ''} ${status === 'none' && scheduled ? 'bg-danger' : ''}`}
           onClick={() => handleDayClick(d)}
         >
-          <div className="day-number">{d.getDate()}</div>
+          <div className="day-number">{convertToBanglaDigits(d.getDate())}</div>
           <div className="day-name">{getBanglaWeekday(d.getDay(), true)}</div>
           {status === 'full' && <small className="text-white">{t('attendance.statusFull', 'সব মার্ক করা হয়েছে')}</small>}
           {status === 'partial' && <small className="text-dark">{t('attendance.statusPartial', 'আংশিক')}</small>}
@@ -174,9 +175,9 @@ export default function AttendanceCalendar() {
                 key={s.session_no}
                 className="btn btn-sm btn-outline-primary me-1 mb-1"
                 onClick={(e) => { e.stopPropagation(); handlePrintQR(s); }}
-                title={t('attendance.sessionQR', `সেশন ${s.session_no} QR কোড`)}
+                title={t('attendance.sessionQR', `সেশন ${convertToBanglaDigits(s.session_no)} QR কোড`)}
               >
-                <i className="bi bi-qr-code me-1"></i>{t('attendance.sessionQR', `সেশন ${s.session_no}`)}
+                <i className="bi bi-qr-code me-1"></i>{t('attendance.sessionQR', `সেশন ${convertToBanglaDigits(s.session_no)}`)}
               </button>
             ))}
           </div>
@@ -201,10 +202,10 @@ export default function AttendanceCalendar() {
               onClick={() => handleDayClick(d)}
             >
           <div className="day-name">{getBanglaWeekday(d.getDay(), true)}</div>
-              <div className="day-number">{d.getDate()}</div>
+              <div className="day-number">{convertToBanglaDigits(d.getDate())}</div>
               <div className="session-indicators mt-1">
                 {sessions.length > 0 && (
-                  <small>{t('attendance.sessionCount', `${sessions.length} টি সেশন`)}</small>
+                  <small>{t('attendance.sessionCount', `${convertToBanglaDigits(sessions.length)} টি সেশন`)}</small>
                 )}
               </div>
             </div>
@@ -233,7 +234,7 @@ export default function AttendanceCalendar() {
           className={`calendar-cell ${status === 'full' ? 'bg-success text-white' : ''} ${status === 'partial' ? 'bg-warning' : ''} ${status === 'none' && scheduled ? 'bg-danger text-white' : ''} ${isToday ? 'border border-primary border-2' : ''} ${!scheduled ? 'text-muted' : ''}`}
           onClick={() => handleDayClick(d)}
         >
-          <div className="day-number">{day}</div>
+          <div className="day-number">{convertToBanglaDigits(day)}</div>
           {sessions.length > 0 && (
             <small className="session-count">{sessions.length}</small>
           )}
@@ -265,7 +266,7 @@ export default function AttendanceCalendar() {
         <div>
           <h4 className="mb-1">
             <i className="bi bi-calendar-check me-2"></i>
-            {batch?.batch_name_bn || `ব্যাচ #${batchId}`}
+            {batch?.batch_name_bn || `ব্যাচ #${convertToBanglaDigits(batchId)}`}
           </h4>
           {batch && (
             <small className="text-muted">
@@ -298,9 +299,9 @@ export default function AttendanceCalendar() {
                 <i className="bi bi-chevron-left"></i>
               </button>
               <strong>
-                {view === 'month' && `${getBanglaMonthName(month)} ${year}`}
-                {view === 'week' && `${getBanglaMonthName(month)} ${currentDate.getDate()}`}
-                {view === 'day' && `${currentDate.getDate()} ${getBanglaMonthName(month)} ${year}`}
+                {view === 'month' && `${getBanglaMonthName(month)} ${convertToBanglaDigits(year)}`}
+                {view === 'week' && `${getBanglaMonthName(month)} ${convertToBanglaDigits(currentDate.getDate())}`}
+                {view === 'day' && `${convertToBanglaDigits(currentDate.getDate())} ${getBanglaMonthName(month)} ${convertToBanglaDigits(year)}`}
               </strong>
               <button className="btn btn-sm btn-outline-secondary" onClick={handleNext}>
                 <i className="bi bi-chevron-right"></i>
