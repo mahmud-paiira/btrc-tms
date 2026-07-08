@@ -63,7 +63,8 @@ class CourseViewSet(viewsets.ModelViewSet):
                 obj.delete()
                 deleted += 1
             except Exception as e:
-                errors.append(str(e))
+                msg = str(e.detail[0]) if hasattr(e, 'detail') and isinstance(e.detail, list) else str(e)
+                errors.append(msg)
         return Response({'deleted': deleted, 'errors': errors})
 
     @action(detail=False, methods=['get'], url_path='export-list')

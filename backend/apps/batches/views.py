@@ -100,7 +100,8 @@ class BatchViewSet(viewsets.ModelViewSet):
                 self.perform_destroy(obj)
                 deleted += 1
             except Exception as e:
-                errors.append(str(e))
+                msg = str(e.detail[0]) if hasattr(e, 'detail') and isinstance(e.detail, list) else str(e)
+                errors.append(msg)
         return Response({'deleted': deleted, 'errors': errors})
 
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
