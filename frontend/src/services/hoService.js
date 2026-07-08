@@ -241,7 +241,13 @@ const hoService = {
 
   // Trainees
   listTrainees(params) { return api.get('/ho/trainees/', { params }); },
+  getTrainee(id) { return api.get(`/ho/trainees/${id}/`); },
+  updateTrainee(id, data) { return api.put(`/ho/trainees/${id}/`, data); },
+  deleteTrainee(id) { return api.delete(`/ho/trainees/${id}/`); },
   exportTrainees(params) { return api.get('/ho/trainees/export-list/', { params, responseType: 'blob' }); },
+  importTrainees(formData) { return api.post('/ho/trainees/import_list/', formData); },
+  downloadTraineeTemplate() { return api.get('/ho/trainees/download_template/', { responseType: 'blob' }); },
+  bulkDeleteTrainees(ids) { return api.post('/ho/trainees/bulk_delete/', { ids }); },
 };
 
 export default hoService;

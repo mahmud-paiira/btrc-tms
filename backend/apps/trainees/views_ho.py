@@ -6,12 +6,13 @@ import openpyxl
 from django.http import HttpResponse
 from rest_framework import viewsets, filters, status
 from rest_framework.decorators import action
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 
 from .models import Trainee
-from .serializers import TraineeListSerializer
+from .serializers import TraineeListSerializer, TraineeWriteSerializer, TraineeDetailSerializer
 
 
 class IsHeadOffice(IsAuthenticated):
@@ -21,12 +22,11 @@ class IsHeadOffice(IsAuthenticated):
         )
 
 
-class HOTraineeViewSet(viewsets.ReadOnlyModelViewSet):
+class HOTraineeViewSet(viewsets.ModelViewSet):
     queryset = Trainee.objects.select_related(
         'user', 'center', 'batch'
     ).all()
     permission_classes = [IsHeadOffice]
-    serializer_class = TraineeListSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ('center', 'batch', 'status')
     search_fields = (
@@ -35,6 +35,13 @@ class HOTraineeViewSet(viewsets.ReadOnlyModelViewSet):
     )
     ordering_fields = ('enrollment_date', 'registration_no', 'status', 'center__name_bn')
     ordering = ('-enrollment_date',)
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return TraineeListSerializer
+        elif self.action in ('create', 'update', 'partial_update'):
+            return TraineeWriteSerializer
+        return TraineeDetailSerializer
 
     @action(detail=False, methods=['get'], url_path='export-list')
     def export_list(self, request):
@@ -89,3 +96,111 @@ class HOTraineeViewSet(viewsets.ReadOnlyModelViewSet):
             )
             response['Content-Disposition'] = f'attachment; filename="trainees_{date.today().isoformat()}.csv"'
             return response
+
+    @action(detail=False, methods=['post'], parser_classes=[MultiPartParser, FormParser])
+    def import_list(self, request):
+        file = request.FILES.get('file')
+        if not file:
+            return Response({'error': 'ফাইল নির্বাচন করুন'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            wb = openpyxl.load_workbook(file)
+            ws = wb.active
+            rows_iter = iter(ws.iter_rows(values_only=True))
+            header_row = [str(c).strip().lower() if c is not None else '' for c in next(rows_iter)]
+        except Exception:
+            file.seek(0)
+            try:
+                content = file.read().decode('utf-8-sig')
+                reader = csv.DictReader(io.StringIO(content))
+                header_row = [h.strip().lower() for h in reader.fieldnames]
+                rows_iter = reader
+            except Exception:
+                return Response({'error': 'ভুল ফাইল ফরম্যাট। Excel (.xlsx) বা CSV ফাইল আপলোড করুন।'}, status=400)
+
+        bn_required = {'রেজি. নং'}
+        header_set = set(header_row)
+        if not bn_required.issubset(header_set):
+            return Response({
+                'error': 'প্রয়োজনীয় কলাম নেই। হেডারে "রেজি. নং" থাকা আবশ্যক।',
+                'detected_headers': header_row,
+            }, status=400)
+
+        field_map = {
+            'রেজি. নং': 'registration_no', 'registration_no': 'registration_no',
+            'নাম (বাংলা)': 'full_name_bn', 'name_bn': 'full_name_bn',
+            'নাম (ইংরেজি)': 'full_name_en', 'name_en': 'full_name_en',
+            'ইমেইল': 'email', 'email': 'email',
+            'ফোন': 'phone', 'phone': 'phone',
+            'এনআইডি': 'nid', 'nid': 'nid',
+            'অবস্থা': 'status', 'status': 'status',
+        }
+
+        results = {'created': 0, 'updated': 0, 'errors': []}
+        for row_idx, row in enumerate(rows_iter, start=2):
+            try:
+                if isinstance(row, dict):
+                    raw = row
+                else:
+                    raw = dict(zip(header_row, [str(c).strip() if c is not None else '' for c in row]))
+
+                data = {}
+                for k, v in raw.items():
+                    mapped = field_map.get(k.strip().lower(), k.strip().lower())
+                    data[mapped] = v.strip() if v else ''
+
+                reg_no = data.get('registration_no', '').strip()
+                if not reg_no:
+                    results['errors'].append(f'সারি {row_idx}: রেজি. নং আবশ্যক')
+                    continue
+
+                existing = Trainee.objects.filter(registration_no=reg_no).first()
+                if existing:
+                    if data.get('status') is not None:
+                        existing.status = data['status']
+                    existing.save()
+                    results['updated'] += 1
+                else:
+                    results['errors'].append(f'সারি {row_idx}: "{reg_no}" রেজি. নং পাওয়া যায়নি')
+            except Exception as e:
+                results['errors'].append(f'সারি {row_idx}: {str(e)}')
+
+        return Response(results)
+
+    @action(detail=False, methods=['post'])
+    def bulk_delete(self, request):
+        ids = request.data.get('ids', [])
+        if not ids:
+            return Response({'error': 'কোন আইডি প্রদান করা হয়নি'}, status=400)
+        deleted = 0
+        errors = []
+        for pk in ids:
+            try:
+                obj = self.get_queryset().get(pk=pk)
+                obj.delete()
+                deleted += 1
+            except Exception as e:
+                msg = str(e.detail[0]) if hasattr(e, 'detail') and isinstance(e.detail, list) else str(e)
+                errors.append(msg)
+        return Response({'deleted': deleted, 'errors': errors})
+
+    @action(detail=False, methods=['get'])
+    def download_template(self, request):
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = 'Template'
+        headers = ['রেজি. নং', 'নাম (বাংলা)', 'নাম (ইংরেজি)', 'ইমেইল', 'ফোন',
+                   'এনআইডি', 'অবস্থা']
+        ws.append(headers)
+        sample = ['', 'উদাহরণ নাম', 'Example Name', 'email@example.com', '০১৭XXXXXXXX',
+                  '', 'enrolled']
+        ws.append(sample)
+        for col_idx in range(1, len(headers) + 1):
+            cell = ws.cell(row=1, column=col_idx)
+            cell.font = openpyxl.styles.Font(bold=True)
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        )
+        response['Content-Disposition'] = 'attachment; filename="trainee_import_template.xlsx"'
+        wb.save(response)
+        return response
