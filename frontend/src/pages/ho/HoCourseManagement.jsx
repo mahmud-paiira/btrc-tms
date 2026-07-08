@@ -312,7 +312,7 @@ export default function HoCourseManagement() {
   const fetchCourses = useCallback(async () => {
     setLoading(true);
     try {
-      const params = {};
+      const params = { _t: Date.now() };
       if (search) params.search = search;
       if (filterType) params.course_type = filterType;
       if (filterStatus) params.status = filterStatus;
@@ -360,13 +360,16 @@ export default function HoCourseManagement() {
   const handleBulkDelete = async () => {
     setBulkDeleting(true);
     try {
-      await api.post('/ho/courses/bulk_delete/', { ids: selectedIds });
-      toast.success('নির্বাচিত কোর্সসমূহ মুছে ফেলা হয়েছে');
+      const { data } = await api.post('/ho/courses/bulk_delete/', { ids: selectedIds });
+      if (data.deleted > 0) toast.success(`${data.deleted} টি কোর্স মুছে ফেলা হয়েছে`);
+      else toast.warning('কোনো কোর্স মুছে ফেলা যায়নি');
+      if (data.errors?.length) toast.error(data.errors.join('\n'));
       setSelectedIds([]);
+      setSelectAll(false);
       setShowBulkDelete(false);
       fetchCourses();
     } catch (err) {
-      toast.error(err.response?.data?.detail?.[0] || 'মুছতে ব্যর্থ');
+      toast.error(err.response?.data?.error || err.response?.data?.detail?.[0] || 'মুছতে ব্যর্থ');
     } finally {
       setBulkDeleting(false);
     }
