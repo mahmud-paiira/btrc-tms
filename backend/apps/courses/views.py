@@ -50,6 +50,22 @@ class CourseViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
 
+    @action(detail=False, methods=['post'])
+    def bulk_delete(self, request):
+        ids = request.data.get('ids', [])
+        if not ids:
+            return Response({'error': 'কোন আইডি প্রদান করা হয়নি'}, status=400)
+        deleted = 0
+        errors = []
+        for pk in ids:
+            try:
+                obj = self.get_queryset().get(pk=pk)
+                obj.delete()
+                deleted += 1
+            except Exception as e:
+                errors.append(str(e))
+        return Response({'deleted': deleted, 'errors': errors})
+
     @action(detail=False, methods=['get'], url_path='export-list')
     def export_list(self, request):
         qs = self.filter_queryset(self.get_queryset())

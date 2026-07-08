@@ -22,6 +22,8 @@ export default function TraineeList() {
   const [importFile, setImportFile] = useState(null);
   const [importLoading, setImportLoading] = useState(false);
   const [importResults, setImportResults] = useState(null);
+  const [showBulkDelete, setShowBulkDelete] = useState(false);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   const fetchTrainees = useCallback(async () => {
     setLoading(true);
@@ -52,6 +54,25 @@ export default function TraineeList() {
       fetchTrainees();
     } catch {
       toast.error('মুছতে ব্যর্থ');
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    setBulkDeleting(true);
+    try {
+      const res = await api.post('/trainees/bulk_delete/', { ids: [...selectedIds] });
+      const data = res.data;
+      toast.success(data.deleted + ' টি মুছে ফেলা হয়েছে');
+      if (data.errors && data.errors.length > 0) {
+        toast.error(data.errors.join(', '));
+      }
+      setSelectedIds(new Set());
+      setShowBulkDelete(false);
+      fetchTrainees();
+    } catch {
+      toast.error('মুছতে ব্যর্থ');
+    } finally {
+      setBulkDeleting(false);
     }
   };
 
@@ -227,6 +248,9 @@ export default function TraineeList() {
             <button className="btn btn-sm btn-secondary" onClick={handlePrint}>
               <i className="bi bi-printer me-1"></i>প্রিন্ট
             </button>
+            <button className="btn btn-sm btn-danger" onClick={() => setShowBulkDelete(true)}>
+              <i className="bi bi-trash"></i> নির্বাচিত মুছুন
+            </button>
             <button className="btn btn-sm btn-outline-danger" onClick={() => setSelectedIds(new Set())}>
               নির্বাচন বাতিল
             </button>
@@ -368,6 +392,28 @@ export default function TraineeList() {
               </div>
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" onClick={() => setShowImport(false)}>বন্ধ</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showBulkDelete && (
+        <div className="modal d-block" style={{ background: 'rgba(0,0,0,.5)' }}>
+          <div className="modal-dialog modal-sm modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header bg-danger text-white">
+                <h6 className="modal-title"><i className="bi bi-exclamation-triangle me-2"></i>নিশ্চিতকরণ</h6>
+                <button type="button" className="btn-close btn-close-white" onClick={() => setShowBulkDelete(false)} />
+              </div>
+              <div className="modal-body">
+                <p className="mb-0">আপনি কি {selectedIds.size} টি প্রশিক্ষণার্থী মুছে ফেলতে চান? এটি অপরিবর্তনীয়।</p>
+              </div>
+              <div className="modal-footer">
+                <button className="btn btn-secondary" onClick={() => setShowBulkDelete(false)}>বাতিল</button>
+                <button className="btn btn-danger" onClick={handleBulkDelete} disabled={bulkDeleting}>
+                  {bulkDeleting ? <><span className="spinner-border spinner-border-sm me-1" />মুছছে...</> : 'মুছুন'}
+                </button>
               </div>
             </div>
           </div>

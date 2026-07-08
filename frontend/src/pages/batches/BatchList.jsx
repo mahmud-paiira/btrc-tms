@@ -43,6 +43,9 @@ export default function BatchList() {
   const [selectedCircular, setSelectedCircular] = useState('');
   const [generating, setGenerating] = useState(false);
   const [actionLoading, setActionLoading] = useState(null);
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [showBulkDelete, setShowBulkDelete] = useState(false);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   const fetchBatches = useCallback(async () => {
     setLoading(true);
@@ -91,6 +94,39 @@ export default function BatchList() {
       fetchBatches();
     } catch {
       toast.error('মুছতে ব্যর্থ');
+    }
+  };
+
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedIds(new Set(batches.map((b) => b.id)));
+    } else {
+      setSelectedIds(new Set());
+    }
+  };
+
+  const handleSelectOne = (id) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleBulkDelete = async () => {
+    setBulkDeleting(true);
+    try {
+      const res = await api.post('/batches/bulk_delete/', { ids: [...selectedIds] });
+      if (res.data.deleted > 0) toast.success(`${res.data.deleted} টি ব্যাচ মুছে ফেলা হয়েছে`);
+      if (res.data.errors?.length) toast.error(`${res.data.errors.length} টি ত্রুটি`);
+      setSelectedIds(new Set());
+      setShowBulkDelete(false);
+      fetchBatches();
+    } catch {
+      toast.error('মুছতে ব্যর্থ');
+    } finally {
+      setBulkDeleting(false);
     }
   };
 
@@ -183,11 +219,30 @@ export default function BatchList() {
         </div>
       </div>
 
+      {selectedIds.size > 0 && (
+        <div className="alert alert-info py-2 d-flex justify-content-between align-items-center mb-3">
+          <span><i className="bi bi-check-square me-1"></i>{selectedIds.size} টি নির্বাচিত</span>
+          <div className="d-flex gap-2">
+            <button className="btn btn-sm btn-danger" onClick={() => setShowBulkDelete(true)}>
+              <i className="bi bi-trash"></i> নির্বাচিত মুছুন
+            </button>
+            <button className="btn btn-sm btn-outline-danger" onClick={() => setSelectedIds(new Set())}>
+              নির্বাচন বাতিল
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="card" style={{ borderRadius: 12, border: '1px solid #e2e8f0', overflow: 'visible', boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}>
         <div className="card-body p-0" style={{ overflowX: 'auto', overflowY: 'visible' }}>
           <table className="b-table w-100" style={{ minWidth: 640 }}>
             <thead>
               <tr>
+                <th style={{ width: 36 }}>
+                  <input type="checkbox" className="form-check-input"
+                    checked={batches.length > 0 && selectedIds.size === batches.length}
+                    onChange={handleSelectAll} />
+                </th>
                 <th>ব্যাচ নং</th>
                 <th>নাম</th>
                 <th className="d-none d-sm-table-cell">শুরুর তারিখ</th>
@@ -197,12 +252,12 @@ export default function BatchList() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={5} className="text-center py-5">
+                <tr><td colSpan={6} className="text-center py-5">
                   <div className="spinner-border text-primary" role="status" />
                   <p className="mt-2 mb-0 text-muted">{t('batch.list.loading', 'লোড হচ্ছে...')}</p>
                 </td></tr>
               ) : batches.length === 0 ? (
-                <tr><td colSpan={5} className="text-center py-5 text-muted">
+                <tr><td colSpan={6} className="text-center py-5 text-muted">
                   <i className="bi bi-inbox fs-1"></i>
                   <p className="mt-2 mb-0">{t('batch.list.empty', 'কোন ব্যাচ পাওয়া যায়নি')}</p>
                 </td></tr>
@@ -211,6 +266,9 @@ export default function BatchList() {
                   const isLoading = actionLoading === `${b.id}-start` || actionLoading === `${b.id}-complete` || actionLoading === `${b.id}-cancel`;
                   return (
                     <tr key={b.id}>
+                      <td><input type="checkbox" className="form-check-input"
+                        checked={selectedIds.has(b.id)}
+                        onChange={() => handleSelectOne(b.id)} /></td>
                       <td>
                         <a href={`/center-admin/batches/${b.id}`} style={{ fontWeight: 600, color: '#0f172a', textDecoration: 'none' }}
                           onClick={e => { e.preventDefault(); navigate(`/center-admin/batches/${b.id}`); }}>
@@ -325,6 +383,28 @@ export default function BatchList() {
               </div>
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" onClick={() => setShowImport(false)}>বন্ধ</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showBulkDelete && (
+        <div className="modal d-block" style={{ background: 'rgba(0,0,0,.5)' }}>
+          <div className="modal-dialog modal-sm modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header bg-danger text-white">
+                <h6 className="modal-title"><i className="bi bi-exclamation-triangle me-2"></i>নিশ্চিতকরণ</h6>
+                <button type="button" className="btn-close btn-close-white" onClick={() => setShowBulkDelete(false)} />
+              </div>
+              <div className="modal-body">
+                <p className="mb-0">আপনি কি {selectedIds.size} টি ব্যাচ মুছে ফেলতে চান? এটি অপরিবর্তনীয়।</p>
+              </div>
+              <div className="modal-footer">
+                <button className="btn btn-secondary" onClick={() => setShowBulkDelete(false)}>বাতিল</button>
+                <button className="btn btn-danger" onClick={handleBulkDelete} disabled={bulkDeleting}>
+                  {bulkDeleting ? <><span className="spinner-border spinner-border-sm me-1" />মুছছে...</> : 'মুছুন'}
+                </button>
               </div>
             </div>
           </div>

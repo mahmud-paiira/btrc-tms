@@ -314,6 +314,21 @@ class HOCenterViewSet(viewsets.ModelViewSet):
         serializer.save(center=center)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    @action(detail=False, methods=['post'])
+    def bulk_delete(self, request):
+        ids = request.data.get('ids', [])
+        if not ids:
+            return Response({'error': 'কোন আইডি প্রদান করা হয়নি'}, status=400)
+        deleted = 0
+        errors = []
+        for pk in ids:
+            try:
+                obj = self.get_queryset().get(pk=pk)
+                self.perform_destroy(obj)
+                deleted += 1
+            except Exception as e:
+                errors.append(str(e))
+        return Response({'deleted': deleted, 'errors': errors})
 
 class HOInfrastructureViewSet(viewsets.ModelViewSet):
     queryset = Infrastructure.objects.select_related('center').all()

@@ -588,6 +588,8 @@ export default function HoCenterManagement() {
   const [editCenter, setEditCenter] = useState(null);
   const [showImport, setShowImport] = useState(false);
   const [selectedIds, setSelectedIds] = useState(new Set());
+  const [showBulkDelete, setShowBulkDelete] = useState(false);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
   const [usersList, setUsersList] = useState([]);
 
   useEffect(() => {
@@ -729,6 +731,22 @@ export default function HoCenterManagement() {
     setTimeout(() => printWindow.print(), 300);
   };
 
+  const handleBulkDelete = async () => {
+    setBulkDeleting(true);
+    try {
+      const { data } = await hoService.bulkDeleteCenters([...selectedIds]);
+      if (data.deleted > 0) toast.success(`${data.deleted} টি কেন্দ্র মুছে ফেলা হয়েছে`);
+      if (data.errors?.length) toast.error(`${data.errors.length} টি ত্রুটি: ${data.errors[0]}`);
+      setSelectedIds(new Set());
+      setShowBulkDelete(false);
+      fetchCenters();
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'মুছতে ব্যর্থ');
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
+
   const handleFormSaved = async (newId) => {
     setShowForm(false);
     if (newId) {
@@ -777,6 +795,9 @@ export default function HoCenterManagement() {
             </button>
             <button className="btn btn-sm btn-secondary" onClick={handlePrint}>
               <i className="bi bi-printer"></i> নির্বাচিত প্রিন্ট
+            </button>
+            <button className="btn btn-sm btn-danger" onClick={() => setShowBulkDelete(true)}>
+              <i className="bi bi-trash"></i> নির্বাচিত মুছুন
             </button>
             <button className="btn btn-sm btn-outline-danger" onClick={() => setSelectedIds(new Set())}>
               নির্বাচন বাতিল
@@ -904,6 +925,28 @@ export default function HoCenterManagement() {
         onClose={() => setShowImport(false)}
         onImported={() => { setShowImport(false); fetchCenters(); }}
       />
+
+      {showBulkDelete && (
+        <div className="modal d-block" style={{ background: 'rgba(0,0,0,.5)' }}>
+          <div className="modal-dialog modal-sm modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header bg-danger text-white">
+                <h6 className="modal-title"><i className="bi bi-exclamation-triangle me-2"></i>নিশ্চিতকরণ</h6>
+                <button type="button" className="btn-close btn-close-white" onClick={() => setShowBulkDelete(false)} />
+              </div>
+              <div className="modal-body">
+                <p className="mb-0">আপনি কি {convertToBanglaDigits(selectedIds.size)} টি কেন্দ্র মুছে ফেলতে চান? এটি অপরিবর্তনীয়।</p>
+              </div>
+              <div className="modal-footer">
+                <button className="btn btn-secondary" onClick={() => setShowBulkDelete(false)}>বাতিল</button>
+                <button className="btn btn-danger" onClick={handleBulkDelete} disabled={bulkDeleting}>
+                  {bulkDeleting ? <><span className="spinner-border spinner-border-sm me-1" />মুছছে...</> : 'মুছুন'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -20,6 +20,7 @@ const hoService = {
   createCenter(data) { return api.post('/ho/centers/', data); },
   updateCenter(id, data) { return api.put(`/ho/centers/${id}/`, data); },
   deleteCenter(id) { return api.delete(`/ho/centers/${id}/`); },
+  bulkDeleteCenters(ids) { return api.post('/ho/centers/bulk_delete/', { ids }); },
   toggleCenter(id) { return api.post(`/ho/centers/${id}/toggle/`); },
   exportCenters(params) { return api.get('/ho/centers/export-list/', { params, responseType: 'blob' }); },
   importCenters(formData) { return api.post('/ho/centers/import_centers/', formData); },

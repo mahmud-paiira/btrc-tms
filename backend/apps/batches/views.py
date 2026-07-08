@@ -87,6 +87,22 @@ class BatchViewSet(viewsets.ModelViewSet):
         self.assert_admin_or_ho(self.request)
         instance.delete()
 
+    @action(detail=False, methods=['post'])
+    def bulk_delete(self, request):
+        ids = request.data.get('ids', [])
+        if not ids:
+            return Response({'error': 'কোন আইডি প্রদান করা হয়নি'}, status=400)
+        deleted = 0
+        errors = []
+        for pk in ids:
+            try:
+                obj = self.get_queryset().get(pk=pk)
+                self.perform_destroy(obj)
+                deleted += 1
+            except Exception as e:
+                errors.append(str(e))
+        return Response({'deleted': deleted, 'errors': errors})
+
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
     def my_batches(self, request):
         if request.user.user_type != 'trainer':
