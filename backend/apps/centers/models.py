@@ -79,6 +79,10 @@ class Center(models.Model):
     total_batches = models.PositiveIntegerField(default=0, verbose_name='মোট ব্যাচ')
     running_batches = models.PositiveIntegerField(default=0, verbose_name='চলমান ব্যাচ')
     completed_batches = models.PositiveIntegerField(default=0, verbose_name='সমাপ্ত ব্যাচ')
+    seats_per_trainer = models.PositiveIntegerField(
+        default=25, verbose_name='প্রতি প্রশিক্ষকে আসন সংখ্যা',
+        help_text='একজন প্রশিক্ষকের জন্য কতজন প্রশিক্ষণার্থী বরাদ্দ করা যাবে',
+    )
     enrolled_trainees = models.PositiveIntegerField(default=0, verbose_name='নথিভুক্ত')
     completed_trainees = models.PositiveIntegerField(default=0, verbose_name='সফল সমাপ্তি')
     dropped_trainees = models.PositiveIntegerField(default=0, verbose_name='ঝরে পড়া')
@@ -121,6 +125,22 @@ class Center(models.Model):
         total = self.trainee_set.count()
         placed = JobPlacement.objects.filter(batch__center=self).values('trainee').distinct().count()
         return round((placed / total * 100), 1) if total else 0
+
+    def get_active_trainer_count(self):
+        from apps.trainers.models import TrainerMapping
+        return TrainerMapping.objects.filter(
+            center=self,
+            status='active',
+            trainer__approval_status='approved',
+        ).count()
+
+    def get_trainer_based_capacity(self):
+        return self.get_active_trainer_count() * self.seats_per_trainer
+
+    def get_effective_max_seats(self):
+        capacity = self.get_trainer_based_capacity()
+        overflow = float(self.overflow_percentage) / 100
+        return int(capacity * (1 + overflow))
 
 
 class Infrastructure(models.Model):

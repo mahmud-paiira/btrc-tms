@@ -746,6 +746,19 @@ class BatchViewSet(viewsets.ModelViewSet):
             )
 
         circular = Circular.objects.get(id=circular_id)
+
+        max_seats = center.get_effective_max_seats()
+        if allocation.allocated_seats > max_seats:
+            active = center.get_active_trainer_count()
+            return Response({
+                'error': (
+                    f'বরাদ্দকৃত আসন ({allocation.allocated_seats}) কেন্দ্রের সর্বোচ্চ সক্ষমতা ({max_seats}) ছাড়িয়ে গেছে। '
+                    f'এই কেন্দ্রে {active} জন সক্রিয় প্রশিক্ষক রয়েছেন (প্রতি প্রশিক্ষকে {center.seats_per_trainer} জন) '
+                    f'ও ওভারফ্লো {center.overflow_percentage}%। '
+                    f'দয়া করে আসন সংখ্যা কমিয়ে {max_seats} বা তার কম নির্ধারণ করুন বা প্রশিক্ষক সংখ্যা বাড়ান।'
+                ),
+            }, status=400)
+
         batch_size = 25
         num_batches = allocation.allocated_seats // batch_size
         if num_batches == 0:

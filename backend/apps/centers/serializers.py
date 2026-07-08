@@ -22,6 +22,8 @@ class EmployeeSerializer(serializers.ModelSerializer):
 class CenterListSerializer(serializers.ModelSerializer):
     infrastructure_count = serializers.SerializerMethodField()
     employee_count = serializers.SerializerMethodField()
+    trainer_based_capacity = serializers.SerializerMethodField()
+    effective_max_seats = serializers.SerializerMethodField()
 
     class Meta:
         model = Center
@@ -29,6 +31,7 @@ class CenterListSerializer(serializers.ModelSerializer):
             'id', 'code', 'name_bn', 'name_en', 'short_name_bn',
             'phone', 'email', 'status',
             'center_type', 'overflow_percentage', 'quality_score',
+            'seats_per_trainer', 'trainer_based_capacity', 'effective_max_seats',
             'latitude', 'longitude',
             'infrastructure_count', 'employee_count', 'created_at',
         )
@@ -39,15 +42,29 @@ class CenterListSerializer(serializers.ModelSerializer):
     def get_employee_count(self, obj):
         return obj.employees.count()
 
+    def get_trainer_based_capacity(self, obj):
+        return obj.get_trainer_based_capacity()
+
+    def get_effective_max_seats(self, obj):
+        return obj.get_effective_max_seats()
+
 
 class CenterDetailSerializer(serializers.ModelSerializer):
     infrastructures = InfrastructureSerializer(many=True, required=False)
     employees = EmployeeSerializer(many=True, required=False)
+    trainer_based_capacity = serializers.SerializerMethodField()
+    effective_max_seats = serializers.SerializerMethodField()
 
     class Meta:
         model = Center
         fields = '__all__'
         read_only_fields = ('code', 'created_at')
+
+    def get_trainer_based_capacity(self, obj):
+        return obj.get_trainer_based_capacity()
+
+    def get_effective_max_seats(self, obj):
+        return obj.get_effective_max_seats()
 
     def create(self, validated_data):
         infra_data = validated_data.pop('infrastructures', [])

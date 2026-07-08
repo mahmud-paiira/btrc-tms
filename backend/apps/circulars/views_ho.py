@@ -13,7 +13,8 @@ from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from django.utils.dateparse import parse_date
 
-from .models import Circular
+from .models import Circular, CircularCenterAllocation
+from apps.centers.models import Center
 from .serializers import (
     CircularListSerializer, CircularDetailSerializer, CircularWriteSerializer,
 )
@@ -593,6 +594,68 @@ class HOCircularViewSet(viewsets.ModelViewSet):
                 results['errors'].append(f'সারি {row_idx}: {str(e)}')
 
         return Response(results)
+
+    @action(detail=True, methods=['post'], url_path='distribute-seats')
+    def distribute_seats(self, request, pk=None):
+        circular = self.get_object()
+        if circular.status != Circular.Status.PUBLISHED:
+            return Response({'error': 'শুধুমাত্র প্রকাশিত সার্কুলারের জন্য আসন বিতরণ করা যাবে'}, status=400)
+
+        centers = circular.get_eligible_centers_list()
+        if not centers:
+            return Response({'error': 'কোনো কেন্দ্র নির্ধারিত নেই'}, status=400)
+
+        if circular.all_centers:
+            centers = Center.objects.filter(status=Center.Status.ACTIVE)
+
+        center_capacities = []
+        total_capacity = 0
+        for c in centers:
+            cap = c.get_effective_max_seats()
+            if cap > 0:
+                center_capacities.append({'center': c, 'capacity': cap})
+                total_capacity += cap
+
+        if not center_capacities:
+            return Response({'error': 'কোনো কেন্দ্রেরই প্রশিক্ষক-ভিত্তিক সক্ষমতা নেই। প্রথমে কেন্দ্রে প্রশিক্ষক বরাদ্দ করুন।'}, status=400)
+
+        total_seats = circular.total_seats
+        allocated = []
+        remaining = total_seats
+
+        for i, item in enumerate(center_capacities):
+            c = item['center']
+            cap = item['capacity']
+            if i == len(center_capacities) - 1:
+                seats = remaining
+            else:
+                seats = int(total_seats * cap / total_capacity)
+            if seats > cap:
+                seats = cap
+            if seats < 0:
+                seats = 0
+            remaining -= seats
+            allocation, _ = CircularCenterAllocation.objects.update_or_create(
+                circular=circular,
+                center=c,
+                defaults={'allocated_seats': seats},
+            )
+            allocated.append({
+                'center_id': c.id,
+                'center_code': c.code,
+                'center_name': c.name_bn,
+                'trainer_count': c.get_active_trainer_count(),
+                'capacity': cap,
+                'allocated_seats': seats,
+            })
+
+        self._log(request, f'Distributed {total_seats} seats across {len(allocated)} centers for circular {circular.title_bn}', circular.id)
+        return Response({
+            'total_seats': total_seats,
+            'total_capacity': total_capacity,
+            'centers_allocated': len(allocated),
+            'allocations': allocated,
+        })
 
     @action(detail=True, methods=['get'], permission_classes=[permissions.AllowAny])
     def print_circular(self, request, pk=None):

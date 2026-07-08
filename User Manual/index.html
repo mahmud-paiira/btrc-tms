@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BRTC প্রশিক্ষণ ব্যবস্থাপনা সিস্টেম - ব্যবহারকারী ম্যানুয়াল</title>
+<style>
+  :root {
+    --primary: #1b6b3b;
+    --primary-light: #2a8a4e;
+    --primary-dark: #124a28;
+    --accent: #ffc107;
+    --bg: #f4f7f2;
+    --card-bg: #ffffff;
+    --text: #2d2d2d;
+    --text-light: #555;
+    --border: #c8e0c0;
+    --shadow: 0 2px 12px rgba(27,107,59,0.12);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', 'NikoshBAN', 'Siyam Rupali', Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.8;
+    font-size: 15px;
+  }
+  /* ─── HEADER ─── */
+  .header {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    color: #fff;
+    padding: 32px 40px 28px;
+    text-align: center;
+    border-bottom: 4px solid var(--accent);
+  }
+  .header h1 { font-size: 28px; letter-spacing: 0.5px; }
+  .header .subtitle { font-size: 15px; opacity: .85; margin-top: 6px; }
+  .header .version { font-size: 13px; opacity: .65; margin-top: 4px; }
+
+  /* ─── LAYOUT ─── */
+  .wrapper { display: flex; max-width: 1400px; margin: 0 auto; min-height: 100vh; }
+  .sidebar {
+    width: 280px; flex-shrink: 0;
+    background: var(--card-bg);
+    border-right: 2px solid var(--border);
+    position: sticky; top: 0; height: 100vh; overflow-y: auto;
+    padding: 16px 0;
+  }
+  .sidebar h3 {
+    font-size: 13px; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--primary); padding: 10px 20px 4px;
+  }
+  .sidebar a {
+    display: block; padding: 8px 20px 8px 28px;
+    color: var(--text); text-decoration: none; font-size: 14px;
+    border-left: 3px solid transparent; transition: .15s;
+  }
+  .sidebar a:hover, .sidebar a.active {
+    background: #eaf3e8; color: var(--primary-dark);
+    border-left-color: var(--primary);
+  }
+  .sidebar a.l2 { padding-left: 40px; font-size: 13px; }
+  .sidebar a.l3 { padding-left: 52px; font-size: 12.5px; }
+
+  .main {
+    flex: 1; min-width: 0; padding: 40px 48px 80px;
+  }
+
+  /* ─── CONTENT ─── */
+  .main h2 {
+    font-size: 26px; color: var(--primary-dark);
+    border-bottom: 3px solid var(--primary);
+    padding-bottom: 8px; margin: 48px 0 20px;
+  }
+  .main h2:first-child { margin-top: 0; }
+  .main h3 {
+    font-size: 20px; color: var(--primary);
+    margin: 32px 0 12px; padding-left: 0;
+  }
+  .main h4 {
+    font-size: 16px; color: var(--text);
+    margin: 20px 0 8px;
+  }
+  .main p { margin: 0 0 12px; text-align: justify; }
+  .main ul, .main ol { margin: 0 0 16px 24px; }
+  .main li { margin-bottom: 6px; }
+
+  /* ─── INFO BOXES ─── */
+  .info, .note, .tip, .warn {
+    padding: 14px 18px; border-radius: 6px; margin: 16px 0;
+    border-left: 4px solid;
+  }
+  .info { background: #e8f4fd; border-color: #2196f3; }
+  .note { background: #fff8e1; border-color: var(--accent); }
+  .tip  { background: #e8f5e9; border-color: var(--primary); }
+  .warn { background: #fbe9e7; border-color: #e53935; }
+  .info strong, .note strong, .tip strong, .warn strong {
+    display: inline-block; margin-bottom: 2px;
+  }
+
+  /* ─── TABLE ─── */
+  table {
+    width: 100%; border-collapse: collapse; margin: 16px 0;
+    border: 2px solid var(--primary);
+  }
+  th {
+    background: var(--primary); color: #fff;
+    text-transform: uppercase; font-size: 13px;
+    padding: 10px 14px; text-align: left; letter-spacing: 0.3px;
+  }
+  td { padding: 8px 14px; border-bottom: 1px solid var(--border); }
+  tr:nth-child(even) td { background: #f9fbf8; }
+
+  /* ─── CODE / SHORTCUT ─── */
+  code {
+    background: #e8ece6; padding: 2px 7px; border-radius: 3px;
+    font-size: 13px; font-family: 'Consolas', 'Courier New', monospace;
+    color: var(--primary-dark);
+  }
+  kbd {
+    background: #333; color: #fff; padding: 2px 7px;
+    border-radius: 3px; font-size: 12px; font-family: monospace;
+  }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 900px) {
+    .sidebar { display: none; }
+    .main { padding: 24px 20px; }
+    .header { padding: 24px 16px; }
+    .header h1 { font-size: 22px; }
+  }
+
+  /* ─── PRINT ─── */
+  @media print {
+    .sidebar { display: none; }
+    .header { background: var(--primary) !important; }
+    .main { padding: 20px; }
+    .info, .note, .tip, .warn { break-inside: avoid; }
+  }
+
+  /* scrollbar */
+  .sidebar::-webkit-scrollbar { width: 6px; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>বাংলাদেশ সড়ক পরিবহন কর্পোরেশন (BRTC)</h1>
+  <div class="subtitle">প্রশিক্ষণ ব্যবস্থাপনা সিস্টেম — ব্যবহারকারী ম্যানুয়াল</div>
+  <div class="version">সংস্করণ ১.০ | জুলাই ২০২৬</div>
+</div>
+
+<div class="wrapper">
+
+<!-- ═══════════════ SIDEBAR ═══════════════ -->
+<nav class="sidebar">
+  <h3>সূচিপত্র</h3>
+  <a href="#intro" class="active">১. ভূমিকা</a>
+  <a href="#roles" class="l2">১.১ ব্যবহারকারীর ধরন</a>
+  <a href="#login" class="l2">১.২ লগইন</a>
+
+  <a href="#ho">২. হেড অফিস মডিউল</a>
+  <a href="#ho-center" class="l2">২.১ কেন্দ্র ব্যবস্থাপনা</a>
+  <a href="#ho-trainer" class="l2">২.২ প্রশিক্ষক ব্যবস্থাপনা</a>
+  <a href="#ho-assessor" class="l2">২.৩ মূল্যায়নকারী ব্যবস্থাপনা</a>
+  <a href="#ho-course" class="l2">২.৪ কোর্স ব্যবস্থাপনা</a>
+  <a href="#ho-circular" class="l2">২.৫ সার্কুলার</a>
+  <a href="#ho-circular-create" class="l3">২.৫.১ সার্কুলার তৈরি</a>
+  <a href="#ho-circular-publish" class="l3">২.৫.২ প্রকাশ ও ব্যবস্থাপনা</a>
+  <a href="#ho-application" class="l2">২.৬ আবেদন পর্যালোচনা</a>
+  <a href="#ho-seat" class="l2">২.৭ আসন বিতরণ</a>
+  <a href="#ho-trainee" class="l2">২.৮ প্রশিক্ষণার্থী ব্যবস্থাপনা</a>
+  <a href="#ho-reports" class="l2">২.৯ রিপোর্ট</a>
+
+  <a href="#center-admin">৩. কেন্দ্র প্রশাসক মডিউল</a>
+  <a href="#ca-batch" class="l2">৩.১ ব্যাচ ব্যবস্থাপনা</a>
+  <a href="#ca-trainer" class="l2">৩.২ প্রশিক্ষক নিয়োগ</a>
+  <a href="#ca-assessor" class="l2">৩.৩ মূল্যায়নকারী নিয়োগ</a>
+  <a href="#ca-attendance" class="l2">৩.৪ উপস্থিতি</a>
+  <a href="#ca-trainee" class="l2">৩.৫ প্রশিক্ষণার্থী</a>
+
+  <a href="#trainer">৪. প্রশিক্ষক মডিউল</a>
+  <a href="#assessor">৫. মূল্যায়নকারী মডিউল</a>
+  <a href="#trainee">৬. প্রশিক্ষণার্থী মডিউল</a>
+  <a href="#accountant">৭. হিসাবরক্ষক মডিউল</a>
+  <a href="#public">৮. পাবলিক মডিউল</a>
+  <a href="#reports">৯. রিপোর্ট ও এক্সপোর্ট</a>
+  <a href="#faq">১০. সাধারণ সমস্যা ও সমাধান</a>
+</nav>
+
+<!-- ═══════════════ MAIN CONTENT ═══════════════ -->
+<div class="main">
+
+<!-- ─── 1. INTRODUCTION ─── -->
+<h2 id="intro">১. ভূমিকা</h2>
+<p>
+  বাংলাদেশ সড়ক পরিবহন কর্পোরেশন (BRTC) এর প্রশিক্ষণ ব্যবস্থাপনা সিস্টেম একটি
+  ওয়েব-ভিত্তিক অ্যাপ্লিকেশন যা প্রশিক্ষণ কেন্দ্রসমূহের কার্যক্রম ডিজিটাইজ করে।
+  এই সিস্টেমের মাধ্যমে সারা দেশের BRTC প্রশিক্ষণ কেন্দ্রসমূহে সার্কুলার প্রকাশ,
+  আবেদন গ্রহণ, প্রশিক্ষক নিয়োগ, ব্যাচ তৈরি, উপস্থিতি ট্র্যাকিং, মূল্যায়ন,
+  ভাতা বিতরণ এবং বিভিন্ন রিপোর্ট তৈরি করা যায়।
+</p>
+
+<h3 id="roles">১.১ ব্যবহারকারীর ধরন ও ভূমিকা</h3>
+<table>
+  <tr><th>ধরন</th><th>ভূমিকা</th></tr>
+  <tr><td><strong>Superadmin</strong></td><td>সিস্টেমের সর্বোচ্চ ক্ষমতা। সবকিছু দেখতে ও সম্পাদনা করতে পারেন।</td></tr>
+  <tr><td><strong>Head Office (HO)</strong></td><td>কেন্দ্র, প্রশিক্ষক, মূল্যায়নকারী, কোর্স, সার্কুলার, আসন বিতরণ, প্রশিক্ষণার্থী এবং রিপোর্ট — সবকিছুর কেন্দ্রীয় ব্যবস্থাপনা।</td></tr>
+  <tr><td><strong>Center Admin</strong></td><td>নির্ধারিত কেন্দ্রের ব্যাচ তৈরি, প্রশিক্ষক/মূল্যায়নকারী নিয়োগ, উপস্থিতি, প্রশিক্ষণার্থী ব্যবস্থাপনা।</td></tr>
+  <tr><td><strong>Trainer</strong></td><td>নিজের ব্যাচের উপস্থিতি নেওয়া, সপ্তাহ পরিকল্পনা দেখা, প্রশিক্ষণার্থীদের তথ্য দেখা।</td></tr>
+  <tr><td><strong>Assessor</strong></td><td>নির্ধারিত ব্যাচের মূল্যায়ন সম্পন্ন করা, স্কোর প্রদান।</td></tr>
+  <tr><td><strong>Trainee</strong></td><td>নিজের প্রোফাইল, ব্যাচ, উপস্থিতি, মূল্যায়ন ফলাফল এবং ভাতা তথ্য দেখা।</td></tr>
+  <tr><td><strong>Accountant</strong></td><td>নির্ধারিত কেন্দ্রের ভাতা অনুমোদন ও বিতরণ (bkash/Nagad/Bank/Cash)।</td></tr>
+</table>
+
+<h3 id="login">১.২ লগইন ও অ্যাক্সেস</h3>
+<p>
+  নির্ধারিত ইউজারনেম ও পাসওয়ার্ড দিয়ে
+  <code>https://[server-address]/login</code> পৃষ্ঠায় লগইন করুন।
+  আপনার ব্যবহারকারীর ধরন অনুযায়ী ড্যাশবোর্ড ও মেনু পরিবর্তিত হবে।
+</p>
+<div class="note"><strong>নোট:</strong> প্রশিক্ষণার্থীদের জন্য পাবলিক রেজিস্ট্রেশন প্রক্রিয়া আলাদা (অধ্যায় ৮ দেখুন)।</div>
+
+<!-- ─── 2. HEAD OFFICE ─── -->
+<h2 id="ho">২. হেড অফিস মডিউল</h2>
+<p>
+  হেড অফিস ব্যবহারকারীরা পুরো সিস্টেমের কেন্দ্রীয় নিয়ন্ত্রণ রাখেন।
+  লগইনের পর ড্যাশবোর্ডে কেন্দ্র, কোর্স, সার্কুলার, প্রশিক্ষক, মূল্যায়নকারী,
+  প্রশিক্ষণার্থী এবং রিপোর্টের সারসংক্ষেপ দেখা যায়।
+</p>
+
+<h3 id="ho-center">২.১ কেন্দ্র ব্যবস্থাপনা</h3>
+<p>
+  <strong>পথ:</strong> Centres → Centre Management<br>
+  এখানে সকল প্রশিক্ষণ কেন্দ্রের তালিকা দেখা, নতুন কেন্দ্র তৈরি, বিদ্যমান কেন্দ্র
+  সম্পাদনা ও মুছতে পারেন।
+</p>
+<h4>কেন্দ্রের মূল ফিল্ডসমূহ</h4>
+<ul>
+  <li><strong>কেন্দ্র কোড</strong> — স্বয়ংক্রিয় জেনারেট হয় (০০০১, ০০০২ ...)</li>
+  <li><strong>নাম (বাংলা/ইংরেজি)</strong></li>
+  <li><strong>কেন্দ্রের ধরন</strong> — মহানগর, শহর, আধা-শহর, গ্রামীণ, দুর্গম</li>
+  <li><strong>অতিরিক্ত আবেদনের হার (%)</strong> — বেস সিটের অতিরিক্ত আবেদনের শতকরা হার (ডিফল্ট: ২০%)</li>
+  <li><strong>প্রতি প্রশিক্ষকে আসন সংখ্যা</strong> — একজন প্রশিক্ষকের জন্য কতজন প্রশিক্ষণার্থী বরাদ্দ করা যাবে (ডিফল্ট: ২৫)</li>
+  <li><strong>মান স্কোর</strong> — কেন্দ্রের গুণগত মান (০-১০০), রুটিং প্রাধান্যে ব্যবহৃত</li>
+  <li><strong>অবস্থা</strong> — সক্রিয় / স্থগিত</li>
+</ul>
+<div class="tip"><strong>টিপ:</strong> কেন্দ্রের সক্ষমতা স্বয়ংক্রিয়ভাবে গণনা করা হয়: সক্রিয় প্রশিক্ষকের সংখ্যা × প্রতি প্রশিক্ষকে আসন সংখ্যা। ওভারফ্লো শতাংশ যোগ করে কার্যকর সর্বোচ্চ সীমা নির্ধারিত হয়। এই তথ্য API রেসপন্সে <code>trainer_based_capacity</code> ও <code>effective_max_seats</code> ফিল্ডে পাওয়া যায়।</div>
+
+<h4>কেন্দ্রে প্রশিক্ষক বরাদ্দ</h4>
+<p>
+  প্রতিটি কেন্দ্রের জন্য <strong>Trainer Mapping</strong> এর মাধ্যমে প্রশিক্ষক বরাদ্দ করা হয়।
+  প্রশিক্ষকের অনুমোদিত অবস্থা (<code>approval_status = approved</code>) এবং ম্যাপিংয়ের অবস্থা
+  (<code>status = active</code>) উভয়ই সক্রিয় থাকলে তবেই তিনি কেন্দ্রের সক্ষমতা গণনায়
+  অন্তর্ভুক্ত হন।
+</p>
+
+<h3 id="ho-trainer">২.২ প্রশিক্ষক ব্যবস্থাপনা</h3>
+<p>
+  <strong>পথ:</strong> Trainers → Trainer Management<br>
+  সকল প্রশিক্ষকের তালিকা, অনুসন্ধান, ফিল্টার, নতুন প্রশিক্ষক তৈরি, তথ্য সম্পাদনা ও মুছতে পারেন।
+</p>
+<h4>মুখ্য বৈশিষ্ট্য</h4>
+<ul>
+  <li><strong>ইম্পোর্ট/এক্সপোর্ট:</strong> এক্সেল/সিএসভি ফাইলের মাধ্যমে একাধিক প্রশিক্ষক আপলোড বা ডাউনলোড</li>
+  <li><strong>অনুমোদন:</strong> প্রশিক্ষকের আবেদন অনুমোদন বা বাতিল</li>
+  <li><strong>টেমপ্লেট ডাউনলোড:</strong> ইম্পোর্টের জন্য নির্ধারিত ফরম্যাটের টেমপ্লেট</li>
+  <li><strong>বাল্ক ডিলিট:</strong> একাধিক প্রশিক্ষক নির্বাচন করে একসাথে মুছুন</li>
+  <li><strong>প্রশিক্ষক ম্যাপিং:</strong> কেন্দ্র ও কোর্সের সাথে ম্যাপিং</li>
+</ul>
+
+<h4>ইম্পোর্ট টেমপ্লেট কলাম</h4>
+<table>
+  <tr><th>কলাম</th><th>বর্ণনা</th><th>প্রয়োজনীয়</th></tr>
+  <tr><td>প্রশিক্ষক নং</td><td>ইউনিক আইডি</td><td>হ্যাঁ</td></tr>
+  <tr><td>জাতীয় পরিচয়পত্র নং</td><td>এনআইডি নম্বর</td><td>হ্যাঁ</td></tr>
+  <tr><td>নাম (বাংলা)</td><td>পূর্ণ নাম বাংলায়</td><td>হ্যাঁ</td></tr>
+  <tr><td>কেন্দ্রের কোড</td><td>যে কেন্দ্রে ম্যাপ হবে</td><td>ঐচ্ছিক</td></tr>
+  <tr><td>কোর্সের কোড</td><td>যে কোর্সে ম্যাপ হবে</td><td>ঐচ্ছিক</td></tr>
+</table>
+
+<h3 id="ho-assessor">২.৩ মূল্যায়নকারী ব্যবস্থাপনা</h3>
+<p>
+  <strong>পথ:</strong> Assessors → Assessor Management<br>
+  প্রশিক্ষক ব্যবস্থাপনার অনুরূপ — ইম্পোর্ট, এক্সপোর্ট, অনুমোদন, বাল্ক ডিলিট,
+  কেন্দ্র ও কোর্সের সাথে ম্যাপিং।
+</p>
+
+<h3 id="ho-course">২.৪ কোর্স ব্যবস্থাপনা</h3>
+<p>
+  <strong>পথ:</strong> Courses → Course Management<br>
+  সকল কোর্সের তালিকা ও ব্যবস্থাপনা। প্রতিটি কোর্সের জন্য কোড, নাম (বাংলা/ইংরেজি),
+  ধরন, সময়কাল, ফি নির্ধারণ করা যায়।
+</p>
+
+<h3 id="ho-circular">২.৫ সার্কুলার</h3>
+
+<h4 id="ho-circular-create">২.৫.১ সার্কুলার তৈরি</h4>
+<p>
+  <strong>পথ:</strong> Circulars → Create Circular<br>
+  নতুন সার্কুলার তৈরি করতে নিম্নলিখিত তথ্য প্রয়োজন:
+</p>
+<ul>
+  <li><strong>কোর্স</strong> — যেই কোর্সের জন্য সার্কুলার</li>
+  <li><strong>উপযুক্ত কেন্দ্র</strong> — যে কেন্দ্রসমূহের জন্য প্রযোজ্য (অথবা "সব কেন্দ্র" নির্বাচন)</li>
+  <li><strong>শিরোনাম</strong> — বাংলা ও ইংরেজিতে</li>
+  <li><strong>মোট আসন</strong> — সার্কুলারের মোট আসন সংখ্যা</li>
+  <li><strong>আবেদনের সময়সীমা</strong> — শুরু ও শেষ তারিখ</li>
+  <li><strong>প্রশিক্ষণের সময়সীমা</strong> — শুরু ও শেষ তারিখ</li>
+  <li><strong>ফি</strong> — কোর্স ফি (ঐচ্ছিক, খালি রাখলে কোর্সের ডিফল্ট ফি নেওয়া হবে)</li>
+  <li><strong>অটো-স্ক্রিন</strong> — চেকলিস্ট আইটেম ও পাস স্কোর নির্ধারণ</li>
+  <li><strong>রুটিং ওজন</strong> — আসন (w₁), দূরত্ব (w₂), মেধা (w₃) — ভবিষ্যতে রুটিং অ্যালগরিদমে ব্যবহৃত হবে</li>
+</ul>
+
+<h4 id="ho-circular-publish">২.৫.২ প্রকাশ ও ব্যবস্থাপনা</h4>
+<p>
+  সার্কুলার তৈরি করার পর <strong>Publish</strong> বাটনে ক্লিক করে প্রকাশ করুন।
+  প্রকাশিত সার্কুলার পাবলিকলি দেখা যাবে এবং আবেদন গ্রহণ শুরু হবে।
+  অন্যান্য অ্যাকশন:
+</p>
+<ul>
+  <li><strong>Close</strong> — আবেদন গ্রহণ বন্ধ</li>
+  <li><strong>Extend</strong> — আবেদনের মেয়াদ বাড়ানো (দিন সংখ্যা উল্লেখ করে)</li>
+  <li><strong>Unpublish</strong> — প্রকাশিত সার্কুলার খসড়ায় ফেরত নেওয়া</li>
+</ul>
+
+<h3 id="ho-application">২.৬ আবেদন পর্যালোচনা</h3>
+<p>
+  <strong>পথ:</strong> Circulars → Applications (সার্কুলার ডিটেইলে)<br>
+  একটি সার্কুলারের সব আবেদন দেখতে পারেন। প্রতিটি আবেদন:
+</p>
+<ul>
+  <li><strong>Approve</strong> — নির্বাচিত (SELECTED) status-এ উন্নীত করে। স্বয়ংক্রিয়ভাবে ইউজার অ্যাকাউন্ট তৈরি হয় এবং সার্কুলারের <code>remaining_seats</code> হ্রাস পায়।</li>
+  <li><strong>Reject</strong> — প্রত্যাখ্যান</li>
+  <li><strong>Enroll</strong> — নথিভুক্ত (ENROLLED), ট্রেইনি প্রোফাইল তৈরি</li>
+  <li><strong>Print</strong> — আবেদন ফর্ম পিডিএফ হিসেবে প্রিন্ট</li>
+</ul>
+<p>
+  আবেদনের অবস্থা পরিবর্তনের সাথে সাথে ট্রেইনি অ্যাকাউন্ট ও ব্যাচ এনরোলমেন্ট
+  স্বয়ংক্রিয়ভাবে সিঙ্ক হয়।
+</p>
+
+<h3 id="ho-seat">২.৭ আসন বিতরণ (Seat Distribution)</h3>
+<p>
+  <strong>পথ:</strong> সার্কুলার ডিটেইল পৃষ্ঠায় "Distribute Seats" বাটন<br>
+  একটি প্রকাশিত সার্কুলারের মোট আসন উপযুক্ত কেন্দ্রসমূহের মধ্যে বিতরণ করার জন্য
+  এই ফিচার ব্যবহার করুন। বিতরণ প্রক্রিয়া:
+</p>
+<ol>
+  <li>প্রতিটি কেন্দ্রের <strong>প্রশিক্ষক-ভিত্তিক সক্ষমতা</strong> গণনা করা হয়
+    (সক্রিয় প্রশিক্ষক সংখ্যা × প্রতি প্রশিক্ষকে আসন সংখ্যা)</li>
+  <li>প্রতিটি কেন্দ্রের <strong>কার্যকর সর্বোচ্চ আসন</strong> গণনা করা হয়
+    (সক্ষমতা × (১ + ওভারফ্লো%/১০০))</li>
+  <li>সার্কুলারের মোট আসন কেন্দ্রসমূহের মধ্যে তাদের সক্ষমতার অনুপাতে বিতরণ করা হয়</li>
+  <li>প্রতিটি কেন্দ্রের জন্য <code>CircularCenterAllocation</code> রেকর্ড তৈরি/হালনাগাদ হয়</li>
+</ol>
+<div class="info"><strong>গুরুত্বপূর্ণ:</strong> ব্যাচ জেনারেট করার সময় (Batch → Generate) সিস্টেম যাচাই করে যে বরাদ্দকৃত আসন কেন্দ্রের কার্যকর সর্বোচ্চ সক্ষমতার বেশি নয়। বেশি হলে বাংলায় এরর মেসেজ দেখিয়ে থামিয়ে দেওয়া হবে।</div>
+
+<h3 id="ho-trainee">২.৮ প্রশিক্ষণার্থী ব্যবস্থাপনা</h3>
+<p>
+  <strong>পথ:</strong> Trainees → Trainee Management<br>
+  সকল প্রশিক্ষণার্থীর কেন্দ্রীয় তালিকা। ইম্পোর্ট, এক্সপোর্ট, বাল্ক ডিলিট,
+  অনুসন্ধান ও ফিল্টার সুবিধা রয়েছে।
+</p>
+<table>
+  <tr><th>ফিচার</th><th>বিবরণ</th></tr>
+  <tr><td>অনুসন্ধান</td><td>নাম, এনআইডি, ফোন, ইমেইল দ্বারা খুঁজুন</td></tr>
+  <tr><td>ফিল্টার</td><td>কেন্দ্র, ব্যাচ, অবস্থা অনুযায়ী ফিল্টার</td></tr>
+  <tr><td>ইম্পোর্ট</td><td>এক্সেল ফাইল আপলোড করে একাধিক ট্রেইনি যোগ করুন। টেমপ্লেট ডাউনলোড করে নিন।</td></tr>
+  <tr><td>এক্সপোর্ট</td><td>এক্সেল (.xlsx) বা CSV ফরম্যাটে ডাউনলোড</td></tr>
+  <tr><td>বাল্ক ডিলিট</td><td>একাধিক ট্রেইনি নির্বাচন করে একসাথে মুছুন</td></tr>
+</table>
+
+<h3 id="ho-reports">২.৯ রিপোর্ট</h3>
+<p>
+  <strong>পথ:</strong> Reports<br>
+  হেড অফিস থেকে বিভিন্ন ধরনের রিপোর্ট দেখা ও এক্সপোর্ট করা যায়:
+</p>
+<ul>
+  <li>Center-wise Report — কেন্দ্রভিত্তিক সারসংক্ষেপ</li>
+  <li>Trainer Report — প্রশিক্ষক সংক্রান্ত রিপোর্ট</li>
+  <li>Assessor Report — মূল্যায়নকারী রিপোর্ট</li>
+  <li>Trainee Report — প্রশিক্ষণার্থী রিপোর্ট</li>
+  <li>Batch Report — ব্যাচভিত্তিক রিপোর্ট</li>
+  <li>Attendance Report — উপস্থিতির রিপোর্ট</li>
+  <li>Assessment Report — মূল্যায়ন ফলাফল</li>
+  <li>Financial Report — আর্থিক রিপোর্ট</li>
+  <li>Allowance Report — ভাতা বিতরণ রিপোর্ট</li>
+  <li>Completion Report — সমাপ্তি রিপোর্ট</li>
+  <li>Dropout Report — ঝরে পড়া রিপোর্ট</li>
+</ul>
+
+<!-- ─── 3. CENTER ADMIN ─── -->
+<h2 id="center-admin">৩. কেন্দ্র প্রশাসক মডিউল</h2>
+<p>
+  কেন্দ্র প্রশাসক শুধুমাত্র নিজ কেন্দ্রের মধ্যে সীমাবদ্ধ। লগইনের পর ড্যাশবোর্ডে
+  কেন্দ্রের ব্যাচ, প্রশিক্ষণার্থী ও অন্যান্য তথ্যের সারসংক্ষেপ দেখা যায়।
+</p>
+
+<h3 id="ca-batch">৩.১ ব্যাচ ব্যবস্থাপনা</h3>
+<p>
+  <strong>পথ:</strong> Batches → Batch List<br>
+  কেন্দ্রের সব ব্যাচের তালিকা ও ব্যবস্থাপনা।
+</p>
+
+<h4>ব্যাচ জেনারেট</h4>
+<p>
+  <strong>পথ:</strong> Batches → Generate<br>
+  একটি প্রকাশিত সার্কুলার ও কেন্দ্র নির্বাচন করে ব্যাচ জেনারেট করুন।
+  সিস্টেম <code>CircularCenterAllocation.allocated_seats</code> অনুযায়ী
+  (২৫ আসন/ব্যাচ হারে) ব্যাচ তৈরি করে এবং নির্বাচিত আবেদনকারীদের
+  স্বয়ংক্রিয়ভাবে এনরোল করে।
+</p>
+<div class="warn"><strong>সতর্কতা:</strong> ব্যাচ জেনারেট করার আগে নিশ্চিত হন যে কেন্দ্রে পর্যাপ্ত সক্রিয় প্রশিক্ষক রয়েছেন। বরাদ্দকৃত আসন কেন্দ্রের <code>effective_max_seats</code> এর বেশি হলে জেনারেট ব্যর্থ হবে।</div>
+
+<h4>ব্যাচের বিবরণ</h4>
+<ul>
+  <li>ব্যাচের নাম, শিফট (১ম/২য়), সময়সূচী</li>
+  <li>প্রশিক্ষণার্থী তালিকা ও এনরোলমেন্ট</li>
+  <li>সাপ্তাহিক পরিকল্পনা (Week Plan) — ৮ সেশন/সপ্তাহ (ডিফল্ট)</li>
+  <li>প্রশিক্ষক নিয়োগ (Batch Trainer Mapping)</li>
+  <li>মূল্যায়নকারী নিয়োগ (Batch Assessor)</li>
+  <li>ক্যালেন্ডার দিন ও উপস্থিতি</li>
+</ul>
+
+<h4>এনরোলমেন্ট অপশন</h4>
+<ul>
+  <li><strong>Enroll Trainee</strong> — ব্যাচে নতুন প্রশিক্ষণার্থী এনরোল</li>
+  <li><strong>Drop</strong> — প্রশিক্ষণার্থীকে ব্যাচ থেকে সরানো (ঝরে পড়া)</li>
+  <li><strong>Transfer</strong> — একই কেন্দ্রের অন্য ব্যাচে স্থানান্তর</li>
+</ul>
+
+<h4>সাপ্তাহিক পরিকল্পনা (Week Plan)</h4>
+<p>
+  প্রশিক্ষক নিয়োগের সময় স্বয়ংক্রিয়ভাবে ডিফল্ট ৮-সেশন সপ্তাহ পরিকল্পনা তৈরি হয়।
+  কেন্দ্র প্রশাসক ম্যানুয়ালি সেশন সম্পাদনা, প্রশিক্ষক পরিবর্তন করতে পারেন।
+  <strong>Bulk Add Week Plans</strong> অপশন দিয়ে সম্পূর্ণ নতুন প্ল্যান সেট
+  প্রতিস্থাপন করা যায় (পুরোনো ডিলিট → নতুন তৈরি)।
+</p>
+
+<h3 id="ca-trainer">৩.২ প্রশিক্ষক নিয়োগ</h3>
+<p>
+  <strong>পথ:</strong> Trainers → Assign Trainer<br>
+  নির্দিষ্ট ব্যাচে প্রশিক্ষক (প্রধান ও সহযোগী) নিয়োগ করা হয়।
+  ড্রপডাউন থেকে অনুমোদিত প্রশিক্ষক নির্বাচন করুন।
+</p>
+
+<h3 id="ca-assessor">৩.৩ মূল্যায়নকারী নিয়োগ</h3>
+<p>
+  <strong>পথ:</strong> Assessors → Assign Assessor<br>
+  ব্যাচভিত্তিক মূল্যায়নকারী নিয়োগ। <code>BatchAssessor</code> মডেলের মাধ্যমে
+  এক ব্যাচে একাধিক মূল্যায়নকারী নিয়োগ সম্ভব।
+</p>
+
+<h3 id="ca-attendance">৩.৪ উপস্থিতি</h3>
+<p>
+  <strong>পথ:</strong> Attendance<br>
+  প্রতিটি ব্যাচের দৈনিক উপস্থিতি দেখা ও রিপোর্ট তৈরি করা যায়।
+  ক্যালেন্ডার ইন্টারফেসের মাধ্যমে একটি নির্দিষ্ট দিনের উপস্থিতি বিশদ দেখা যায়।
+</p>
+
+<h3 id="ca-trainee">৩.৫ প্রশিক্ষণার্থী ব্যবস্থাপনা</h3>
+<p>
+  <strong>পথ:</strong> Trainees<br>
+  কেন্দ্রের সব প্রশিক্ষণার্থীর তালিকা। ইম্পোর্ট, এক্সপোর্ট, অনুসন্ধান,
+  ব্যাচভিত্তিক ফিল্টার। নতুন ট্রেইনি ম্যানুয়ালি যোগ বা বাল্ক ইম্পোর্ট করা যায়।
+</p>
+
+<!-- ─── 4. TRAINER ─── -->
+<h2 id="trainer">৪. প্রশিক্ষক মডিউল</h2>
+<p>
+  প্রশিক্ষক লগইন করলে নিজের ব্যাচসমূহের তালিকা দেখতে পান।
+</p>
+<h4>মুখ্য বৈশিষ্ট্য</h4>
+<ul>
+  <li><strong>উপস্থিতি নেওয়া:</strong> প্রতিটি ব্যাচের জন্য দৈনিক উপস্থিতি "Present"
+    বা "Absent" হিসেবে চিহ্নিত করুন। "Late" চিহ্নিত করলে তা ০.৫ ধরা হয়
+    (attended_sessions এ DecimalField)।
+    ড্রপডাউনে প্রশিক্ষকের নাম বাংলায় (<code>user_full_name_bn</code>) দেখায়।</li>
+  <li><strong>QR চেকইন:</strong> প্রশিক্ষণার্থী QR কোড স্ক্যান করে উপস্থিতি নিশ্চিত করতে পারে।</li>
+  <li><strong>সাপ্তাহিক পরিকল্পনা দেখা:</strong> নিজের ব্যাচের সপ্তাহ পরিকল্পনা দেখুন।</li>
+  <li><strong>প্রশিক্ষণার্থী তালিকা:</strong> ব্যাচের প্রশিক্ষণার্থীদের তথ্য দেখুন।</li>
+</ul>
+
+<!-- ─── 5. ASSESSOR ─── -->
+<h2 id="assessor">৫. মূল্যায়নকারী মডিউল</h2>
+<p>
+  মূল্যায়নকারী লগইন করলে নিজের নির্ধারিত ব্যাচসমূহ দেখতে পান।
+</p>
+<h4>মুখ্য বৈশিষ্ট্য</h4>
+<ul>
+  <li><strong>মূল্যায়ন সম্পন্ন করা:</strong> প্রতিটি প্রশিক্ষণার্থীর জন্য আলাদা স্কোর ও মন্তব্য প্রদান</li>
+  <li><strong>ফলাফল দেখা:</strong> নিজের সম্পন্ন করা মূল্যায়নের তালিকা</li>
+</ul>
+
+<!-- ─── 6. TRAINEE ─── -->
+<h2 id="trainee">৬. প্রশিক্ষণার্থী মডিউল</h2>
+<p>
+  প্রশিক্ষণার্থী লগইন করলে নিজের ড্যাশবোর্ড দেখতে পান।
+</p>
+<h4>মুখ্য বৈশিষ্ট্য</h4>
+<ul>
+  <li><strong>প্রোফাইল:</strong> নিজের তথ্য দেখা ও সম্পাদনা (জন্ম তারিখ সহ, যা লগইন রেস্পন্সেও আসে)</li>
+  <li><strong>ব্যাচের তথ্য:</strong> নিজের ব্যাচের বিস্তারিত, শিফট, সময়সূচী</li>
+  <li><strong>উপস্থিতি:</strong> নিজের উপস্থিতির রেকর্ড ও শতকরা হার</li>
+  <li><strong>মূল্যায়ন ফলাফল:</strong> প্রাপ্ত স্কোর ও ফলাফল</li>
+  <li><strong>ভাতা:</strong> ভাতার স্থিতি ও বিতরণের তথ্য</li>
+  <li><strong>QR কোড:</strong> নিজের QR কোড যা উপস্থিতি নেওয়ার জন্য ব্যবহার করা যায়</li>
+</ul>
+
+<!-- ─── 7. ACCOUNTANT ─── -->
+<h2 id="accountant">৭. হিসাবরক্ষক মডিউল</h2>
+<p>
+  হিসাবরক্ষক শুধুমাত্র নিজ কেন্দ্রের ভাতা ব্যবস্থাপনা করতে পারেন।
+  প্রতিটি কেন্দ্রের জন্য নির্ধারিত এক বা একাধিক accountant থাকে।
+</p>
+<h4>মুখ্য বৈশিষ্ট্য</h4>
+<ul>
+  <li><strong>ভাতা অনুমোদন:</strong> প্রশিক্ষণার্থীদের ভাতা অনুমোদন</li>
+  <li><strong>ভাতা বিতরণ:</strong> bkash, Nagad, Bank অথবা Cash মাধ্যমে ভাতা বিতরণ। লেনদেন আইডি (Txn ID) সংযুক্ত করতে হবে।</li>
+  <li><strong>বিতরণের ইতিহাস:</strong> পূর্ববর্তী বিতরণের তালিকা ও বিবরণ</li>
+</ul>
+
+<!-- ─── 8. PUBLIC ─── -->
+<h2 id="public">৮. পাবলিক মডিউল</h2>
+<p>
+  সাধারণ ব্যবহারকারীরা (প্রশিক্ষণার্থী) নিবন্ধন ও আবেদন করতে পারেন।
+</p>
+<h4>প্রক্রিয়া</h4>
+<ol>
+  <li><strong>সার্কুলার দেখা:</strong> পাবলিক URL-এ গিয়ে প্রকাশিত সার্কুলার দেখুন</li>
+  <li><strong>নিবন্ধন:</strong> নাম, ইমেইল, ফোন, এনআইডি, জন্ম তারিখ (বয়স ≥ ২১ বছর) দিয়ে নিবন্ধন</li>
+  <li><strong>আবেদন:</strong> পছন্দের কেন্দ্র নির্বাচন করে আবেদন জমা দিন</li>
+  <li><strong>চেকলিস্ট:</strong> নির্ধারিত চেকলিস্ট আইটেম পূরণ করুন (বয়স, শিক্ষাগত যোগ্যতা, অভিজ্ঞতা ইত্যাদি)</li>
+  <li><strong>অটো-স্ক্রিন:</strong> জমা দেওয়ার সময় স্বয়ংক্রিয় স্কোরিং হয়। ন্যূনতম স্কোর পূরণ করলেই পাস।</li>
+  <li><strong>অপেক্ষা:</strong> নির্বাচিত হলে HO/কেন্দ্র প্রশাসকের অনুমোদনের পর ইমেইল/এসএমএসের মাধ্যমে জানানো হবে</li>
+</ol>
+
+<!-- ─── 9. REPORTS & EXPORT ─── -->
+<h2 id="reports">৯. রিপোর্ট ও এক্সপোর্ট</h2>
+<p>
+  পুরো সিস্টেমে বিভিন্ন স্থান থেকে Excel (.xlsx) ও CSV ফরম্যাটে ডেটা
+  এক্সপোর্ট করা যায়। প্রধান এক্সপোর্ট অপশনসমূহ:
+</p>
+<table>
+  <tr><th>পৃষ্ঠা</th><th>এক্সপোর্ট ফরম্যাট</th></tr>
+  <tr><td>কেন্দ্র তালিকা</td><td>XLSX, CSV</td></tr>
+  <tr><td>প্রশিক্ষক তালিকা</td><td>XLSX, CSV</td></tr>
+  <tr><td>মূল্যায়নকারী তালিকা</td><td>XLSX, CSV</td></tr>
+  <tr><td>প্রশিক্ষণার্থী তালিকা</td><td>XLSX, CSV</td></tr>
+  <tr><td>ব্যাচ তালিকা</td><td>XLSX, CSV</td></tr>
+  <tr><td>সার্কুলার তালিকা</td><td>XLSX, CSV</td></tr>
+  <tr><td>সকল রিপোর্ট</td><td>XLSX, CSV</td></tr>
+</table>
+<div class="tip"><strong>টিপ:</strong> ইম্পোর্টের আগে সর্বদা "Download Template" বাটন ব্যবহার করে নির্ধারিত ফরম্যাটের টেমপ্লেট ডাউনলোড করে নিন। কলামের হেডিং ও ডেটা টাইপ মিলিয়ে ডেটা পূরণ করুন।</div>
+
+<!-- ─── 10. FAQ ─── -->
+<h2 id="faq">১০. সাধারণ সমস্যা ও সমাধান</h2>
+
+<h4>প্রশ্ন: ব্যাচ জেনারেট করতে গেলে এরর দেখায় "বরাদ্দকৃত আসন কেন্দ্রের সর্বোচ্চ সক্ষমতা ছাড়িয়ে গেছে"</h4>
+<p>
+  <strong>কারণ:</strong> কেন্দ্রে পর্যাপ্ত সক্রিয় প্রশিক্ষক নেই।<br>
+  <strong>সমাধান:</strong> হয় কেন্দ্রে আরও প্রশিক্ষক বরাদ্দ করুন (HO → Trainer Mapping),
+  অথবা আসন বিতরণ পুনরায় করুন (Circular → Distribute Seats),
+  অথবা কেন্দ্রের <code>seats_per_trainer</code> বা <code>overflow_percentage</code> বৃদ্ধি করুন
+  (Center Admin → Edit Center)।
+</p>
+
+<h4>প্রশ্ন: ইম্পোর্ট করার সময় এরর দেখায়</h4>
+<p>
+  <strong>কারণ:</strong> ফাইল ফরম্যাট বা কলাম ঠিক নেই।<br>
+  <strong>সমাধান:</strong> টেমপ্লেট ডাউনলোড করে সেই ফরম্যাট অনুসরণ করুন।
+  নিশ্চিত হন যে ফাইল .xlsx বা .csv ফরম্যাটে আছে এবং প্রয়োজনীয় কলাম
+  (যেমন "শিরোনাম (বাংলা)") রয়েছে।
+</p>
+
+<h4>প্রশ্ন: কোনো ট্রেইনি উপস্থিত চিহ্নিত করতে পারছি না</h4>
+<p>
+  <strong>কারণ:</strong> প্রশিক্ষক বা ক্যালেন্ডার দিন সেটআপ করা নেই।<br>
+  <strong>সমাধান:</strong> প্রথমে ব্যাচে প্রশিক্ষক নিয়োগ করুন (তারপর স্বয়ংক্রিয়ভাবে
+  সপ্তাহ পরিকল্পনা ও ক্যালেন্ডার দিন তৈরি হবে)। ক্যালেন্ডার দিন তৈরি না হলে
+  ম্যানুয়ালি তৈরি করুন। উপস্থিতি শুধুমাত্র কাজের দিনেই নেওয়া যায়।
+</p>
+
+<h4>প্রশ্ন: ট্রেইনি লগইন করতে পারছে না</h4>
+<p>
+  <strong>কারণ:</strong> অ্যাকাউন্ট তৈরি হয়নি বা পাসওয়ার্ড ভুল।<br>
+  <strong>সমাধান:</strong> HO → Circular → Applications থেকে আবেদনটি
+  Approve করুন। Approve করার সময় স্বয়ংক্রিয়ভাবে ইউজার অ্যাকাউন্ট তৈরি হয়।
+  ডিফল্ট পাসওয়ার্ড: <code>changeme</code> (প্রথম লগইনের পর পরিবর্তন করতে বলা হবে)।
+</p>
+
+<h4>প্রশ্ন: একটি ব্যাচে একাধিক মূল্যায়নকারী নিয়োগ করা যায়?</h4>
+<p>
+  <strong>উত্তর:</strong> হ্যাঁ। <code>BatchAssessor</code> মডেলের মাধ্যমে
+  এক ব্যাচে একাধিক মূল্যায়নকারী নিয়োগ করা যায়।
+</p>
+
+<h4>প্রশ্ন: ডেটা সিড করার নিয়ম কী?</h4>
+<p>
+  তিনটি কমান্ড ক্রমান্বয়ে চালান:
+</p>
+<ol>
+  <li><code>python manage.py seed_data</code> — মৌলিক ডেটা</li>
+  <li><code>python manage.py seed_sample_data</code> — নমুনা ডেটা</li>
+  <li><code>python manage.py seed_test_data</code> — টেস্ট ডেটা</li>
+</ol>
+<p>সব কমান্ড <strong>idempotent</strong> (পুনরায় চালালেও একই ফলাফল) — <code>get_or_create</code> ব্যবহার করে।</p>
+
+<h4>টেস্ট ক্রেডেনশিয়াল</h4>
+<table>
+  <tr><th>ধরন</th><th>ইমেইল</th><th>পাসওয়ার্ড</th></tr>
+  <tr><td>প্রশিক্ষক</td><td>trainer@brtc.gov.bd – trainer4@brtc.gov.bd</td><td>trainer123</td></tr>
+  <tr><td>প্রশিক্ষণার্থী</td><td>trainee@brtc.gov.bd – trainee12@brtc.gov.bd</td><td>trainee123</td></tr>
+  <tr><td>মূল্যায়নকারী</td><td>assessor@brtc.gov.bd</td><td>assessor123</td></tr>
+  <tr><td>হিসাবরক্ষক</td><td>accountant_{center_code}@brtc.gov.bd</td><td>accountant123</td></tr>
+  <tr><td>কেন্দ্র প্রশাসক</td><td>rshadmin@brtc.gov.bd</td><td>rsh123</td></tr>
+</table>
+
+<hr style="margin: 48px 0 24px; border: none; border-top: 2px solid var(--border);">
+<p style="text-align: center; color: var(--text-light); font-size: 14px;">
+  বাংলাদেশ সড়ক পরিবহন কর্পোরেশন (BRTC) &copy; ২০২৬
+</p>
+
+</div><!-- /main -->
+</div><!-- /wrapper -->
+</body>
+</html>
