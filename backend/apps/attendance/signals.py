@@ -19,4 +19,8 @@ def attendance_saved(sender, instance, **kwargs):
 
 @receiver(post_delete, sender=Attendance)
 def attendance_deleted(sender, instance, **kwargs):
+    if not AttendanceSummary.objects.filter(
+        trainee_id=instance.trainee_id, batch_id=instance.batch_id,
+    ).exists():
+        return
     _update_summary(instance.trainee_id, instance.batch_id)
