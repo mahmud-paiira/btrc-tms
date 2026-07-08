@@ -300,7 +300,7 @@ export default function AssessorList() {
                 <th className="d-none d-lg-table-cell">ইমেইল</th>
                 <th className="d-none d-md-table-cell">ফোন</th>
                 <th className="d-none d-xl-table-cell" onClick={() => toggleOrdering('years_of_experience')}>অভিজ্ঞতা{orderIcon('years_of_experience')}</th>
-                <th className="d-none d-lg-table-cell">কেন্দ্র</th>
+                <th>কেন্দ্র</th>
                 <th>স্ট্যাটাস</th>
                 <th className="text-center">অ্যাকশন</th>
               </tr>
@@ -308,10 +308,10 @@ export default function AssessorList() {
             <tbody>
               {loading ? (
                 <tr><td colSpan={11} className="text-center py-4"><div className="spinner-border spinner-border-sm me-2" />লোড হচ্ছে...</td></tr>
-              ) : items.length === 0 ? (
+              ) : assessors.length === 0 ? (
                 <tr><td colSpan={11} className="text-center text-secondary py-4">কোনো মূল্যায়নকারী পাওয়া যায়নি</td></tr>
               ) : (
-                items.map((a, idx) => (
+                assessors.map((a, idx) => (
                   <tr key={a.id}>
                     <td><input type="checkbox" className="form-check-input" checked={selectedIds.has(a.id)} onChange={() => handleSelectOne(a.id)} /></td>
                     <td className="text-secondary">{(page - 1) * pageSize + idx + 1}</td>
@@ -332,7 +332,7 @@ export default function AssessorList() {
                     <td className="d-none d-lg-table-cell">{a.user_email || '-'}</td>
                     <td className="d-none d-md-table-cell">{a.user_phone || '-'}</td>
                     <td className="d-none d-xl-table-cell">{a.years_of_experience ? `${formatNumber(a.years_of_experience)} বছর` : '-'}</td>
-                    <td className="d-none d-lg-table-cell">{a.center_names || '-'}</td>
+                    <td>{a.center_names || '-'}</td>
                     <td>
                       <span className={`status-dot dot-${a.status}`}></span>
                       <span style={{fontSize:13,color:'#334155'}}>{a.status_display || a.status}</span>
