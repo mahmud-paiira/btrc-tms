@@ -27,6 +27,8 @@ export default function TrainerList() {
   const [centerFilter, setCenterFilter] = useState('');
   const [selectedTrainer, setSelectedTrainer] = useState(null);
   const [selectedIds, setSelectedIds] = useState(new Set());
+  const [showBulkDelete, setShowBulkDelete] = useState(false);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const fileRef = useRef(null);
   const [importFile, setImportFile] = useState(null);
@@ -86,11 +88,30 @@ export default function TrainerList() {
   const handleDelete = async (id, name) => {
     if (!window.confirm(`"${name}"-কে মুছে ফেলবেন?`)) return;
     try {
-      await api.delete(`/trainers/${id}/`);
+      await hoService.deleteTrainer(id);
+      setSelectedIds(new Set());
       toast.success('মুছে ফেলা হয়েছে');
       fetchItems();
     } catch {
       toast.error('মুছতে ব্যর্থ');
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    setBulkDeleting(true);
+    try {
+      const ids = [...selectedIds];
+      const { data } = await hoService.bulkDeleteTrainers(ids);
+      if (data.errors?.length) toast.error(data.errors.join('\n'));
+      if (data.deleted > 0) toast.success(`${data.deleted} টি মুছে ফেলা হয়েছে`);
+      else if (!data.errors?.length) toast.warning('কিছু মুছে ফেলা যায়নি');
+      setSelectedIds(new Set());
+      setShowBulkDelete(false);
+      fetchItems();
+    } catch (e) {
+      toast.error('মুছতে ব্যর্থ');
+    } finally {
+      setBulkDeleting(false);
     }
   };
 
@@ -268,6 +289,9 @@ export default function TrainerList() {
             <button className="btn btn-sm btn-secondary" onClick={handlePrint}>
               <i className="bi bi-printer me-1"></i>প্রিন্ট
             </button>
+            <button className="btn btn-sm btn-danger" onClick={() => setShowBulkDelete(true)}>
+              <i className="bi bi-trash me-1"></i>নির্বাচিত মুছুন
+            </button>
             <button className="btn btn-sm btn-outline-danger" onClick={() => setSelectedIds(new Set())}>
               নির্বাচন বাতিল
             </button>
@@ -373,6 +397,29 @@ export default function TrainerList() {
       )}
       {showMapForm && (
         <TrainerMapForm centers={centers} onClose={() => setShowMapForm(false)} onDone={() => { setShowMapForm(false); fetchItems(); }} />
+      )}
+
+      {showBulkDelete && (
+        <div className="modal d-block" style={{ background: 'rgba(0,0,0,.5)' }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header bg-danger text-white">
+                <h5 className="modal-title"><i className="bi bi-exclamation-triangle me-2"></i>নিশ্চিতকরণ</h5>
+                <button type="button" className="btn-close btn-close-white" onClick={() => setShowBulkDelete(false)} />
+              </div>
+              <div className="modal-body">
+                <p className="mb-0">আপনি কি {selectedIds.size} টি প্রশিক্ষককে মুছে ফেলতে চান?</p>
+              </div>
+              <div className="modal-footer">
+                <button className="btn btn-secondary" onClick={() => setShowBulkDelete(false)}>বাতিল</button>
+                <button className="btn btn-danger" onClick={handleBulkDelete} disabled={bulkDeleting}>
+                  {bulkDeleting ? <span className="spinner-border spinner-border-sm me-1" /> : <i className="bi bi-trash me-1"></i>}
+                  মুছুন
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {showImport && (

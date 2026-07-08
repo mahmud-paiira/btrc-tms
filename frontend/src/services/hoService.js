@@ -56,6 +56,7 @@ const hoService = {
   getTrainerCourses(centerId) { return api.get(`/ho/trainers/courses/${centerId ? `?center_id=${centerId}` : ''}`); },
   approveMapping(id) { return api.post(`/ho/trainer-mappings/${id}/approve/`); },
   deleteTrainer(id) { return api.delete(`/ho/trainers/${id}/`); },
+  bulkDeleteTrainers(ids) { return api.post('/ho/trainers/bulk_delete/', { ids }); },
 
   // Assessors (HO)
   listAssessors(params) { return api.get('/ho/assessors/', { params }); },
@@ -81,6 +82,7 @@ const hoService = {
   getAssessorBatches(id) { return api.get(`/ho/assessors/${id}/batches/`); },
   getAssessorAssessments(id) { return api.get(`/ho/assessors/${id}/assessments/`); },
   deleteAssessor(id) { return api.delete(`/ho/assessors/${id}/`); },
+  bulkDeleteAssessors(ids) { return api.post('/ho/assessors/bulk_delete/', { ids }); },
 
   // Applications (HO)
   listApplications(params) { return api.get('/applications/', { params }); },

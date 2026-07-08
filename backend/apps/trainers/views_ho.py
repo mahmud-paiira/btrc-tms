@@ -65,6 +65,23 @@ class HOTrainerViewSet(viewsets.ModelViewSet):
         self._log(self.request, f'Deleted trainer {instance.trainer_no}', instance.id)
         instance.delete()
 
+    @action(detail=False, methods=['post'], url_path='bulk_delete')
+    def bulk_delete(self, request):
+        ids = request.data.get('ids', [])
+        if not ids:
+            return Response({'error': 'কোন আইডি প্রদান করা হয়নি'}, status=400)
+        deleted = 0
+        errors = []
+        for pk in ids:
+            try:
+                obj = self.get_queryset().get(pk=pk)
+                self.perform_destroy(obj)
+                deleted += 1
+            except Exception as e:
+                msg = str(e.detail[0]) if hasattr(e, 'detail') and isinstance(e.detail, list) else str(e)
+                errors.append(msg)
+        return Response({'deleted': deleted, 'errors': errors})
+
     @action(detail=False)
     def pending(self, request):
         qs = self.queryset.filter(approval_status=Trainer.ApprovalStatus.PENDING)
