@@ -81,7 +81,7 @@ class TrainerMapping(models.Model):
         related_name='trainer_mappings', verbose_name='কেন্দ্র',
     )
     course = models.ForeignKey(
-        Course, on_delete=models.CASCADE,
+        Course, on_delete=models.CASCADE, null=True, blank=True,
         related_name='trainer_mappings', verbose_name='কোর্স',
     )
     is_primary = models.BooleanField(default=False, verbose_name='প্রাথমিক')
@@ -100,7 +100,7 @@ class TrainerMapping(models.Model):
     class Meta:
         verbose_name = 'প্রশিক্ষক ম্যাপিং'
         verbose_name_plural = 'প্রশিক্ষক ম্যাপিং'
-        unique_together = ('trainer', 'center', 'course')
+        unique_together = ('trainer', 'center')
         ordering = ('trainer', 'center')
 
     def __str__(self):

@@ -235,6 +235,10 @@ class TrainerViewSet(viewsets.ModelViewSet):
             'দক্ষতার ক্ষেত্র': 'expertise_area', 'expertise_area': 'expertise_area',
             'স্ট্যাটাস': 'status', 'status': 'status',
             'অনুমোদন স্ট্যাটাস': 'approval_status', 'approval_status': 'approval_status',
+            'কেন্দ্রের কোড': 'center_code', 'center_code': 'center_code',
+            'কেন্দ্রের নাম': 'center_name', 'center_name': 'center_name',
+            'কোর্সের কোড': 'course_code', 'course_code': 'course_code',
+            'কোর্সের নাম': 'course_name', 'course_name': 'course_name',
         }
 
         results = {'created': 0, 'updated': 0, 'errors': []}
@@ -279,6 +283,29 @@ class TrainerViewSet(viewsets.ModelViewSet):
                         existing.approval_status = data['approval_status']
                     existing.save()
                     results['updated'] += 1
+
+                    from apps.centers.models import Center
+                    center = None
+                    center_code = data.get('center_code', '').strip()
+                    center_name = data.get('center_name', '').strip()
+                    if center_code:
+                        center = Center.objects.filter(code__iexact=center_code).first()
+                    if not center and center_name:
+                        center = Center.objects.filter(name_bn=center_name).first()
+                    if center:
+                        from apps.courses.models import Course
+                        course = None
+                        course_code = data.get('course_code', '').strip()
+                        course_name = data.get('course_name', '').strip()
+                        if course_code:
+                            course = Course.objects.filter(code__iexact=course_code).first()
+                        if not course and course_name:
+                            course = Course.objects.filter(name_bn=course_name).first()
+                        TrainerMapping.objects.update_or_create(
+                            trainer=existing,
+                            center=center,
+                            defaults={'course': course, 'status': 'active'},
+                        )
                 else:
                     results['errors'].append(f'সারি {row_idx}: "{trainer_no}" প্রশিক্ষক নং পাওয়া যায়নি')
             except Exception as e:
@@ -293,10 +320,11 @@ class TrainerViewSet(viewsets.ModelViewSet):
         ws.title = 'Template'
         headers = ['প্রশিক্ষক নং', 'নাম (বাংলা)', 'নাম (ইংরেজি)', 'ইমেইল', 'ফোন',
                    'এনআইডি', 'শিক্ষাগত যোগ্যতা', 'অভিজ্ঞতা (বছর)', 'দক্ষতার ক্ষেত্র',
-                   'স্ট্যাটাস', 'অনুমোদন স্ট্যাটাস']
+                   'স্ট্যাটাস', 'অনুমোদন স্ট্যাটাস',
+                   'কেন্দ্রের কোড', 'কোর্সের কোড']
         ws.append(headers)
         sample = ['', 'উদাহরণ নাম', 'Example Name', 'email@example.com', '০১৭XXXXXXXX',
-                  '', '', '', '', 'pending', 'pending']
+                  '', '', '', '', 'pending', 'pending', 'RSH_TCU', 'DTP-0001']
         ws.append(sample)
         for col_idx in range(1, len(headers) + 1):
             cell = ws.cell(row=1, column=col_idx)
