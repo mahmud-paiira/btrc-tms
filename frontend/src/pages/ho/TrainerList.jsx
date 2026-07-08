@@ -315,7 +315,7 @@ export default function TrainerList() {
                 <th className="d-none d-lg-table-cell">ইমেইল</th>
                 <th className="d-none d-md-table-cell">ফোন</th>
                 <th className="d-none d-xl-table-cell">অভিজ্ঞতা</th>
-                <th className="d-none d-lg-table-cell">কেন্দ্র</th>
+                <th>কেন্দ্র</th>
                 <th>স্ট্যাটাস</th>
                 <th className="text-center">অ্যাকশন</th>
               </tr>
@@ -347,7 +347,7 @@ export default function TrainerList() {
                     <td className="d-none d-lg-table-cell">{t.user_email || '-'}</td>
                     <td className="d-none d-md-table-cell">{t.user_phone || '-'}</td>
                     <td className="d-none d-xl-table-cell">{t.years_of_experience ? `${formatNumber(t.years_of_experience)} বছর` : '-'}</td>
-                    <td className="d-none d-lg-table-cell">{t.center_names || '-'}</td>
+                    <td>{t.center_names || '-'}</td>
                     <td>
                       <span className={`status-dot dot-${t.status}`}></span>
                       <span style={{fontSize:13,color:'#334155'}}>{t.status_display || t.status}</span>
