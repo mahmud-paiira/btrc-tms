@@ -384,7 +384,7 @@ export default function TrainerList() {
         <div className="b-pagination">
           <span className="page-info">মোট: {totalCount} জন প্রশিক্ষক</span>
           {Math.ceil(totalCount / pageSize) > 1 && (
-            <div>
+            <div className="page-nav">
               <button className="page-btn" disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}>পূর্ববর্তী</button>
               <button className="page-btn" disabled={page >= Math.ceil(totalCount / pageSize)} onClick={() => setPage(p => Math.min(Math.ceil(totalCount / pageSize), p + 1))}>পরবর্তী</button>
             </div>
