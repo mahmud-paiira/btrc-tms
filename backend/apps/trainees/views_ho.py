@@ -55,13 +55,14 @@ class HOTraineeViewSet(viewsets.ModelViewSet):
 
         headers = [
             'রেজি. নং', 'নাম (বাংলা)', 'নাম (ইংরেজি)', 'ইমেইল', 'ফোন',
-            'এনআইডি', 'কেন্দ্র', 'ব্যাচ', 'অবস্থা', 'নথিভুক্তির তারিখ',
+            'এনআইডি', 'কেন্দ্রের কোড', 'কেন্দ্র', 'ব্যাচ', 'অবস্থা', 'নথিভুক্তির তারিখ',
         ]
         rows = []
         for t in qs:
             rows.append([
                 t.registration_no, t.user.full_name_bn, t.user.full_name_en,
                 t.user.email, t.user.phone, t.user.nid or '',
+                t.center.code if t.center else '',
                 t.center.name_bn if t.center else '',
                 t.batch.batch_name_bn if t.batch else '',
                 t.get_status_display() if t.status else '',
@@ -134,6 +135,8 @@ class HOTraineeViewSet(viewsets.ModelViewSet):
             'ফোন': 'phone', 'phone': 'phone',
             'এনআইডি': 'nid', 'nid': 'nid',
             'অবস্থা': 'status', 'status': 'status',
+            'কেন্দ্রের কোড': 'center_code', 'center_code': 'center_code',
+            'কেন্দ্রের নাম': 'center_name', 'center_name': 'center_name',
         }
 
         results = {'created': 0, 'updated': 0, 'errors': []}
@@ -159,6 +162,18 @@ class HOTraineeViewSet(viewsets.ModelViewSet):
                     if data.get('status') is not None:
                         existing.status = data['status']
                     existing.save()
+
+                    from apps.centers.models import Center
+                    center_code = data.get('center_code', '').strip()
+                    center_name = data.get('center_name', '').strip()
+                    if center_code:
+                        center = Center.objects.filter(code__iexact=center_code).first()
+                        if not center and center_name:
+                            center = Center.objects.filter(name_bn=center_name).first()
+                        if center:
+                            existing.center = center
+                            existing.save(update_fields=['center'])
+
                     results['updated'] += 1
                 else:
                     results['errors'].append(f'সারি {row_idx}: "{reg_no}" রেজি. নং পাওয়া যায়নি')
@@ -190,10 +205,10 @@ class HOTraineeViewSet(viewsets.ModelViewSet):
         ws = wb.active
         ws.title = 'Template'
         headers = ['রেজি. নং', 'নাম (বাংলা)', 'নাম (ইংরেজি)', 'ইমেইল', 'ফোন',
-                   'এনআইডি', 'অবস্থা']
+                   'এনআইডি', 'অবস্থা', 'কেন্দ্রের কোড', 'কেন্দ্রের নাম']
         ws.append(headers)
         sample = ['', 'উদাহরণ নাম', 'Example Name', 'email@example.com', '০১৭XXXXXXXX',
-                  '', 'enrolled']
+                  '', 'enrolled', 'RSH_TCU', 'রাজশাহী ট্রেনিং সেন্টার']
         ws.append(sample)
         for col_idx in range(1, len(headers) + 1):
             cell = ws.cell(row=1, column=col_idx)
