@@ -27,6 +27,8 @@ export default function TrainerList() {
   const [centerFilter, setCenterFilter] = useState('');
   const [selectedTrainer, setSelectedTrainer] = useState(null);
   const [selectedIds, setSelectedIds] = useState(new Set());
+  const [showBulkDelete, setShowBulkDelete] = useState(false);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const fileRef = useRef(null);
   const [importFile, setImportFile] = useState(null);
@@ -86,11 +88,30 @@ export default function TrainerList() {
   const handleDelete = async (id, name) => {
     if (!window.confirm(`"${name}"-কে মুছে ফেলবেন?`)) return;
     try {
-      await api.delete(`/trainers/${id}/`);
+      await hoService.deleteTrainer(id);
+      setSelectedIds(new Set());
       toast.success('মুছে ফেলা হয়েছে');
       fetchItems();
     } catch {
       toast.error('মুছতে ব্যর্থ');
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    setBulkDeleting(true);
+    try {
+      const ids = [...selectedIds];
+      const { data } = await hoService.bulkDeleteTrainers(ids);
+      if (data.errors?.length) toast.error(data.errors.join('\n'));
+      if (data.deleted > 0) toast.success(`${data.deleted} টি মুছে ফেলা হয়েছে`);
+      else if (!data.errors?.length) toast.warning('কিছু মুছে ফেলা যায়নি');
+      setSelectedIds(new Set());
+      setShowBulkDelete(false);
+      fetchItems();
+    } catch (e) {
+      toast.error('মুছতে ব্যর্থ');
+    } finally {
+      setBulkDeleting(false);
     }
   };
 
@@ -268,6 +289,9 @@ export default function TrainerList() {
             <button className="btn btn-sm btn-secondary" onClick={handlePrint}>
               <i className="bi bi-printer me-1"></i>প্রিন্ট
             </button>
+            <button className="btn btn-sm btn-danger" onClick={() => setShowBulkDelete(true)}>
+              <i className="bi bi-trash me-1"></i>নির্বাচিত মুছুন
+            </button>
             <button className="btn btn-sm btn-outline-danger" onClick={() => setSelectedIds(new Set())}>
               নির্বাচন বাতিল
             </button>
@@ -291,7 +315,7 @@ export default function TrainerList() {
                 <th className="d-none d-lg-table-cell">ইমেইল</th>
                 <th className="d-none d-md-table-cell">ফোন</th>
                 <th className="d-none d-xl-table-cell">অভিজ্ঞতা</th>
-                <th className="d-none d-lg-table-cell">কেন্দ্র</th>
+                <th>কেন্দ্র</th>
                 <th>স্ট্যাটাস</th>
                 <th className="text-center">অ্যাকশন</th>
               </tr>
@@ -323,7 +347,7 @@ export default function TrainerList() {
                     <td className="d-none d-lg-table-cell">{t.user_email || '-'}</td>
                     <td className="d-none d-md-table-cell">{t.user_phone || '-'}</td>
                     <td className="d-none d-xl-table-cell">{t.years_of_experience ? `${formatNumber(t.years_of_experience)} বছর` : '-'}</td>
-                    <td className="d-none d-lg-table-cell">{t.center_names || '-'}</td>
+                    <td>{t.center_names || '-'}</td>
                     <td>
                       <span className={`status-dot dot-${t.status}`}></span>
                       <span style={{fontSize:13,color:'#334155'}}>{t.status_display || t.status}</span>
@@ -360,7 +384,7 @@ export default function TrainerList() {
         <div className="b-pagination">
           <span className="page-info">মোট: {totalCount} জন প্রশিক্ষক</span>
           {Math.ceil(totalCount / pageSize) > 1 && (
-            <div>
+            <div className="page-nav">
               <button className="page-btn" disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}>পূর্ববর্তী</button>
               <button className="page-btn" disabled={page >= Math.ceil(totalCount / pageSize)} onClick={() => setPage(p => Math.min(Math.ceil(totalCount / pageSize), p + 1))}>পরবর্তী</button>
             </div>
@@ -373,6 +397,29 @@ export default function TrainerList() {
       )}
       {showMapForm && (
         <TrainerMapForm centers={centers} onClose={() => setShowMapForm(false)} onDone={() => { setShowMapForm(false); fetchItems(); }} />
+      )}
+
+      {showBulkDelete && (
+        <div className="modal d-block" style={{ background: 'rgba(0,0,0,.5)' }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header bg-danger text-white">
+                <h5 className="modal-title"><i className="bi bi-exclamation-triangle me-2"></i>নিশ্চিতকরণ</h5>
+                <button type="button" className="btn-close btn-close-white" onClick={() => setShowBulkDelete(false)} />
+              </div>
+              <div className="modal-body">
+                <p className="mb-0">আপনি কি {selectedIds.size} টি প্রশিক্ষককে মুছে ফেলতে চান?</p>
+              </div>
+              <div className="modal-footer">
+                <button className="btn btn-secondary" onClick={() => setShowBulkDelete(false)}>বাতিল</button>
+                <button className="btn btn-danger" onClick={handleBulkDelete} disabled={bulkDeleting}>
+                  {bulkDeleting ? <span className="spinner-border spinner-border-sm me-1" /> : <i className="bi bi-trash me-1"></i>}
+                  মুছুন
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {showImport && (

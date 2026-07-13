@@ -69,6 +69,23 @@ class HOCourseViewSet(viewsets.ModelViewSet):
         )
         instance.delete()
 
+    @action(detail=False, methods=['post'])
+    def bulk_delete(self, request):
+        ids = request.data.get('ids', [])
+        if not ids:
+            return Response({'error': 'কোন আইডি প্রদান করা হয়নি'}, status=400)
+        deleted = 0
+        errors = []
+        for pk in ids:
+            try:
+                obj = self.get_queryset().get(pk=pk)
+                self.perform_destroy(obj)
+                deleted += 1
+            except Exception as e:
+                msg = str(e.detail[0]) if hasattr(e, 'detail') and isinstance(e.detail, list) else str(e)
+                errors.append(msg)
+        return Response({'deleted': deleted, 'errors': errors})
+
     @action(detail=True, methods=['post'])
     def activate(self, request, pk=None):
         course = self.get_object()

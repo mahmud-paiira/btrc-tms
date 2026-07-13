@@ -26,6 +26,8 @@ export default function CircularList() {
   const [importFile, setImportFile] = useState(null);
   const [importLoading, setImportLoading] = useState(false);
   const [importResults, setImportResults] = useState(null);
+  const [showBulkDelete, setShowBulkDelete] = useState(false);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   const fetchItems = useCallback(async () => {
     setLoading(true);
@@ -143,6 +145,25 @@ export default function CircularList() {
     } catch { toast.error('মুছতে ব্যর্থ'); }
   };
 
+  const handleBulkDelete = async () => {
+    try {
+      setBulkDeleting(true);
+      const res = await api.post('/ho/circulars/bulk_delete/', { ids: [...selectedIds] });
+      if (res.data.errors && res.data.errors.length > 0) {
+        toast.error(res.data.errors.join(', '));
+      } else {
+        toast.success('নির্বাচিত সার্কুলারগুলো মুছে ফেলা হয়েছে');
+      }
+      setSelectedIds(new Set());
+      setShowBulkDelete(false);
+      fetchItems();
+    } catch {
+      toast.error('মুছতে ব্যর্থ');
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
+
   const openEdit = (item) => {
     setEditing(item);
     setShowForm(true);
@@ -211,6 +232,9 @@ export default function CircularList() {
             </div>
             <button className="btn btn-sm btn-secondary" onClick={handlePrint}>
               <i className="bi bi-printer me-1"></i>প্রিন্ট
+            </button>
+            <button className="btn btn-sm btn-danger" onClick={() => setShowBulkDelete(true)}>
+              <i className="bi bi-trash"></i> নির্বাচিত মুছুন
             </button>
             <button className="btn btn-sm btn-outline-danger" onClick={() => setSelectedIds(new Set())}>
               নির্বাচন বাতিল
@@ -367,6 +391,29 @@ export default function CircularList() {
               </div>
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" onClick={() => setShowImport(false)}>বন্ধ</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showBulkDelete && (
+        <div className="modal d-block" style={{ background: 'rgba(0,0,0,.5)' }}>
+          <div className="modal-dialog modal-sm modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header bg-danger text-white">
+                <h6 className="modal-title"><i className="bi bi-exclamation-triangle me-2"></i>নিশ্চিতকরণ</h6>
+                <button type="button" className="btn-close btn-close-white" onClick={() => setShowBulkDelete(false)} />
+              </div>
+              <div className="modal-body">
+                <p className="mb-0">আপনি কি {selectedIds.size} টি সার্কুলার মুছে ফেলতে চান? <br />এটি অপরিবর্তনীয়।</p>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary btn-sm" onClick={() => setShowBulkDelete(false)}>বাতিল</button>
+                <button type="button" className="btn btn-danger btn-sm" onClick={handleBulkDelete} disabled={bulkDeleting}>
+                  {bulkDeleting ? <span className="spinner-border spinner-border-sm me-1" /> : <i className="bi bi-trash me-1"></i>}
+                  {bulkDeleting ? 'মুছছে...' : 'মুছুন'}
+                </button>
               </div>
             </div>
           </div>

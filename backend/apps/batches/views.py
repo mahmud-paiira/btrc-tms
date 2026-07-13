@@ -87,6 +87,23 @@ class BatchViewSet(viewsets.ModelViewSet):
         self.assert_admin_or_ho(self.request)
         instance.delete()
 
+    @action(detail=False, methods=['post'])
+    def bulk_delete(self, request):
+        ids = request.data.get('ids', [])
+        if not ids:
+            return Response({'error': 'কোন আইডি প্রদান করা হয়নি'}, status=400)
+        deleted = 0
+        errors = []
+        for pk in ids:
+            try:
+                obj = self.get_queryset().get(pk=pk)
+                self.perform_destroy(obj)
+                deleted += 1
+            except Exception as e:
+                msg = str(e.detail[0]) if hasattr(e, 'detail') and isinstance(e.detail, list) else str(e)
+                errors.append(msg)
+        return Response({'deleted': deleted, 'errors': errors})
+
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
     def my_batches(self, request):
         if request.user.user_type != 'trainer':
@@ -729,6 +746,19 @@ class BatchViewSet(viewsets.ModelViewSet):
             )
 
         circular = Circular.objects.get(id=circular_id)
+
+        max_seats = center.get_effective_max_seats()
+        if allocation.allocated_seats > max_seats:
+            active = center.get_active_trainer_count()
+            return Response({
+                'error': (
+                    f'বরাদ্দকৃত আসন ({allocation.allocated_seats}) কেন্দ্রের সর্বোচ্চ সক্ষমতা ({max_seats}) ছাড়িয়ে গেছে। '
+                    f'এই কেন্দ্রে {active} জন সক্রিয় প্রশিক্ষক রয়েছেন (প্রতি প্রশিক্ষকে {center.seats_per_trainer} জন) '
+                    f'ও ওভারফ্লো {center.overflow_percentage}%। '
+                    f'দয়া করে আসন সংখ্যা কমিয়ে {max_seats} বা তার কম নির্ধারণ করুন বা প্রশিক্ষক সংখ্যা বাড়ান।'
+                ),
+            }, status=400)
+
         batch_size = 25
         num_batches = allocation.allocated_seats // batch_size
         if num_batches == 0:

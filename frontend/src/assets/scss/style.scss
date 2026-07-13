@@ -758,16 +758,21 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px; height: 34px;
+  min-width: 34px; height: 34px;
+  padding: 0 12px;
   border: 1px solid #d4d4d4;
   border-radius: 4px;
   background: #fff;
   color: #4b5563;
   cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  gap: 6px;
   transition: all .12s;
 }
 .b-pagination .page-btn:hover:not(:disabled) { background: #f0f7f2; border-color: #1b6b3b; color: #1b6b3b; }
 .b-pagination .page-btn:disabled { opacity: .35; cursor: default; }
+.b-pagination .page-nav { display: flex; align-items: center; gap: 8px; }
 .b-pagination .page-info { font-size: 13px; color: #4b5563; padding: 0 8px; font-weight: 600; }
 
 // ── Buttons ────────────────────────────────────────────────────────────

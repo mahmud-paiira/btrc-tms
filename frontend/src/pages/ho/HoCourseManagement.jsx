@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import hoService from '../../services/hoService';
+import api from '../../services/api';
 import BanglaInput from '../../components/common/BanglaInput';
 import { convertToBanglaDigits } from '../../utils/numberFormatter';
 
@@ -306,10 +307,12 @@ export default function HoCourseManagement() {
   const [editCourse, setEditCourse] = useState(null);
   const [selectedIds, setSelectedIds] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
+  const [showBulkDelete, setShowBulkDelete] = useState(false);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
   const fetchCourses = useCallback(async () => {
     setLoading(true);
     try {
-      const params = {};
+      const params = { _t: Date.now() };
       if (search) params.search = search;
       if (filterType) params.course_type = filterType;
       if (filterStatus) params.status = filterStatus;
@@ -354,6 +357,24 @@ export default function HoCourseManagement() {
     } catch (err) { toast.error(err.response?.data?.detail?.[0] || 'মুছতে ব্যর্থ'); }
   };
 
+  const handleBulkDelete = async () => {
+    setBulkDeleting(true);
+    try {
+      const { data } = await api.post('/ho/courses/bulk_delete/', { ids: selectedIds });
+      if (data.deleted > 0) toast.success(`${data.deleted} টি কোর্স মুছে ফেলা হয়েছে`);
+      else toast.warning('কোনো কোর্স মুছে ফেলা যায়নি');
+      if (data.errors?.length) toast.error(data.errors.join('\n'));
+      setSelectedIds([]);
+      setSelectAll(false);
+      setShowBulkDelete(false);
+      fetchCourses();
+    } catch (err) {
+      toast.error(err.response?.data?.error || err.response?.data?.detail?.[0] || 'মুছতে ব্যর্থ');
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
+
   return (
     <div className="px-4 py-4">
       <div className="d-flex justify-content-between align-items-center mb-3">
@@ -382,6 +403,9 @@ export default function HoCourseManagement() {
           <div className="d-flex gap-1">
             <button className="btn btn-outline-danger btn-sm" onClick={() => { setSelectedIds([]); setSelectAll(false); }}>
               <i className="bi bi-slash-circle me-1"></i>মুক্ত করুন
+            </button>
+            <button className="btn btn-sm btn-danger" onClick={() => setShowBulkDelete(true)}>
+              <i className="bi bi-trash me-1"></i>নির্বাচিত মুছুন
             </button>
           </div>
         </div>
@@ -461,6 +485,29 @@ export default function HoCourseManagement() {
       </div>
 
       <CourseFormWizard show={showForm} course={editCourse} onClose={() => setShowForm(false)} onSaved={() => { setShowForm(false); fetchCourses(); }} />
+
+      {showBulkDelete && (
+        <div className="modal d-block" style={{ background: 'rgba(0,0,0,.5)', zIndex: 1050 }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header bg-danger text-white">
+                <h5 className="modal-title"><i className="bi bi-exclamation-triangle me-2"></i>নিশ্চিতকরণ</h5>
+                <button type="button" className="btn-close btn-close-white" onClick={() => setShowBulkDelete(false)} />
+              </div>
+              <div className="modal-body">
+                <p className="mb-0">আপনি কি <strong>{selectedIds.length}</strong> টি কোর্স মুছে ফেলতে চান? এই কাজ পূর্বাবস্থায় ফেরানো যাবে না।</p>
+              </div>
+              <div className="modal-footer">
+                <button className="btn btn-secondary" onClick={() => setShowBulkDelete(false)} disabled={bulkDeleting}>বাতিল</button>
+                <button className="btn btn-danger" onClick={handleBulkDelete} disabled={bulkDeleting}>
+                  {bulkDeleting ? <span className="spinner-border spinner-border-sm me-1" /> : <i className="bi bi-trash me-1"></i>}
+                  {bulkDeleting ? 'মুছে ফেলা হচ্ছে...' : 'হ্যাঁ, মুছুন'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

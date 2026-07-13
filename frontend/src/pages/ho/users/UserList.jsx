@@ -222,7 +222,7 @@ export default function UserList() {
         {totalPages > 1 && (
           <div className="card-footer bg-white d-flex justify-content-between align-items-center py-3 ps-4 pe-4 b-pagination">
             <small className="text-secondary page-info">{t('common.showing', 'দেখানো হচ্ছে')} {Math.min((page-1)*pageSize+1, total)}-{Math.min(page*pageSize, total)} {t('common.of', 'এর')} {total}</small>
-            <nav>
+            <nav className="page-nav">
               <button className="page-btn" disabled={page <= 1} onClick={() => goToPage(page-1)}>পূর্ববর্তী</button>
               <button className="page-btn" disabled={page >= totalPages} onClick={() => goToPage(page+1)}>পরবর্তী</button>
             </nav>

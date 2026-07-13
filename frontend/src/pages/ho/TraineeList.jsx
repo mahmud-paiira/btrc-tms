@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
-import api from '../../services/api';
+import hoService from '../../services/hoService';
 import { formatDate } from '../../utils/dateFormatter';
-import { convertToBanglaDigits } from '../../utils/numberFormatter';
+import { formatNumber } from '../../utils/numberFormatter';
 
 const STATUS_BG = { enrolled: 'success', completed: 'primary', withdrawn: 'danger', suspended: 'warning' };
 
@@ -31,7 +31,7 @@ export default function TraineeList() {
       const params = { page, page_size: pageSize };
       if (search) params.search = search;
       if (statusFilter) params.status = statusFilter;
-      const res = await api.get('/trainees/', { params });
+      const res = await hoService.listTrainees(params);
       setTrainees(res.data.results || res.data || []);
       setTotal(res.data.count || (res.data.results || []).length);
     } catch {
@@ -49,7 +49,8 @@ export default function TraineeList() {
   const handleDelete = async (id, name) => {
     if (!window.confirm(`"${name}"-কে মুছে ফেলবেন?`)) return;
     try {
-      await api.delete(`/trainees/${id}/`);
+      await hoService.deleteTrainee(id);
+      setSelectedIds(new Set());
       toast.success('মুছে ফেলা হয়েছে');
       fetchTrainees();
     } catch {
@@ -60,16 +61,15 @@ export default function TraineeList() {
   const handleBulkDelete = async () => {
     setBulkDeleting(true);
     try {
-      const res = await api.post('/trainees/bulk_delete/', { ids: [...selectedIds] });
-      const data = res.data;
-      toast.success(data.deleted + ' টি মুছে ফেলা হয়েছে');
-      if (data.errors && data.errors.length > 0) {
-        toast.error(data.errors.join(', '));
-      }
+      const ids = [...selectedIds];
+      const { data } = await hoService.bulkDeleteTrainees(ids);
+      if (data.errors?.length) toast.error(data.errors.join('\n'));
+      if (data.deleted > 0) toast.success(`${data.deleted} টি মুছে ফেলা হয়েছে`);
+      else if (!data.errors?.length) toast.warning('কিছু মুছে ফেলা যায়নি');
       setSelectedIds(new Set());
       setShowBulkDelete(false);
       fetchTrainees();
-    } catch {
+    } catch (e) {
       toast.error('মুছতে ব্যর্থ');
     } finally {
       setBulkDeleting(false);
@@ -93,18 +93,13 @@ export default function TraineeList() {
     });
   };
 
-  const imgUrl = (path) => {
-    if (!path) return null;
-    return path.startsWith('http') ? path : `/api${path}`;
-  };
-
   const handleExport = async (fmt = 'xlsx') => {
     try {
-      const params = { page_size: 9999, file_format: fmt };
+      const params = { file_format: fmt, page_size: 9999 };
       if (selectedIds.size > 0) params.ids = [...selectedIds].join(',');
       else if (search) params.search = search;
       if (statusFilter) params.status = statusFilter;
-      const res = await api.get('/trainees/export-list/', { params, responseType: 'blob' });
+      const res = await hoService.exportTrainees(params);
       const blob = new Blob([res.data]);
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -118,60 +113,6 @@ export default function TraineeList() {
     }
   };
 
-  const handlePrint = () => {
-    const items = selectedIds.size > 0
-      ? trainees.filter((t) => selectedIds.has(t.id))
-      : trainees;
-    const w = window.open('', '_blank');
-    if (!w) { toast.error('পপ-আপ ব্লকার অক্ষম করুন'); return; }
-    w.document.write(`
-      <html><head><title>প্রশিক্ষণার্থী তালিকা</title>
-      <style>
-        body { font-family: 'NikoshBAN', 'SolaimanLipi', Arial, sans-serif; padding: 30px; color: #222; }
-        .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #1a56db; padding-bottom: 15px; }
-        .header h1 { font-size: 22px; margin: 0 0 5px; color: #1a56db; }
-        .header p { font-size: 13px; color: #666; margin: 0; }
-        .report-info { display: flex; justify-content: space-between; font-size: 12px; color: #888; margin-bottom: 15px; }
-        table { width: 100%; border-collapse: collapse; font-size: 12px; }
-        th { background: #1a56db; color: #fff; padding: 10px 8px; text-align: left; font-weight: bold; }
-        td { border: 1px solid #ddd; padding: 8px; }
-        tr:nth-child(even) { background: #f8fafc; }
-        tr:nth-child(odd) { background: #fff; }
-        .footer { text-align: center; margin-top: 20px; font-size: 11px; color: #aaa; border-top: 1px solid #eee; padding-top: 15px; }
-        @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
-      </style></head><body>
-      <div class="header">
-        <h1>প্রশিক্ষণার্থী তালিকা</h1>
-        <p>প্রশিক্ষণ ব্যবস্থাপনা সিস্টেম</p>
-      </div>
-      <div class="report-info">
-        <span>মোট: ${items.length} জন</span>
-        <span>প্রিন্টের তারিখ: ${formatDate(new Date())}</span>
-      </div>
-      <table>
-        <tr><th>ক্রমিক</th><th>রেজি. নং</th><th>নাম (বাংলা)</th><th>নাম (ইংরেজি)</th><th>ইমেইল</th><th>ফোন</th><th>কেন্দ্র</th><th>ব্যাচ</th><th>অবস্থা</th><th>নথিভুক্তির তারিখ</th></tr>
-        ${items.map((t, i) => {
-          return `<tr>
-            <td style="text-align:center;width:40px;">${i + 1}</td>
-            <td><strong>${convertToBanglaDigits(t.registration_no) || '—'}</strong></td>
-            <td>${t.user_name || '—'}</td>
-            <td>${t.user_name_en || '—'}</td>
-            <td>${t.user_email || '—'}</td>
-            <td>${convertToBanglaDigits(t.user_phone) || '—'}</td>
-            <td>${t.center_name || '—'}</td>
-            <td>${t.batch_name || '—'}</td>
-            <td>${t.status_display || t.status || '—'}</td>
-            <td>${t.enrollment_date || '—'}</td>
-          </tr>`;
-        }).join('')}
-      </table>
-      <div class="footer">প্রশিক্ষণার্থী তালিকা - ${formatDate(new Date())}</div>
-      <script>window.print();</script>
-      </body></html>
-    `);
-    w.document.close();
-  };
-
   const handleImportSubmit = async () => {
     if (!importFile) { toast.warning('ফাইল নির্বাচন করুন'); return; }
     setImportLoading(true);
@@ -179,7 +120,7 @@ export default function TraineeList() {
     try {
       const formData = new FormData();
       formData.append('file', importFile);
-      const res = await api.post('/trainees/import_list/', formData);
+      const res = await hoService.importTrainees(formData);
       setImportResults(res.data);
       if (res.data.updated > 0) {
         toast.success(`${res.data.updated} টি আপডেট`);
@@ -194,27 +135,23 @@ export default function TraineeList() {
   return (
     <div>
       <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-        <h4 className="fw-bold mb-0"><i className="bi bi-people me-2"></i>প্রশিক্ষণার্থী তালিকা</h4>
+        <h4 className="fw-bold mb-0"><i className="bi bi-people me-2"></i>প্রশিক্ষণার্থী ব্যবস্থাপনা</h4>
         <div className="d-flex gap-2">
           <button className="btn btn-outline-info btn-sm" onClick={() => { setImportFile(null); setImportResults(null); setShowImport(true); }}>
             <i className="bi bi-upload me-1"></i>ইম্পোর্ট
-          </button>
-          <button className="btn btn-primary btn-sm" onClick={() => toast.info('প্রশিক্ষণার্থী তৈরির ফর্ম শীঘ্রই আসছে')}>
-            <i className="bi bi-plus-lg me-1"></i>নতুন প্রশিক্ষণার্থী
           </button>
         </div>
       </div>
 
       <div className="card shadow-sm mb-3" style={{ borderRadius: 12, border: 'none' }}>
         <div className="card-body">
-          <div className="row g-2">
+          <div className="row g-2 align-items-center">
             <div className="col-md-5">
-              <input className="form-control form-control-sm" placeholder="নাম, ইমেইল, ফোন, রেজি. নং দিয়ে সার্চ..."
+              <input className="form-control form-control-sm" placeholder="নাম, রেজি. নং, ফোনে সার্চ..."
                 value={search} onChange={e => setSearch(e.target.value)} />
             </div>
             <div className="col-md-3">
-              <select className="form-select form-select-sm" value={statusFilter}
-                onChange={e => setStatusFilter(e.target.value)}>
+              <select className="form-select form-select-sm" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
                 <option value="">সকল অবস্থা</option>
                 <option value="enrolled">নথিভুক্ত</option>
                 <option value="completed">সমাপ্ত</option>
@@ -222,8 +159,8 @@ export default function TraineeList() {
                 <option value="suspended">স্থগিত</option>
               </select>
             </div>
-            <div className="col-md-4 text-md-end">
-              <span className="text-secondary" style={{ fontSize: 13 }}>মোট: {total} জন</span>
+            <div className="col text-md-end">
+              <span className="text-secondary" style={{ fontSize: 13 }}>মোট: {formatNumber(total)} জন</span>
             </div>
           </div>
         </div>
@@ -231,7 +168,7 @@ export default function TraineeList() {
 
       {selectedIds.size > 0 && (
         <div className="alert alert-info py-2 d-flex justify-content-between align-items-center mb-3">
-          <span><i className="bi bi-check-square me-1"></i>{selectedIds.size} টি নির্বাচিত</span>
+          <span><i className="bi bi-check-square me-1"></i>{formatNumber(selectedIds.size)} টি নির্বাচিত</span>
           <div className="d-flex gap-2">
             <div className="btn-group btn-group-sm">
               <button className="btn btn-sm btn-success" onClick={() => handleExport('xlsx')}>
@@ -245,11 +182,8 @@ export default function TraineeList() {
                 <li><button className="dropdown-item" onClick={() => handleExport('csv')}><i className="bi bi-filetype-csv me-2"></i>CSV</button></li>
               </ul>
             </div>
-            <button className="btn btn-sm btn-secondary" onClick={handlePrint}>
-              <i className="bi bi-printer me-1"></i>প্রিন্ট
-            </button>
             <button className="btn btn-sm btn-danger" onClick={() => setShowBulkDelete(true)}>
-              <i className="bi bi-trash"></i> নির্বাচিত মুছুন
+              <i className="bi bi-trash me-1"></i>নির্বাচিত মুছুন
             </button>
             <button className="btn btn-sm btn-outline-danger" onClick={() => setSelectedIds(new Set())}>
               নির্বাচন বাতিল
@@ -258,8 +192,8 @@ export default function TraineeList() {
         </div>
       )}
 
-      <div className="card shadow-sm table-card" style={{ borderRadius: 12, border: '1px solid #e2e8f0' }}>
-        <div className="card-body p-0" style={{ overflowX: 'auto' }}>
+      <div className="card shadow-sm table-card" style={{ borderRadius: 12, border: 'none' }}>
+        <div className="table-responsive">
           <table className="b-table w-100">
             <thead>
               <tr>
@@ -267,46 +201,35 @@ export default function TraineeList() {
                   <input type="checkbox" className="form-check-input" onChange={handleSelectAll}
                     checked={trainees.length > 0 && selectedIds.size === trainees.length} />
                 </th>
-                <th className="d-none d-lg-table-cell">ছবি</th>
+                <th>ক্রমিক</th>
                 <th>রেজি. নং</th>
-                <th>নাম</th>
-                <th className="d-none d-xl-table-cell">নাম (ইংরেজি)</th>
+                <th>নাম (বাংলা)</th>
                 <th className="d-none d-md-table-cell">ফোন</th>
-                <th className="d-none d-xl-table-cell">কেন্দ্র</th>
-                <th>ব্যাচ</th>
+                <th className="d-none d-lg-table-cell">কেন্দ্র</th>
+                <th className="d-none d-lg-table-cell">ব্যাচ</th>
                 <th>অবস্থা</th>
                 <th className="text-center">অ্যাকশন</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={10} className="text-center py-4"><div className="spinner-border spinner-border-sm me-2" />লোড হচ্ছে...</td></tr>
+                <tr><td colSpan={9} className="text-center py-4"><div className="spinner-border spinner-border-sm me-2" />লোড হচ্ছে...</td></tr>
               ) : trainees.length === 0 ? (
-                <tr><td colSpan={10} className="text-center text-secondary py-4">কোনো প্রশিক্ষণার্থী পাওয়া যায়নি</td></tr>
+                <tr><td colSpan={9} className="text-center text-secondary py-4">কোনো প্রশিক্ষণার্থী পাওয়া যায়নি</td></tr>
               ) : (
-                trainees.map(t => (
+                trainees.map((t, idx) => (
                   <tr key={t.id}>
-                    <td onClick={e => e.stopPropagation()}><input type="checkbox" className="form-check-input" checked={selectedIds.has(t.id)} onChange={() => handleSelectOne(t.id)} /></td>
-                    <td className="d-none d-lg-table-cell">
-                      {t.profile_image ? (
-                        <img src={imgUrl(t.profile_image)} alt="" className="rounded-circle"
-                          style={{ width: 36, height: 36, objectFit: 'cover' }}
-                          onError={e => { e.target.style.display = 'none'; }} />
-                      ) : (
-                        <div className="rounded-circle bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center"
-                          style={{ width: 36, height: 36 }}>
-                          <i className="bi bi-person text-secondary" style={{ fontSize: 16 }}></i>
-                        </div>
-                      )}
-                    </td>
-                    <td className="fw-semibold">{convertToBanglaDigits(t.registration_no) || '-'}</td>
-                    <td style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 100 }}>{t.user_name || '-'}</td>
-                    <td className="d-none d-xl-table-cell" style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 100 }}>{t.user_name_en || '-'}</td>
-                    <td className="d-none d-md-table-cell" style={{ whiteSpace: 'nowrap' }}>{convertToBanglaDigits(t.user_phone) || '-'}</td>
-                    <td className="d-none d-xl-table-cell" style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 100 }}>{t.center_name || '-'}</td>
-                    <td style={{ whiteSpace: 'normal', wordBreak: 'break-word', minWidth: 100 }}>{t.batch_name || '-'}</td>
-                    <td style={{ whiteSpace: 'nowrap' }}>
-                      <><span className={`status-dot dot-${t.status}`}></span><span style={{fontSize:13,color:'#334155'}}>{t.status_display || t.status}</span></>
+                    <td><input type="checkbox" className="form-check-input" checked={selectedIds.has(t.id)} onChange={() => handleSelectOne(t.id)} /></td>
+                    <td className="text-secondary">{(page - 1) * pageSize + idx + 1}</td>
+                    <td className="fw-semibold">{t.registration_no || '-'}</td>
+                    <td>{t.user_full_name_bn || t.user_email || '-'}</td>
+                    <td className="d-none d-md-table-cell">{t.user_phone || '-'}</td>
+                    <td className="d-none d-lg-table-cell">{t.center_name_bn || '-'}</td>
+                    <td className="d-none d-lg-table-cell">{t.batch_name_bn || '-'}</td>
+                    <td>
+                      <span className={`badge bg-${STATUS_BG[t.status] || 'secondary'} bg-opacity-10 text-${STATUS_BG[t.status] || 'secondary'} px-2 py-1`}>
+                        {t.status_display || t.status}
+                      </span>
                     </td>
                     <td className="act-col">
                       <div className="dropdown act-dropdown">
@@ -314,10 +237,8 @@ export default function TraineeList() {
                           <i className="bi bi-three-dots-vertical"></i>
                         </button>
                         <ul className="dropdown-menu dropdown-menu-end">
-                          <li><button className="dropdown-item" onClick={() => navigate(`/center-admin/trainees/${t.id}`)}><i className="bi bi-eye me-2"></i>বিস্তারিত</button></li>
-                          <li><button className="dropdown-item" onClick={() => navigate(`/center-admin/trainees/${t.id}/edit`)}><i className="bi bi-pencil me-2"></i>সম্পাদনা</button></li>
-                          <li><hr className="dropdown-divider my-1" /></li>
-                          <li><button className="dropdown-item text-danger" onClick={() => handleDelete(t.id, t.user_name)}><i className="bi bi-trash me-2"></i>মুছুন</button></li>
+                          <li><button className="dropdown-item text-primary" onClick={() => navigate(`/ho/trainees/${t.id}`)}><i className="bi bi-eye me-2"></i>বিস্তারিত</button></li>
+                          <li><button className="dropdown-item text-danger" onClick={() => handleDelete(t.id, t.registration_no)}><i className="bi bi-trash me-2"></i>মুছুন</button></li>
                         </ul>
                       </div>
                     </td>
@@ -329,19 +250,37 @@ export default function TraineeList() {
         </div>
         {totalPages > 1 && (
           <div className="b-pagination">
-            <small>দেখানো হচ্ছে {Math.min((page-1)*pageSize+1, total)}-{Math.min(page*pageSize, total)} এর {total}</small>
-            <div className="d-flex gap-1 align-items-center">
-              <button className="page-btn" disabled={page <= 1} onClick={() => setPage(page - 1)}>
-                <i className="bi bi-chevron-left"></i>
-              </button>
-              <span className="page-info">{page} / {totalPages}</span>
-              <button className="page-btn" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>
-                <i className="bi bi-chevron-right"></i>
-              </button>
+            <span className="page-info">মোট: {formatNumber(total)} জন প্রশিক্ষণার্থী</span>
+            <div className="page-nav">
+              <button className="page-btn" disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}>পূর্ববর্তী</button>
+              <button className="page-btn" disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}>পরবর্তী</button>
             </div>
           </div>
         )}
       </div>
+
+      {showBulkDelete && (
+        <div className="modal d-block" style={{ background: 'rgba(0,0,0,.5)' }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header bg-danger text-white">
+                <h5 className="modal-title"><i className="bi bi-exclamation-triangle me-2"></i>নিশ্চিতকরণ</h5>
+                <button type="button" className="btn-close btn-close-white" onClick={() => setShowBulkDelete(false)} />
+              </div>
+              <div className="modal-body">
+                <p className="mb-0">আপনি কি {formatNumber(selectedIds.size)} টি প্রশিক্ষণার্থীকে মুছে ফেলতে চান?</p>
+              </div>
+              <div className="modal-footer">
+                <button className="btn btn-secondary" onClick={() => setShowBulkDelete(false)}>বাতিল</button>
+                <button className="btn btn-danger" onClick={handleBulkDelete} disabled={bulkDeleting}>
+                  {bulkDeleting ? <span className="spinner-border spinner-border-sm me-1" /> : <i className="bi bi-trash me-1"></i>}
+                  মুছুন
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showImport && (
         <div className="modal d-block" style={{ background: 'rgba(0,0,0,.5)' }}>
@@ -360,7 +299,7 @@ export default function TraineeList() {
                   </div>
                   <div className="d-flex gap-2 mt-2">
                     <button className="btn btn-outline-success flex-shrink-0" onClick={async () => {
-                      try { const res = await api.get('/trainees/download_template/', { responseType: 'blob' }); const url = window.URL.createObjectURL(new Blob([res.data])); const a = document.createElement('a'); a.href = url; a.download = 'trainee_import_template.xlsx'; a.click(); a.remove(); window.URL.revokeObjectURL(url); } catch { toast.error('টেমপ্লেট ডাউনলোড ব্যর্থ'); }
+                      try { const res = await hoService.downloadTraineeTemplate(); const url = window.URL.createObjectURL(new Blob([res.data])); const a = document.createElement('a'); a.href = url; a.download = 'trainee_import_template.xlsx'; a.click(); a.remove(); window.URL.revokeObjectURL(url); } catch { toast.error('টেমপ্লেট ডাউনলোড ব্যর্থ'); }
                     }} type="button">
                       <i className="bi bi-download me-1"></i>টেমপ্লেট
                     </button>
@@ -392,28 +331,6 @@ export default function TraineeList() {
               </div>
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" onClick={() => setShowImport(false)}>বন্ধ</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showBulkDelete && (
-        <div className="modal d-block" style={{ background: 'rgba(0,0,0,.5)' }}>
-          <div className="modal-dialog modal-sm modal-dialog-centered">
-            <div className="modal-content">
-              <div className="modal-header bg-danger text-white">
-                <h6 className="modal-title"><i className="bi bi-exclamation-triangle me-2"></i>নিশ্চিতকরণ</h6>
-                <button type="button" className="btn-close btn-close-white" onClick={() => setShowBulkDelete(false)} />
-              </div>
-              <div className="modal-body">
-                <p className="mb-0">আপনি কি {selectedIds.size} টি প্রশিক্ষণার্থী মুছে ফেলতে চান? এটি অপরিবর্তনীয়।</p>
-              </div>
-              <div className="modal-footer">
-                <button className="btn btn-secondary" onClick={() => setShowBulkDelete(false)}>বাতিল</button>
-                <button className="btn btn-danger" onClick={handleBulkDelete} disabled={bulkDeleting}>
-                  {bulkDeleting ? <><span className="spinner-border spinner-border-sm me-1" />মুছছে...</> : 'মুছুন'}
-                </button>
               </div>
             </div>
           </div>

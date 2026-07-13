@@ -20,6 +20,7 @@ const hoService = {
   createCenter(data) { return api.post('/ho/centers/', data); },
   updateCenter(id, data) { return api.put(`/ho/centers/${id}/`, data); },
   deleteCenter(id) { return api.delete(`/ho/centers/${id}/`); },
+  bulkDeleteCenters(ids) { return api.post('/ho/centers/bulk_delete/', { ids }); },
   toggleCenter(id) { return api.post(`/ho/centers/${id}/toggle/`); },
   exportCenters(params) { return api.get('/ho/centers/export-list/', { params, responseType: 'blob' }); },
   importCenters(formData) { return api.post('/ho/centers/import_centers/', formData); },
@@ -55,6 +56,7 @@ const hoService = {
   getTrainerCourses(centerId) { return api.get(`/ho/trainers/courses/${centerId ? `?center_id=${centerId}` : ''}`); },
   approveMapping(id) { return api.post(`/ho/trainer-mappings/${id}/approve/`); },
   deleteTrainer(id) { return api.delete(`/ho/trainers/${id}/`); },
+  bulkDeleteTrainers(ids) { return api.post('/ho/trainers/bulk_delete/', { ids }); },
 
   // Assessors (HO)
   listAssessors(params) { return api.get('/ho/assessors/', { params }); },
@@ -80,6 +82,7 @@ const hoService = {
   getAssessorBatches(id) { return api.get(`/ho/assessors/${id}/batches/`); },
   getAssessorAssessments(id) { return api.get(`/ho/assessors/${id}/assessments/`); },
   deleteAssessor(id) { return api.delete(`/ho/assessors/${id}/`); },
+  bulkDeleteAssessors(ids) { return api.post('/ho/assessors/bulk_delete/', { ids }); },
 
   // Applications (HO)
   listApplications(params) { return api.get('/applications/', { params }); },
@@ -238,7 +241,13 @@ const hoService = {
 
   // Trainees
   listTrainees(params) { return api.get('/ho/trainees/', { params }); },
+  getTrainee(id) { return api.get(`/ho/trainees/${id}/`); },
+  updateTrainee(id, data) { return api.put(`/ho/trainees/${id}/`, data); },
+  deleteTrainee(id) { return api.delete(`/ho/trainees/${id}/`); },
   exportTrainees(params) { return api.get('/ho/trainees/export-list/', { params, responseType: 'blob' }); },
+  importTrainees(formData) { return api.post('/ho/trainees/import_list/', formData); },
+  downloadTraineeTemplate() { return api.get('/ho/trainees/download_template/', { responseType: 'blob' }); },
+  bulkDeleteTrainees(ids) { return api.post('/ho/trainees/bulk_delete/', { ids }); },
 };
 
 export default hoService;
