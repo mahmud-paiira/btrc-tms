@@ -232,7 +232,7 @@ class TrainerViewSet(viewsets.ModelViewSet):
             'এনআইডি': 'nid', 'nid': 'nid',
             'শিক্ষাগত যোগ্যতা': 'education_qualification',
             'অভিজ্ঞতা (বছর)': 'years_of_experience',
-            'দক্ষতার ক্ষেত্র': 'expertise_area', 'expertise_area': 'expertise_area',
+            'দক্ষতা': 'expertise_area', 'দক্ষতার ক্ষেত্র': 'expertise_area', 'expertise_area': 'expertise_area',
             'স্ট্যাটাস': 'status', 'status': 'status',
             'অনুমোদন স্ট্যাটাস': 'approval_status', 'approval_status': 'approval_status',
             'কেন্দ্রের কোড': 'center_code', 'center_code': 'center_code',
@@ -247,6 +247,8 @@ class TrainerViewSet(viewsets.ModelViewSet):
                 if isinstance(row, dict):
                     raw = row
                 else:
+                    if all(c is None for c in row):
+                        continue
                     raw = dict(zip(header_row, [str(c).strip() if c is not None else '' for c in row]))
 
                 data = {}
@@ -254,60 +256,108 @@ class TrainerViewSet(viewsets.ModelViewSet):
                     mapped = field_map.get(k.strip().lower(), k.strip().lower())
                     data[mapped] = v.strip() if v else ''
 
+                if data.get('phone'):
+                    data['phone'] = data['phone'].replace('-', '')
+                if data.get('email') and data['email'] in ('–', '—', '-', '/'):
+                    data['email'] = ''
+
                 trainer_no = data.get('trainer_no', '').strip()
                 if not trainer_no:
                     results['errors'].append(f'সারি {row_idx}: প্রশিক্ষক নং আবশ্যক')
                     continue
 
                 existing = Trainer.objects.filter(trainer_no=trainer_no).first()
-                if existing:
-                    profile = existing.user
-                    if data.get('full_name_bn'):
-                        profile.full_name_bn = data['full_name_bn']
-                    if data.get('full_name_en'):
-                        profile.full_name_en = data['full_name_en']
-                    if data.get('phone'):
-                        profile.phone = data['phone']
-                    if data.get('email'):
-                        profile.email = data['email']
-                    profile.save()
-                    if data.get('education_qualification') is not None:
-                        existing.education_qualification = data.get('education_qualification') or ''
-                    if data.get('years_of_experience') is not None:
-                        existing.years_of_experience = int(data['years_of_experience']) if data['years_of_experience'] else None
-                    if data.get('expertise_area') is not None:
-                        existing.expertise_area = data.get('expertise_area') or ''
-                    if data.get('status') is not None:
-                        existing.status = data['status']
-                    if data.get('approval_status') is not None:
-                        existing.approval_status = data['approval_status']
-                    existing.save()
-                    results['updated'] += 1
-
-                    from apps.centers.models import Center
-                    center = None
-                    center_code = data.get('center_code', '').strip()
-                    center_name = data.get('center_name', '').strip()
-                    if center_code:
-                        center = Center.objects.filter(code__iexact=center_code).first()
-                    if not center and center_name:
-                        center = Center.objects.filter(name_bn=center_name).first()
-                    if center:
-                        from apps.courses.models import Course
-                        course = None
-                        course_code = data.get('course_code', '').strip()
-                        course_name = data.get('course_name', '').strip()
-                        if course_code:
-                            course = Course.objects.filter(code__iexact=course_code).first()
-                        if not course and course_name:
-                            course = Course.objects.filter(name_bn=course_name).first()
-                        TrainerMapping.objects.update_or_create(
-                            trainer=existing,
-                            center=center,
-                            defaults={'course': course, 'status': 'active'},
-                        )
-                else:
+                if trainer_no.isdigit() and not existing:
+                    generated_no = f'BRW-{trainer_no}'
+                    existing = Trainer.objects.filter(trainer_no=generated_no).first()
+                    nid = data.get('nid', '')
+                    if not existing:
+                        if not nid:
+                            results['errors'].append(f'সারি {row_idx}: "{trainer_no}" - এনআইডি ছাড়া নতুন প্রশিক্ষক তৈরি সম্ভব নয়')
+                            continue
+                        from apps.accounts.models import User
+                        existing_user = User.objects.filter(nid=nid).first() if nid else None
+                        if existing_user:
+                            existing = Trainer.objects.filter(user=existing_user).first()
+                            if not existing:
+                                existing = Trainer.objects.create(user=existing_user, trainer_no=generated_no, nid=nid, date_of_birth=date.today())
+                            existing.trainer_no = generated_no
+                        if not existing or not existing.pk:
+                            phone = data.get('phone', '')
+                            if phone and User.objects.filter(phone=phone).exists():
+                                phone = ''
+                            email = data.get('email', '') or f'{generated_no.lower()}@brtc.app'
+                            user = User.objects.create(
+                                full_name_bn=data.get('full_name_bn', '') or '—',
+                                full_name_en=data.get('full_name_en', '') or '—',
+                                phone=phone,
+                                email=email,
+                                nid=nid,
+                                user_type='trainer',
+                            )
+                            existing = Trainer.objects.create(
+                                user=user,
+                                trainer_no=generated_no,
+                                nid=nid,
+                                date_of_birth=date.today(),
+                                education_qualification=data.get('education_qualification', ''),
+                                years_of_experience=int(data['years_of_experience']) if data.get('years_of_experience') else 0,
+                                expertise_area=data.get('expertise_area', ''),
+                                status=data.get('status', 'pending'),
+                                approval_status=data.get('approval_status', 'pending'),
+                            )
+                    trainer_no = generated_no
+                if not existing:
                     results['errors'].append(f'সারি {row_idx}: "{trainer_no}" প্রশিক্ষক নং পাওয়া যায়নি')
+                    continue
+                profile = existing.user
+                if data.get('full_name_bn'):
+                    profile.full_name_bn = data['full_name_bn']
+                if data.get('full_name_en'):
+                    profile.full_name_en = data['full_name_en']
+                if data.get('phone'):
+                    profile.phone = data['phone']
+                if data.get('email'):
+                    profile.email = data['email']
+                profile.save()
+                if data.get('education_qualification') is not None:
+                    existing.education_qualification = data.get('education_qualification') or ''
+                if data.get('years_of_experience') is not None:
+                    existing.years_of_experience = int(data['years_of_experience']) if data['years_of_experience'] else None
+                if data.get('expertise_area') is not None:
+                    existing.expertise_area = data.get('expertise_area') or ''
+                if data.get('status') is not None:
+                    existing.status = data['status']
+                if data.get('approval_status') is not None:
+                    existing.approval_status = data['approval_status']
+                existing.save()
+                results['updated'] += 1
+
+                from apps.centers.models import Center
+                center = None
+                center_code = data.get('center_code', '').strip()
+                center_name = data.get('center_name', '').strip()
+                if center_code:
+                    center = Center.objects.filter(code__iexact=center_code).first()
+                if not center and center_name:
+                    center = Center.objects.filter(name_bn=center_name).first()
+                if center:
+                    from apps.courses.models import Course
+                    course = None
+                    course_code = data.get('course_code', '').strip()
+                    course_name = data.get('course_name', '').strip()
+                    if course_code:
+                        course = Course.objects.filter(code__iexact=course_code).first()
+                    if not course and course_name:
+                        course = Course.objects.filter(name_bn=course_name).first()
+                    TrainerMapping.objects.update_or_create(
+                        trainer=existing,
+                        center=center,
+                        defaults={'course': course, 'status': 'active'},
+                    )
+                    if not profile.center:
+                        profile.center = center
+                        profile.save(update_fields=['center'])
             except Exception as e:
                 results['errors'].append(f'সারি {row_idx}: {str(e)}')
 
