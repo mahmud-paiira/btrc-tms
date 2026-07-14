@@ -204,6 +204,7 @@ export default function TraineeList() {
                 <th>ক্রমিক</th>
                 <th>রেজি. নং</th>
                 <th>নাম (বাংলা)</th>
+                <th className="d-none d-md-table-cell">এনআইডি</th>
                 <th className="d-none d-md-table-cell">ফোন</th>
                 <th className="d-none d-lg-table-cell">কেন্দ্র</th>
                 <th className="d-none d-lg-table-cell">ব্যাচ</th>
@@ -223,6 +224,7 @@ export default function TraineeList() {
                     <td className="text-secondary">{(page - 1) * pageSize + idx + 1}</td>
                     <td className="fw-semibold">{t.registration_no || '-'}</td>
                     <td>{t.user_full_name_bn || t.user_email || '-'}</td>
+                    <td className="d-none d-md-table-cell">{t.user_nid || '-'}</td>
                     <td className="d-none d-md-table-cell">{t.user_phone || '-'}</td>
                     <td className="d-none d-lg-table-cell">{t.center_name || t.center_name_bn || '-'}</td>
                     <td className="d-none d-lg-table-cell">{t.batch_name_bn || '-'}</td>

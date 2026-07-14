@@ -183,10 +183,17 @@ class HOTraineeViewSet(viewsets.ModelViewSet):
                         from apps.accounts.models import User
                         existing_user = User.objects.filter(nid=nid).first() if nid else None
                         if existing_user:
+                            if data.get('full_name_bn'): existing_user.full_name_bn = data['full_name_bn']
+                            if data.get('full_name_en'): existing_user.full_name_en = data['full_name_en']
+                            if data.get('phone'): existing_user.phone = data['phone']
+                            if data.get('email'): existing_user.email = data['email']
+                            existing_user.user_type = 'trainee'
+                            existing_user.save()
                             existing = Trainee.objects.filter(user=existing_user).first()
                             if not existing:
                                 existing = Trainee.objects.create(user=existing_user, registration_no=generated_no, center=center)
                             existing.registration_no = generated_no
+                            existing.save()
                         if not existing or not existing.pk:
                             phone = data.get('phone', '')
                             if phone and User.objects.filter(phone=phone).exists():

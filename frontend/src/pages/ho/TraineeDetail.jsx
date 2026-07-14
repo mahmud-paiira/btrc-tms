@@ -38,8 +38,7 @@ export default function TraineeDetail() {
   }
   if (!trainee) return null;
 
-  const user = trainee.user || {};
-  const nameBn = user.full_name_bn || trainee.registration_no;
+  const nameBn = trainee.user_name || trainee.registration_no;
 
   return (
     <div className="px-4 py-4">
@@ -78,12 +77,12 @@ export default function TraineeDetail() {
                   <tbody>
                     <tr><th>Reg No</th><td>{convertToBanglaDigits(trainee.registration_no)}</td></tr>
                     <tr><th>Name (Bn)</th><td>{nameBn}</td></tr>
-                    <tr><th>Name (En)</th><td>{user.full_name_en || '-'}</td></tr>
-                    <tr><th>Email</th><td>{user.email || '-'}</td></tr>
-                    <tr><th>Phone</th><td>{user.phone || '-'}</td></tr>
-                    <tr><th>NID</th><td>{user.nid ? convertToBanglaDigits(user.nid) : '-'}</td></tr>
-                    <tr><th>Center</th><td>{trainee.center_name || (trainee.center ? trainee.center.name_bn : '-')}</td></tr>
-                    <tr><th>Batch</th><td>{trainee.batch_name || (trainee.batch ? trainee.batch.batch_name_bn : '-')}</td></tr>
+                    <tr><th>Name (En)</th><td>{trainee.user_name_en || '-'}</td></tr>
+                    <tr><th>Email</th><td>{trainee.user_email || '-'}</td></tr>
+                    <tr><th>Phone</th><td>{trainee.user_phone || '-'}</td></tr>
+                    <tr><th>NID</th><td>{trainee.user_nid ? convertToBanglaDigits(trainee.user_nid) : '-'}</td></tr>
+                    <tr><th>Center</th><td>{trainee.center_name || '-'}</td></tr>
+                    <tr><th>Batch</th><td>{trainee.batch_name || '-'}</td></tr>
                     <tr><th>Status</th><td>{trainee.status_display || trainee.status}</td></tr>
                   </tbody>
                 </table>
@@ -110,8 +109,8 @@ export default function TraineeDetail() {
                 <table className="b-table align-middle">
                   <tbody>
                     <tr><th>Reg No</th><td>{convertToBanglaDigits(trainee.registration_no)}</td></tr>
-                    <tr><th>NID</th><td>{user.nid ? convertToBanglaDigits(user.nid) : '-'}</td></tr>
-                    <tr><th>Mobile</th><td>{user.phone || '-'}</td></tr>
+                    <tr><th>NID</th><td>{trainee.user_nid ? convertToBanglaDigits(trainee.user_nid) : '-'}</td></tr>
+                    <tr><th>Mobile</th><td>{trainee.user_phone || '-'}</td></tr>
                     <tr><th>Center</th><td>{trainee.center_name || '-'}</td></tr>
                     <tr><th>Batch</th><td>{trainee.batch_name || '-'}</td></tr>
                   </tbody>
