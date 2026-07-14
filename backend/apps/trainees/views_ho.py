@@ -158,25 +158,60 @@ class HOTraineeViewSet(viewsets.ModelViewSet):
                     continue
 
                 existing = Trainee.objects.filter(registration_no=reg_no).first()
-                if existing:
-                    if data.get('status') is not None:
-                        existing.status = data['status']
-                    existing.save()
-
-                    from apps.centers.models import Center
-                    center_code = data.get('center_code', '').strip()
-                    center_name = data.get('center_name', '').strip()
-                    if center_code:
-                        center = Center.objects.filter(code__iexact=center_code).first()
-                        if not center and center_name:
-                            center = Center.objects.filter(name_bn=center_name).first()
-                        if center:
-                            existing.center = center
-                            existing.save(update_fields=['center'])
-
-                    results['updated'] += 1
-                else:
+                if not existing and reg_no.isdigit():
+                    generated_no = f'TRN-{reg_no}'
+                    existing = Trainee.objects.filter(registration_no=generated_no).first()
+                    nid = data.get('nid', '')
+                    if not existing:
+                        if not nid:
+                            results['errors'].append(f'সারি {row_idx}: "{reg_no}" - এনআইডি ছাড়া নতুন প্রশিক্ষণার্থী তৈরি সম্ভব নয়')
+                            continue
+                        from apps.accounts.models import User
+                        existing_user = User.objects.filter(nid=nid).first() if nid else None
+                        if existing_user:
+                            existing = Trainee.objects.filter(user=existing_user).first()
+                            if not existing:
+                                existing = Trainee.objects.create(user=existing_user, registration_no=generated_no, nid=nid)
+                            existing.registration_no = generated_no
+                        if not existing or not existing.pk:
+                            phone = data.get('phone', '')
+                            if phone and User.objects.filter(phone=phone).exists():
+                                phone = ''
+                            email = data.get('email', '') or f'{generated_no.lower()}@brtc.app'
+                            user = User.objects.create(
+                                full_name_bn=data.get('full_name_bn', '') or '—',
+                                full_name_en=data.get('full_name_en', '') or '—',
+                                phone=phone,
+                                email=email,
+                                nid=nid,
+                                user_type='trainee',
+                            )
+                            existing = Trainee.objects.create(
+                                user=user,
+                                registration_no=generated_no,
+                                nid=nid,
+                            )
+                    reg_no = generated_no
+                if not existing:
                     results['errors'].append(f'সারি {row_idx}: "{reg_no}" রেজি. নং পাওয়া যায়নি')
+                    continue
+                if data.get('status') is not None:
+                    existing.status = data['status']
+                existing.save()
+
+                from apps.centers.models import Center
+                center_code = data.get('center_code', '').strip()
+                center_name = data.get('center_name', '').strip()
+                center = None
+                if center_code:
+                    center = Center.objects.filter(code__iexact=center_code).first()
+                if not center and center_name:
+                    center = Center.objects.filter(name_bn=center_name).first()
+                if center:
+                    existing.center = center
+                    existing.save(update_fields=['center'])
+
+                results['updated'] += 1
             except Exception as e:
                 results['errors'].append(f'সারি {row_idx}: {str(e)}')
 
