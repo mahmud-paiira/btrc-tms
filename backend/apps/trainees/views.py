@@ -161,31 +161,84 @@ class TraineeViewSet(viewsets.ModelViewSet):
                     mapped = field_map.get(k.strip().lower(), k.strip().lower())
                     data[mapped] = v.strip() if v else ''
 
+                if data.get('phone'):
+                    data['phone'] = data['phone'].replace('-', '')
+                if data.get('email') and data['email'] in ('–', '—', '-', '/'):
+                    data['email'] = ''
+
                 reg_no = data.get('registration_no', '').strip()
                 if not reg_no:
                     results['errors'].append(f'সারি {row_idx}: রেজি. নং আবশ্যক')
                     continue
 
+                from apps.centers.models import Center
+                center_code = data.get('center_code', '').strip()
+                center_name = data.get('center_name', '').strip()
+                center = None
+                if center_code:
+                    center = Center.objects.filter(code__iexact=center_code).first()
+                if not center and center_name:
+                    center = Center.objects.filter(name_bn=center_name).first()
+
                 existing = Trainee.objects.filter(registration_no=reg_no).first()
-                if existing:
-                    if data.get('status') is not None:
-                        existing.status = data['status']
-                    existing.save()
-
-                    from apps.centers.models import Center
-                    center_code = data.get('center_code', '').strip()
-                    center_name = data.get('center_name', '').strip()
-                    if center_code:
-                        center = Center.objects.filter(code__iexact=center_code).first()
-                        if not center and center_name:
-                            center = Center.objects.filter(name_bn=center_name).first()
-                        if center:
-                            existing.center = center
-                            existing.save(update_fields=['center'])
-
-                    results['updated'] += 1
-                else:
+                if not existing and reg_no.isdigit():
+                    generated_no = f'TRN-{reg_no}'
+                    existing = Trainee.objects.filter(registration_no=generated_no).first()
+                    nid = data.get('nid', '')
+                    if not existing:
+                        if not nid:
+                            results['errors'].append(f'সারি {row_idx}: "{reg_no}" - এনআইডি ছাড়া নতুন প্রশিক্ষণার্থী তৈরি সম্ভব নয়')
+                            continue
+                        from apps.accounts.models import User
+                        existing_user = User.objects.filter(nid=nid).first() if nid else None
+                        if existing_user:
+                            if data.get('full_name_bn'): existing_user.full_name_bn = data['full_name_bn']
+                            if data.get('full_name_en'): existing_user.full_name_en = data['full_name_en']
+                            phone = data.get('phone', '')
+                            if phone and User.objects.exclude(pk=existing_user.pk).filter(phone=phone).exists():
+                                phone = ''
+                            if phone: existing_user.phone = phone
+                            if data.get('email'): existing_user.email = data['email']
+                            existing_user.user_type = 'trainee'
+                            if center: existing_user.center = center
+                            existing_user.set_password('trainee123')
+                            existing_user.save()
+                            existing = Trainee.objects.filter(user=existing_user).first()
+                            if not existing:
+                                existing = Trainee.objects.create(user=existing_user, registration_no=generated_no, center=center)
+                            existing.registration_no = generated_no
+                        if not existing or not existing.pk:
+                            phone = data.get('phone', '')
+                            if phone and User.objects.filter(phone=phone).exists():
+                                phone = ''
+                            email = data.get('email', '') or f'{generated_no.lower()}@brtc.app'
+                            user = User.objects.create(
+                                full_name_bn=data.get('full_name_bn', '') or '—',
+                                full_name_en=data.get('full_name_en', '') or '—',
+                                phone=phone,
+                                email=email,
+                                nid=nid,
+                                user_type='trainee',
+                            )
+                            user.center = center
+                            user.set_password('trainee123')
+                            user.save()
+                            existing = Trainee.objects.create(
+                                user=user,
+                                registration_no=generated_no,
+                                center=center,
+                            )
+                    reg_no = generated_no
+                if not existing:
                     results['errors'].append(f'সারি {row_idx}: "{reg_no}" রেজি. নং পাওয়া যায়নি')
+                    continue
+                if data.get('status') is not None:
+                    existing.status = data['status']
+                if center:
+                    existing.center = center
+                existing.save()
+
+                results['updated'] += 1
             except Exception as e:
                 results['errors'].append(f'সারি {row_idx}: {str(e)}')
 

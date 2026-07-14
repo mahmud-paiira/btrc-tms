@@ -85,6 +85,47 @@
   .main ul, .main ol { margin: 0 0 16px 24px; }
   .main li { margin-bottom: 6px; }
 
+  /* ─── JOURNEY STEPS ─── */
+  .journey { margin: 20px 0; }
+  .journey .step {
+    display: flex; gap: 14px; margin-bottom: 10px;
+    padding: 12px 16px; border-radius: 6px;
+    background: #fafcfa; border: 1px solid var(--border);
+    transition: .15s;
+  }
+  .journey .step:hover { background: #f0f7ee; }
+  .journey .step-num {
+    flex-shrink: 0; width: 32px; height: 32px;
+    background: var(--primary); color: #fff;
+    border-radius: 50%; display: flex;
+    align-items: center; justify-content: center;
+    font-weight: bold; font-size: 14px;
+  }
+  .journey .step-body { flex: 1; }
+  .journey .step-body strong { color: var(--primary-dark); display: block; }
+  .journey .step-body p { margin: 2px 0 0; font-size: 14px; color: var(--text-light); }
+  .journey-arrow {
+    text-align: center; color: var(--primary); font-size: 20px;
+    margin: -4px 0 2px 22px; opacity: .6;
+  }
+  .flow-diagram {
+    background: var(--card-bg); border: 2px solid var(--primary);
+    border-radius: 8px; padding: 20px 24px; margin: 16px 0;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 6px 2px;
+  }
+  .flow-diagram .node {
+    background: var(--primary); color: #fff; padding: 8px 14px;
+    border-radius: 6px; font-size: 13px; font-weight: bold;
+    white-space: nowrap;
+  }
+  .flow-diagram .node.ca { background: #2a8a4e; }
+  .flow-diagram .node.tr { background: #3ca06a; }
+  .flow-diagram .node.as { background: #5bb884; }
+  .flow-diagram .node.tn { background: #7dcca0; }
+  .flow-diagram .node.ac { background: #9fdbb8; color: #124a28; }
+  .flow-diagram .node.pub { background: var(--accent); color: #333; }
+  .flow-diagram .arrow { color: var(--primary); font-size: 18px; font-weight: bold; }
+
   /* ─── INFO BOXES ─── */
   .info, .note, .tip, .warn {
     padding: 14px 18px; border-radius: 6px; margin: 16px 0;
@@ -159,6 +200,7 @@
   <a href="#intro" class="active">১. ভূমিকা</a>
   <a href="#roles" class="l2">১.১ ব্যবহারকারীর ধরন</a>
   <a href="#login" class="l2">১.২ লগইন</a>
+  <a href="#end-to-end" class="l2">১.৩ এন্ড-টু-এন্ড ফ্লো</a>
 
   <a href="#ho">২. হেড অফিস মডিউল</a>
   <a href="#ho-center" class="l2">২.১ কেন্দ্র ব্যবস্থাপনা</a>
@@ -172,6 +214,7 @@
   <a href="#ho-seat" class="l2">২.৭ আসন বিতরণ</a>
   <a href="#ho-trainee" class="l2">২.৮ প্রশিক্ষণার্থী ব্যবস্থাপনা</a>
   <a href="#ho-reports" class="l2">২.৯ রিপোর্ট</a>
+  <a href="#ho-journey" class="l2">২.১০ HO জার্নি</a>
 
   <a href="#center-admin">৩. কেন্দ্র প্রশাসক মডিউল</a>
   <a href="#ca-batch" class="l2">৩.১ ব্যাচ ব্যবস্থাপনা</a>
@@ -179,11 +222,16 @@
   <a href="#ca-assessor" class="l2">৩.৩ মূল্যায়নকারী নিয়োগ</a>
   <a href="#ca-attendance" class="l2">৩.৪ উপস্থিতি</a>
   <a href="#ca-trainee" class="l2">৩.৫ প্রশিক্ষণার্থী</a>
+  <a href="#ca-journey" class="l2">৩.৬ CA জার্নি</a>
 
   <a href="#trainer">৪. প্রশিক্ষক মডিউল</a>
+  <a href="#trainer-journey" class="l2">৪.১ Trainer জার্নি</a>
   <a href="#assessor">৫. মূল্যায়নকারী মডিউল</a>
+  <a href="#assessor-journey" class="l2">৫.১ Assessor জার্নি</a>
   <a href="#trainee">৬. প্রশিক্ষণার্থী মডিউল</a>
+  <a href="#trainee-journey" class="l2">৬.১ Trainee জার্নি</a>
   <a href="#accountant">৭. হিসাবরক্ষক মডিউল</a>
+  <a href="#accountant-journey" class="l2">৭.১ Accountant জার্নি</a>
   <a href="#public">৮. পাবলিক মডিউল</a>
   <a href="#reports">৯. রিপোর্ট ও এক্সপোর্ট</a>
   <a href="#faq">১০. সাধারণ সমস্যা ও সমাধান</a>
@@ -221,6 +269,38 @@
   আপনার ব্যবহারকারীর ধরন অনুযায়ী ড্যাশবোর্ড ও মেনু পরিবর্তিত হবে।
 </p>
 <div class="note"><strong>নোট:</strong> প্রশিক্ষণার্থীদের জন্য পাবলিক রেজিস্ট্রেশন প্রক্রিয়া আলাদা (অধ্যায় ৮ দেখুন)।</div>
+
+<h3 id="end-to-end">১.৩ সম্পূর্ণ সিস্টেম ফ্লো (End-to-End)</h3>
+<p>নিচের চিত্রটি পুরো সিস্টেমের ধাপে ধাপে কার্যপ্রবাহ দেখায় — সার্কুলার প্রকাশ থেকে শুরু করে প্রশিক্ষণ সমাপ্তি ও ভাতা বিতরণ পর্যন্ত:</p>
+
+<div class="flow-diagram">
+  <span class="node">HO</span>
+  <span class="arrow">→</span>
+  <span class="node">পাবলিক</span>
+  <span class="arrow">→</span>
+  <span class="node">HO</span>
+  <span class="arrow">→</span>
+  <span class="node ca">Center Admin</span>
+  <span class="arrow">→</span>
+  <span class="node tr">Trainer</span>
+  <span class="arrow">→</span>
+  <span class="node as">Assessor</span>
+  <span class="arrow">→</span>
+  <span class="node ac">Accountant</span>
+  <span class="arrow">→</span>
+  <span class="node tn">Trainee</span>
+</div>
+
+<ol style="margin-bottom:20px">
+  <li><strong>HO</strong> কোর্স ও সার্কুলার তৈরি করে এবং প্রকাশ করে</li>
+  <li><strong>পাবলিক</strong> ব্যবহারকারী নিবন্ধন করে ও আবেদন জমা দেয়</li>
+  <li><strong>HO</strong> আবেদন পর্যালোচনা করে, নির্বাচিত করে ও আসন বিতরণ করে</li>
+  <li><strong>Center Admin</strong> ব্যাচ জেনারেট করে, প্রশিক্ষক ও মূল্যায়নকারী নিয়োগ করে</li>
+  <li><strong>Trainer</strong> দৈনিক উপস্থিতি নেয়</li>
+  <li><strong>Assessor</strong> প্রশিক্ষণার্থীদের মূল্যায়ন সম্পন্ন করে</li>
+  <li><strong>Accountant</strong> ভাতা অনুমোদন ও বিতরণ করে</li>
+  <li><strong>Trainee</strong> প্রশিক্ষণ সম্পন্ন করে</li>
+</ol>
 
 <!-- ─── 2. HEAD OFFICE ─── -->
 <h2 id="ho">২. হেড অফিস মডিউল</h2>
@@ -391,6 +471,64 @@
   <li>Dropout Report — ঝরে পড়া রিপোর্ট</li>
 </ul>
 
+<h3 id="ho-journey">২.১০ হেড অফিস — ধাপে ধাপে কার্যপ্রবাহ</h3>
+<div class="journey">
+  <div class="step">
+    <div class="step-num">১</div>
+    <div class="step-body"><strong>সিস্টেমে লগইন করুন</strong><p>https://[server-address]/login — ইমেইল ও পাসওয়ার্ড দিন। হেড অফিস ড্যাশবোর্ডে সমস্ত মডিউলের সারসংক্ষেপ দেখা যাবে।</p></div>
+  </div>
+  <div class="journey-arrow">↓</div>
+  <div class="step">
+    <div class="step-num">২</div>
+    <div class="step-body"><strong>প্রশিক্ষণ কেন্দ্র তৈরি ও ব্যবস্থাপনা</strong><p>Centers → Centre Management পৃষ্ঠায় গিয়ে নতুন কেন্দ্র তৈরি করুন। প্রতিটি কেন্দ্রের জন্য কোড, নাম, ধরন, ওভারফ্লো শতাংশ, seats_per_trainer নির্ধারণ করুন।</p></div>
+  </div>
+  <div class="journey-arrow">↓</div>
+  <div class="step">
+    <div class="step-num">৩</div>
+    <div class="step-body"><strong>কোর্স তৈরি করুন</strong><p>Courses → Course Management পৃষ্ঠায় প্রয়োজনীয় কোর্স তৈরি করুন — কোড, নাম (বাংলা/ইংরেজি), ধরন, সময়কাল, ফি সহ।</p></div>
+  </div>
+  <div class="journey-arrow">↓</div>
+  <div class="step">
+    <div class="step-num">৪</div>
+    <div class="step-body"><strong>প্রশিক্ষক ও মূল্যায়নকারী যোগ করুন</strong><p>Trainers → Import বা Create বাটন ব্যবহার করে প্রশিক্ষক যোগ করুন। Assessors → Import বা Create দিয়ে মূল্যায়নকারী যোগ করুন। এক্সেল ইম্পোর্টের জন্য টেমপ্লেট ডাউনলোড করে ডেটা পূরণ করুন।</p></div>
+  </div>
+  <div class="journey-arrow">↓</div>
+  <div class="step">
+    <div class="step-num">৫</div>
+    <div class="step-body"><strong>প্রশিক্ষক/মূল্যায়নকারী অনুমোদন করুন</strong><p>Trainers বা Assessors তালিকা থেকে পেন্ডিং প্রশিক্ষক নির্বাচন করে Approve বাটনে ক্লিক করুন। অনুমোদিত প্রশিক্ষকগণ কেন্দ্রের সক্ষমতা গণনায় অন্তর্ভুক্ত হবেন।</p></div>
+  </div>
+  <div class="journey-arrow">↓</div>
+  <div class="step">
+    <div class="step-num">৬</div>
+    <div class="step-body"><strong>প্রশিক্ষক-কেন্দ্র ম্যাপিং করুন</strong><p>প্রতিটি প্রশিক্ষককে নির্দিষ্ট কেন্দ্রে (এবং ঐচ্ছিকভাবে কোর্সে) ম্যাপ করুন। Trainer Mapping এর মাধ্যমে সক্রিয় ম্যাপিং তৈরি করুন।</p></div>
+  </div>
+  <div class="journey-arrow">↓</div>
+  <div class="step">
+    <div class="step-num">৭</div>
+    <div class="step-body"><strong>সার্কুলার তৈরি করুন</strong><p>Circulars → Create Circular পৃষ্ঠায় কোর্স, উপযুক্ত কেন্দ্র, মোট আসন, সময়সীমা, চেকলিস্ট আইটেম, ফি ইত্যাদি দিয়ে সার্কুলার তৈরি করুন।</p></div>
+  </div>
+  <div class="journey-arrow">↓</div>
+  <div class="step">
+    <div class="step-num">৮</div>
+    <div class="step-body"><strong>সার্কুলার প্রকাশ করুন</strong><p>Publish বাটনে ক্লিক করুন। পাবলিক URL জেনারেট হবে যা সাধারণ ব্যবহারকারীরা দেখতে ও আবেদন করতে পারবেন।</p></div>
+  </div>
+  <div class="journey-arrow">↓</div>
+  <div class="step">
+    <div class="step-num">৯</div>
+    <div class="step-body"><strong>আবেদন পর্যালোচনা করুন</strong><p>সার্কুলার ডিটেইল পৃষ্ঠা থেকে Applications ট্যাবে গিয়ে আবেদনসমূহ দেখুন। Approve (নির্বাচিত), Reject (বাতিল), বা Enroll (নথিভুক্ত) করুন। Approve করলে স্বয়ংক্রিয়ভাবে ইউজার অ্যাকাউন্ট তৈরি হয়।</p></div>
+  </div>
+  <div class="journey-arrow">↓</div>
+  <div class="step">
+    <div class="step-num">১০</div>
+    <div class="step-body"><strong>আসন বিতরণ করুন</strong><p>Circular → Distribute Seats বাটনে ক্লিক করে সার্কুলারের মোট আসন কেন্দ্রসমূহের প্রশিক্ষক-ভিত্তিক সক্ষমতার অনুপাতে বিতরণ করুন।</p></div>
+  </div>
+  <div class="journey-arrow">↓</div>
+  <div class="step">
+    <div class="step-num">১১</div>
+    <div class="step-body"><strong>রিপোর্ট ও মনিটরিং</strong><p>Reports পৃষ্ঠা থেকে বিভিন্ন রিপোর্ট দেখুন — কেন্দ্রভিত্তিক, ব্যাচভিত্তিক, উপস্থিতি, মূল্যায়ন, ভাতা, আর্থিক ইত্যাদি।</p></div>
+  </div>
+</div>
+
 <!-- ─── 3. CENTER ADMIN ─── -->
 <h2 id="center-admin">৩. কেন্দ্র প্রশাসক মডিউল</h2>
 <p>
@@ -467,6 +605,59 @@
   ব্যাচভিত্তিক ফিল্টার। নতুন ট্রেইনি ম্যানুয়ালি যোগ বা বাল্ক ইম্পোর্ট করা যায়।
 </p>
 
+<h3 id="ca-journey">৩.৬ কেন্দ্র প্রশাসক — ধাপে ধাপে কার্যপ্রবাহ</h3>
+<div class="journey">
+  <div class="step">
+    <div class="step-num">১</div>
+    <div class="step-body"><strong>সিস্টেমে লগইন করুন</strong><p>নিজ কেন্দ্রের জন্য নির্ধারিত ইমেইল ও পাসওয়ার্ড দিয়ে লগইন করুন। ড্যাশবোর্ডে কেন্দ্রের ব্যাচ, প্রশিক্ষণার্থী ও অন্যান্য তথ্যের সারসংক্ষেপ দেখা যাবে।</p></div>
+  </div>
+  <div class="journey-arrow">↓</div>
+  <div class="step">
+    <div class="step-num">২</div>
+    <div class="step-body"><strong>বরাদ্দকৃত আসন ও সার্কুলার যাচাই করুন</strong><p>HO কর্তৃক আসন বিতরণ সম্পন্ন হয়েছে কিনা নিশ্চিত হন। Circulars পৃষ্ঠা থেকে নিজ কেন্দ্রের জন্য প্রাসঙ্গিক সার্কুলার দেখুন।</p></div>
+  </div>
+  <div class="journey-arrow">↓</div>
+  <div class="step">
+    <div class="step-num">৩</div>
+    <div class="step-body"><strong>ব্যাচ জেনারেট করুন</strong><p>Batches → Generate পৃষ্ঠায় সার্কুলার নির্বাচন করে ব্যাচ জেনারেট করুন। সিস্টেম বরাদ্দকৃত আসন অনুযায়ী (২৫ আসন/ব্যাচ) ব্যাচ তৈরি করবে এবং নির্বাচিত আবেদনকারীদের এনরোল করবে।</p></div>
+  </div>
+  <div class="journey-arrow">↓</div>
+  <div class="step">
+    <div class="step-num">৪</div>
+    <div class="step-body"><strong>প্রশিক্ষক নিয়োগ করুন</strong><p>প্রতিটি ব্যাচের জন্য Trainers → Assign Trainer পৃষ্ঠায় lead trainer (প্রধান) ও associate trainer (সহযোগী) নিয়োগ করুন। নিয়োগের পর স্বয়ংক্রিয়ভাবে ৮-সেশন সপ্তাহ পরিকল্পনা তৈরি হবে।</p></div>
+  </div>
+  <div class="journey-arrow">↓</div>
+  <div class="step">
+    <div class="step-num">৫</div>
+    <div class="step-body"><strong>মূল্যায়নকারী নিয়োগ করুন</strong><p>Assessors → Assign Assessor পৃষ্ঠায় ব্যাচের জন্য এক বা একাধিক মূল্যায়নকারী নিয়োগ করুন।</p></div>
+  </div>
+  <div class="journey-arrow">↓</div>
+  <div class="step">
+    <div class="step-num">৬</div>
+    <div class="step-body"><strong>সাপ্তাহিক পরিকল্পনা পর্যালোচনা ও সম্পাদনা</strong><p>প্রয়োজনে ব্যাচ ডিটেইল পৃষ্ঠা থেকে Week Plans এডিট বা Bulk Add করুন। সেশন, দিন, প্রশিক্ষক পরিবর্তন করতে পারেন।</p></div>
+  </div>
+  <div class="journey-arrow">↓</div>
+  <div class="step">
+    <div class="step-num">৭</div>
+    <div class="step-body"><strong>প্রয়োজনে ম্যানুয়াল এনরোলমেন্ট</strong><p>Batches → Enroll Trainee অপশন দিয়ে নির্দিষ্ট ট্রেইনি ব্যাচে এনরোল করুন। ড্রপ (ঝরে পড়া) বা ট্রান্সফার (অন্য ব্যাচে) অপশন ব্যবহার করুন।</p></div>
+  </div>
+  <div class="journey-arrow">↓</div>
+  <div class="step">
+    <div class="step-num">৮</div>
+    <div class="step-body"><strong>উপস্থিতি মনিটর করুন</strong><p>Attendance পৃষ্ঠা থেকে প্রতিটি ব্যাচের দৈনিক উপস্থিতি ও রিপোর্ট দেখুন। ক্যালেন্ডার ভিউতে নির্দিষ্ট দিনের উপস্থিতি বিশ্লেষণ করুন।</p></div>
+  </div>
+  <div class="journey-arrow">↓</div>
+  <div class="step">
+    <div class="step-num">৯</div>
+    <div class="step-body"><strong>প্রশিক্ষণার্থী ডেটা ইম্পোর্ট/এক্সপোর্ট</strong><p>Trainees পৃষ্ঠা থেকে এক্সেল ফাইলের মাধ্যমে প্রশিক্ষণার্থী ডেটা ইম্পোর্ট বা এক্সপোর্ট করুন।</p></div>
+  </div>
+  <div class="journey-arrow">↓</div>
+  <div class="step">
+    <div class="step-num">১০</div>
+    <div class="step-body"><strong>প্রশিক্ষণ অগ্রগতি ট্র্যাক করুন</strong><p>কেন্দ্রের সব ব্যাচের বর্তমান অবস্থা, উপস্থিতির হার, মূল্যায়ন ফলাফল এবং সমাপ্তির তথ্য মনিটর করুন।</p></div>
+  </div>
+</div>
+
 <!-- ─── 4. TRAINER ─── -->
 <h2 id="trainer">৪. প্রশিক্ষক মডিউল</h2>
 <p>
@@ -483,6 +674,39 @@
   <li><strong>প্রশিক্ষণার্থী তালিকা:</strong> ব্যাচের প্রশিক্ষণার্থীদের তথ্য দেখুন।</li>
 </ul>
 
+<h3 id="trainer-journey">৪.১ প্রশিক্ষক — ধাপে ধাপে কার্যপ্রবাহ</h3>
+<div class="journey">
+  <div class="step">
+    <div class="step-num">১</div>
+    <div class="step-body"><strong>সিস্টেমে লগইন করুন</strong><p>নিজের ইমেইল ও পাসওয়ার্ড দিয়ে লগইন করুন। ড্যাশবোর্ডে আপনার নিয়োগকৃত ব্যাচসমূহের তালিকা দেখা যাবে।</p></div>
+  </div>
+  <div class="journey-arrow">↓</div>
+  <div class="step">
+    <div class="step-num">২</div>
+    <div class="step-body"><strong>নির্ধারিত ব্যাচ দেখুন</strong><p>My Batches পৃষ্ঠায় আপনি কোন কোন ব্যাচে প্রধান বা সহযোগী প্রশিক্ষক হিসেবে নিয়োগ পেয়েছেন তা দেখুন।</p></div>
+  </div>
+  <div class="journey-arrow">↓</div>
+  <div class="step">
+    <div class="step-num">৩</div>
+    <div class="step-body"><strong>সাপ্তাহিক পরিকল্পনা দেখুন</strong><p>প্রতিটি ব্যাচের Week Plan দেখুন — কোন দিন, কোন সেশনে আপনার ক্লাস আছে।</p></div>
+  </div>
+  <div class="journey-arrow">↓</div>
+  <div class="step">
+    <div class="step-num">৪</div>
+    <div class="step-body"><strong>দৈনিক উপস্থিতি নিন</strong><p>Attendance পৃষ্ঠায় ব্যাচ ও তারিখ নির্বাচন করে প্রশিক্ষণার্থীদের উপস্থিতি চিহ্নিত করুন। Present / Absent / Late অপশন থেকে নির্বাচন করুন (Late = ০.৫ হিসাবে গণনা)।</p></div>
+  </div>
+  <div class="journey-arrow">↓</div>
+  <div class="step">
+    <div class="step-num">৫</div>
+    <div class="step-body"><strong>QR চেকইন (ঐচ্ছিক)</strong><p>প্রশিক্ষণার্থীরা তাদের QR কোড স্ক্যান করিয়ে উপস্থিতি নিশ্চিত করতে পারে।</p></div>
+  </div>
+  <div class="journey-arrow">↓</div>
+  <div class="step">
+    <div class="step-num">৬</div>
+    <div class="step-body"><strong>প্রশিক্ষণার্থী তালিকা দেখুন</strong><p>প্রয়োজনে ব্যাচের সকল প্রশিক্ষণার্থীর তথ্য ও উপস্থিতির ইতিহাস দেখুন।</p></div>
+  </div>
+</div>
+
 <!-- ─── 5. ASSESSOR ─── -->
 <h2 id="assessor">৫. মূল্যায়নকারী মডিউল</h2>
 <p>
@@ -493,6 +717,34 @@
   <li><strong>মূল্যায়ন সম্পন্ন করা:</strong> প্রতিটি প্রশিক্ষণার্থীর জন্য আলাদা স্কোর ও মন্তব্য প্রদান</li>
   <li><strong>ফলাফল দেখা:</strong> নিজের সম্পন্ন করা মূল্যায়নের তালিকা</li>
 </ul>
+
+<h3 id="assessor-journey">৫.১ মূল্যায়নকারী — ধাপে ধাপে কার্যপ্রবাহ</h3>
+<div class="journey">
+  <div class="step">
+    <div class="step-num">১</div>
+    <div class="step-body"><strong>সিস্টেমে লগইন করুন</strong><p>নিজের ইমেইল ও পাসওয়ার্ড দিয়ে লগইন করুন। ড্যাশবোর্ডে নির্ধারিত ব্যাচসমূহ দেখতে পাবেন।</p></div>
+  </div>
+  <div class="journey-arrow">↓</div>
+  <div class="step">
+    <div class="step-num">২</div>
+    <div class="step-body"><strong>নির্ধারিত ব্যাচ নির্বাচন করুন</strong><p>Assigned Batches তালিকা থেকে যেই ব্যাচে মূল্যায়ন সম্পন্ন করতে চান সেটি নির্বাচন করুন।</p></div>
+  </div>
+  <div class="journey-arrow">↓</div>
+  <div class="step">
+    <div class="step-num">৩</div>
+    <div class="step-body"><strong>প্রশিক্ষণার্থীদের মূল্যায়ন করুন</strong><p>প্রতিটি প্রশিক্ষণার্থীর জন্য নির্ধারিত মূল্যায়ন ফর্মে স্কোর ও মন্তব্য প্রদান করুন।</p></div>
+  </div>
+  <div class="journey-arrow">↓</div>
+  <div class="step">
+    <div class="step-num">৪</div>
+    <div class="step-body"><strong>মূল্যায়ন জমা দিন</strong><p>সকল তথ্য পূরণ করে Submit বাটনে ক্লিক করুন। জমা দেওয়ার পর আর সম্পাদনা করা যাবে না (কিছু ক্ষেত্রে)।</p></div>
+  </div>
+  <div class="journey-arrow">↓</div>
+  <div class="step">
+    <div class="step-num">৫</div>
+    <div class="step-body"><strong>ইতিহাস ও ফলাফল দেখুন</strong><p>আপনার সম্পন্ন করা সকল মূল্যায়নের তালিকা ও ফলাফল দেখুন।</p></div>
+  </div>
+</div>
 
 <!-- ─── 6. TRAINEE ─── -->
 <h2 id="trainee">৬. প্রশিক্ষণার্থী মডিউল</h2>
@@ -509,6 +761,59 @@
   <li><strong>QR কোড:</strong> নিজের QR কোড যা উপস্থিতি নেওয়ার জন্য ব্যবহার করা যায়</li>
 </ul>
 
+<h3 id="trainee-journey">৬.১ প্রশিক্ষণার্থী — ধাপে ধাপে কার্যপ্রবাহ</h3>
+<div class="journey">
+  <div class="step">
+    <div class="step-num">১</div>
+    <div class="step-body"><strong>পাবলিক সার্কুলার দেখুন</strong><p>HO কর্তৃক প্রদত্ত পাবলিক URL-এ গিয়ে প্রকাশিত সার্কুলার দেখুন — কোর্সের বিবরণ, সময়সূচী, যোগ্যতা, চেকলিস্ট ইত্যাদি।</p></div>
+  </div>
+  <div class="journey-arrow">↓</div>
+  <div class="step">
+    <div class="step-num">২</div>
+    <div class="step-body"><strong>অ্যাকাউন্ট তৈরি ও আবেদন করুন</strong><p>নাম (বাংলা/ইংরেজি), পিতা/মাতার নাম, জন্ম তারিখ (বয়স ≥ ২১), এনআইডি, ফোন, ইমেইল, ঠিকানা, শিক্ষাগত যোগ্যতা, ছবি, এনআইডি ছবি আপলোড করে আবেদন সম্পন্ন করুন। পছন্দের কেন্দ্র নির্বাচন করুন।</p></div>
+  </div>
+  <div class="journey-arrow">↓</div>
+  <div class="step">
+    <div class="step-num">৩</div>
+    <div class="step-body"><strong>চেকলিস্ট পূরণ ও অটো-স্ক্রিন</strong><p>সার্কুলারের নির্ধারিত চেকলিস্ট আইটেম পূরণ করুন। জমা দেওয়ার সাথে সাথে স্বয়ংক্রিয় স্কোরিং হবে — ন্যূনতম স্কোর পূরণ করলেই পাস।</p></div>
+  </div>
+  <div class="journey-arrow">↓</div>
+  <div class="step">
+    <div class="step-num">৪</div>
+    <div class="step-body"><strong>নির্বাচনের অপেক্ষা করুন</strong><p>HO কর্তৃক আবেদন পর্যালোচনা ও অনুমোদনের পর আপনার অবস্থা SELECTED হবে। ইমেইল/এসএমএসের মাধ্যমে জানানো হবে।</p></div>
+  </div>
+  <div class="journey-arrow">↓</div>
+  <div class="step">
+    <div class="step-num">৫</div>
+    <div class="step-body"><strong>লগইন করুন</strong><p>নির্বাচিত হলে সিস্টেম স্বয়ংক্রিয়ভাবে আপনার ইমেইল ও পাসওয়ার্ড (ডিফল্ট: changeme) দিয়ে অ্যাকাউন্ট তৈরি করবে। লগইন করে পাসওয়ার্ড পরিবর্তন করুন।</p></div>
+  </div>
+  <div class="journey-arrow">↓</div>
+  <div class="step">
+    <div class="step-num">৬</div>
+    <div class="step-body"><strong>প্রোফাইল ও ব্যাচের তথ্য দেখুন</strong><p>ড্যাশবোর্ডে আপনার ব্যাচের বিস্তারিত, শিফট, সময়সূচী দেখুন। প্রোফাইল সম্পাদনা করুন।</p></div>
+  </div>
+  <div class="journey-arrow">↓</div>
+  <div class="step">
+    <div class="step-num">৭</div>
+    <div class="step-body"><strong>উপস্থিতি ট্র্যাক করুন</strong><p>প্রতিদিনের উপস্থিতি ও শতকরা হার দেখুন। QR কোড ব্যবহার করে চেক-ইন করতে পারেন।</p></div>
+  </div>
+  <div class="journey-arrow">↓</div>
+  <div class="step">
+    <div class="step-num">৮</div>
+    <div class="step-body"><strong>মূল্যায়ন ফলাফল দেখুন</strong><p>প্রশিক্ষণ শেষে মূল্যায়নকারী কর্তৃক প্রদত্ত স্কোর ও ফলাফল দেখুন।</p></div>
+  </div>
+  <div class="journey-arrow">↓</div>
+  <div class="step">
+    <div class="step-num">৯</div>
+    <div class="step-body"><strong>ভাতার স্থিতি দেখুন</strong><p>Allowance বিভাগে ভাতার অনুমোদন ও বিতরণের স্থিতি দেখুন।</p></div>
+  </div>
+  <div class="journey-arrow">↓</div>
+  <div class="step">
+    <div class="step-num">১০</div>
+    <div class="step-body"><strong>প্রশিক্ষণ সমাপ্ত করুন</strong><p>সকল সেশন শেষে আপনার অবস্থা COMPLETED হবে এবং সনদ/প্রমানপত্র প্রাপ্তির যোগ্য হবেন।</p></div>
+  </div>
+</div>
+
 <!-- ─── 7. ACCOUNTANT ─── -->
 <h2 id="accountant">৭. হিসাবরক্ষক মডিউল</h2>
 <p>
@@ -521,6 +826,39 @@
   <li><strong>ভাতা বিতরণ:</strong> bkash, Nagad, Bank অথবা Cash মাধ্যমে ভাতা বিতরণ। লেনদেন আইডি (Txn ID) সংযুক্ত করতে হবে।</li>
   <li><strong>বিতরণের ইতিহাস:</strong> পূর্ববর্তী বিতরণের তালিকা ও বিবরণ</li>
 </ul>
+
+<h3 id="accountant-journey">৭.১ হিসাবরক্ষক — ধাপে ধাপে কার্যপ্রবাহ</h3>
+<div class="journey">
+  <div class="step">
+    <div class="step-num">১</div>
+    <div class="step-body"><strong>সিস্টেমে লগইন করুন</strong><p>নিজ কেন্দ্রের জন্য নির্ধারিত ইমেইল ও পাসওয়ার্ড দিয়ে লগইন করুন। শুধুমাত্র আপনার কেন্দ্রের ভাতা সংক্রান্ত তথ্য দেখা যাবে।</p></div>
+  </div>
+  <div class="journey-arrow">↓</div>
+  <div class="step">
+    <div class="step-num">২</div>
+    <div class="step-body"><strong>অননুমোদিত ভাতার তালিকা দেখুন</strong><p>Allowance পৃষ্ঠায় পেন্ডিং (Pending) ভাতার আবেদনসমূহ দেখুন — প্রশিক্ষণার্থীর নাম, ব্যাচ, পরিমাণ, সময়কাল সহ।</p></div>
+  </div>
+  <div class="journey-arrow">↓</div>
+  <div class="step">
+    <div class="step-num">৩</div>
+    <div class="step-body"><strong>ভাতা অনুমোদন করুন</strong><p>প্রতিটি ভাতার আবেদন যাচাই করে Approve বাটনে ক্লিক করুন। প্রয়োজন হলে Reject অথবা এডজাস্ট করতে পারেন।</p></div>
+  </div>
+  <div class="journey-arrow">↓</div>
+  <div class="step">
+    <div class="step-num">৪</div>
+    <div class="step-body"><strong>ভাতা বিতরণ সম্পন্ন করুন</strong><p>অনুমোদিত ভাতার জন্য Disburse অপশন নির্বাচন করুন। বিতরণ মাধ্যম নির্ধারণ করুন: বিকাশ / নগদ / ব্যাংক / নগদ। লেনদেন আইডি (Txn ID) বাধ্যতামূলকভাবে সংযুক্ত করুন।</p></div>
+  </div>
+  <div class="journey-arrow">↓</div>
+  <div class="step">
+    <div class="step-num">৫</div>
+    <div class="step-body"><strong>বিতরণের ইতিহাস দেখুন</strong><p>Disbursement History পৃষ্ঠা থেকে পূর্ববর্তী সকল বিতরণের তালিকা, তারিখ, মাধ্যম, ট্রানজেকশন আইডি দেখুন।</p></div>
+  </div>
+  <div class="journey-arrow">↓</div>
+  <div class="step">
+    <div class="step-num">৬</div>
+    <div class="step-body"><strong>রিপোর্ট জেনারেট করুন</strong><p>প্রয়োজনে Allowance Report এক্সপোর্ট করুন — কেন্দ্রভিত্তিক, সময়কালভিত্তিক বা ব্যাচভিত্তিক।</p></div>
+  </div>
+</div>
 
 <!-- ─── 8. PUBLIC ─── -->
 <h2 id="public">৮. পাবলিক মডিউল</h2>
