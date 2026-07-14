@@ -162,6 +162,15 @@ class HOTraineeViewSet(viewsets.ModelViewSet):
                     results['errors'].append(f'সারি {row_idx}: রেজি. নং আবশ্যক')
                     continue
 
+                from apps.centers.models import Center
+                center_code = data.get('center_code', '').strip()
+                center_name = data.get('center_name', '').strip()
+                center = None
+                if center_code:
+                    center = Center.objects.filter(code__iexact=center_code).first()
+                if not center and center_name:
+                    center = Center.objects.filter(name_bn=center_name).first()
+
                 existing = Trainee.objects.filter(registration_no=reg_no).first()
                 if not existing and reg_no.isdigit():
                     generated_no = f'TRN-{reg_no}'
@@ -176,7 +185,7 @@ class HOTraineeViewSet(viewsets.ModelViewSet):
                         if existing_user:
                             existing = Trainee.objects.filter(user=existing_user).first()
                             if not existing:
-                                existing = Trainee.objects.create(user=existing_user, registration_no=generated_no)
+                                existing = Trainee.objects.create(user=existing_user, registration_no=generated_no, center=center)
                             existing.registration_no = generated_no
                         if not existing or not existing.pk:
                             phone = data.get('phone', '')
@@ -194,6 +203,7 @@ class HOTraineeViewSet(viewsets.ModelViewSet):
                             existing = Trainee.objects.create(
                                 user=user,
                                 registration_no=generated_no,
+                                center=center,
                             )
                     reg_no = generated_no
                 if not existing:
@@ -201,19 +211,9 @@ class HOTraineeViewSet(viewsets.ModelViewSet):
                     continue
                 if data.get('status') is not None:
                     existing.status = data['status']
-                existing.save()
-
-                from apps.centers.models import Center
-                center_code = data.get('center_code', '').strip()
-                center_name = data.get('center_name', '').strip()
-                center = None
-                if center_code:
-                    center = Center.objects.filter(code__iexact=center_code).first()
-                if not center and center_name:
-                    center = Center.objects.filter(name_bn=center_name).first()
                 if center:
                     existing.center = center
-                    existing.save(update_fields=['center'])
+                existing.save()
 
                 results['updated'] += 1
             except Exception as e:
