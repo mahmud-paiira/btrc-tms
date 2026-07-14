@@ -224,7 +224,7 @@ export default function TraineeList() {
                     <td className="fw-semibold">{t.registration_no || '-'}</td>
                     <td>{t.user_full_name_bn || t.user_email || '-'}</td>
                     <td className="d-none d-md-table-cell">{t.user_phone || '-'}</td>
-                    <td className="d-none d-lg-table-cell">{t.center_name_bn || '-'}</td>
+                    <td className="d-none d-lg-table-cell">{t.center_name || t.center_name_bn || '-'}</td>
                     <td className="d-none d-lg-table-cell">{t.batch_name_bn || '-'}</td>
                     <td>
                       <span className={`badge bg-${STATUS_BG[t.status] || 'secondary'} bg-opacity-10 text-${STATUS_BG[t.status] || 'secondary'} px-2 py-1`}>
