@@ -45,6 +45,7 @@ import HoApprovalManagement from './pages/ho/HoApprovalManagement';
 import HoReportCenter from './pages/ho/HoReportCenter';
 import HOTrainerList from './pages/ho/TrainerList';
 import HOTraineeList from './pages/ho/TraineeList';
+import HOTraineeDetail from './pages/ho/TraineeDetail';
 import TrainerDetail from './pages/ho/TrainerDetail';
 import AssessorList from './pages/ho/AssessorList';
 import CenterAssessorList from './pages/assessors/AssessorList';
@@ -153,6 +154,7 @@ function App() {
             <Route path="trainers" element={<HOTrainerList />} />
             <Route path="trainers/:id" element={<TrainerDetail />} />
             <Route path="trainees" element={<HOTraineeList />} />
+            <Route path="trainees/:id" element={<HOTraineeDetail />} />
             <Route path="assessors" element={<AssessorList />} />
             <Route path="assessors/:id" element={<AssessorDetail />} />
             <Route path="circulars" element={<CircularList />} />
