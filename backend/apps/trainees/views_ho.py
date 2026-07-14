@@ -188,6 +188,8 @@ class HOTraineeViewSet(viewsets.ModelViewSet):
                             if data.get('phone'): existing_user.phone = data['phone']
                             if data.get('email'): existing_user.email = data['email']
                             existing_user.user_type = 'trainee'
+                            if center: existing_user.center = center
+                            existing_user.set_password('trainee123')
                             existing_user.save()
                             existing = Trainee.objects.filter(user=existing_user).first()
                             if not existing:
@@ -207,6 +209,9 @@ class HOTraineeViewSet(viewsets.ModelViewSet):
                                 nid=nid,
                                 user_type='trainee',
                             )
+                            user.center = center
+                            user.set_password('trainee123')
+                            user.save()
                             existing = Trainee.objects.create(
                                 user=user,
                                 registration_no=generated_no,
