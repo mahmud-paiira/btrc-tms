@@ -185,7 +185,7 @@ class TraineeViewSet(viewsets.ModelViewSet):
                         if existing_user:
                             existing = Trainee.objects.filter(user=existing_user).first()
                             if not existing:
-                                existing = Trainee.objects.create(user=existing_user, registration_no=generated_no, nid=nid)
+                                existing = Trainee.objects.create(user=existing_user, registration_no=generated_no)
                             existing.registration_no = generated_no
                         if not existing or not existing.pk:
                             phone = data.get('phone', '')
@@ -203,7 +203,6 @@ class TraineeViewSet(viewsets.ModelViewSet):
                             existing = Trainee.objects.create(
                                 user=user,
                                 registration_no=generated_no,
-                                nid=nid,
                             )
                     reg_no = generated_no
                 if not existing:
