@@ -194,7 +194,10 @@ class TraineeViewSet(viewsets.ModelViewSet):
                         if existing_user:
                             if data.get('full_name_bn'): existing_user.full_name_bn = data['full_name_bn']
                             if data.get('full_name_en'): existing_user.full_name_en = data['full_name_en']
-                            if data.get('phone'): existing_user.phone = data['phone']
+                            phone = data.get('phone', '')
+                            if phone and User.objects.exclude(pk=existing_user.pk).filter(phone=phone).exists():
+                                phone = ''
+                            if phone: existing_user.phone = phone
                             if data.get('email'): existing_user.email = data['email']
                             existing_user.user_type = 'trainee'
                             if center: existing_user.center = center
