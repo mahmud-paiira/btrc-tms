@@ -152,6 +152,11 @@ class HOTraineeViewSet(viewsets.ModelViewSet):
                     mapped = field_map.get(k.strip().lower(), k.strip().lower())
                     data[mapped] = v.strip() if v else ''
 
+                if data.get('phone'):
+                    data['phone'] = data['phone'].replace('-', '')
+                if data.get('email') and data['email'] in ('–', '—', '-', '/'):
+                    data['email'] = ''
+
                 reg_no = data.get('registration_no', '').strip()
                 if not reg_no:
                     results['errors'].append(f'সারি {row_idx}: রেজি. নং আবশ্যক')
