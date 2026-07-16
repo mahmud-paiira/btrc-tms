@@ -1,4 +1,4 @@
-from rest_framework import viewsets, filters
+from rest_framework import viewsets, filters, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
@@ -12,7 +12,16 @@ from .serializers import (
 
 
 class CenterViewSet(viewsets.ModelViewSet):
-    queryset = Center.objects.prefetch_related('infrastructures', 'employees').all()
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_superuser or user.user_type == 'head_office':
+            return Center.objects.prefetch_related('infrastructures', 'employees').all()
+        if user.center:
+            return Center.objects.prefetch_related('infrastructures', 'employees').filter(id=user.center.id)
+        return Center.objects.none()
+
     filter_backends = (DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter)
     filterset_fields = ('status',)
     search_fields = ('code', 'name_bn', 'name_en', 'phone', 'email')
@@ -39,7 +48,16 @@ class CenterViewSet(viewsets.ModelViewSet):
 
 
 class InfrastructureViewSet(viewsets.ModelViewSet):
-    queryset = Infrastructure.objects.select_related('center').all()
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_superuser or user.user_type == 'head_office':
+            return Infrastructure.objects.select_related('center').all()
+        if user.center:
+            return Infrastructure.objects.select_related('center').filter(center=user.center)
+        return Infrastructure.objects.none()
+
     serializer_class = InfrastructureSerializer
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_fields = ('center', 'status')
@@ -47,7 +65,16 @@ class InfrastructureViewSet(viewsets.ModelViewSet):
 
 
 class EmployeeViewSet(viewsets.ModelViewSet):
-    queryset = Employee.objects.select_related('user', 'center').all()
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_superuser or user.user_type == 'head_office':
+            return Employee.objects.select_related('user', 'center').all()
+        if user.center:
+            return Employee.objects.select_related('user', 'center').filter(center=user.center)
+        return Employee.objects.none()
+
     serializer_class = EmployeeSerializer
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_fields = ('center', 'status', 'is_contact_person')

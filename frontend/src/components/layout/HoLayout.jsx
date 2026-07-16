@@ -140,6 +140,7 @@ export default function HoLayout() {
   }));
 
   if (!user) return <Navigate to={`/ho/login?redirect=${encodeURIComponent(location.pathname)}`} replace />;
+  if (user.user_type !== 'head_office') return <Navigate to="/" replace />;
 
   const collapsed = !sidebarOpen && !isMobile;
 

@@ -93,6 +93,7 @@ export default function Layout() {
   const collapsed = !sidebarOpen && !isMobile;
 
   if (!user) return <Navigate to="/login" replace />;
+  if (user.user_type === 'head_office') return <Navigate to="/ho/dashboard" replace />;
 
   const sidebarLinks = user.user_type === 'trainer' ? trainerLinks : user.user_type === 'assessor' ? assessorLinks : centerAdminLinks;
 

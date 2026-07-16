@@ -3,18 +3,36 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
+from django.db.models import Q
 from .models import Attendance
 from .serializers import AttendanceSerializer, AttendanceListSerializer
 from .eligibility import get_batch_eligibility
 
 
 class AttendanceViewSet(viewsets.ModelViewSet):
-    queryset = Attendance.objects.select_related(
-        'trainee__user', 'batch', 'lead_trainer__user',
-        'associate_trainer__user', 'marked_by',
-    ).all()
-
     permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        qs = Attendance.objects.select_related(
+            'trainee__user', 'batch', 'lead_trainer__user',
+            'associate_trainer__user', 'marked_by',
+        )
+        if user.is_superuser or user.user_type == 'head_office':
+            return qs.all()
+        if user.user_type == 'center_admin' and user.center:
+            return qs.filter(batch__center=user.center)
+        if user.user_type == 'trainer':
+            from apps.trainers.models import Trainer
+            try:
+                trainer = user.trainer_profile
+                batch_ids = qs.filter(
+                    Q(lead_trainer=trainer) | Q(associate_trainer=trainer)
+                ).values_list('batch_id', flat=True).distinct()
+                return qs.filter(batch_id__in=batch_ids)
+            except Trainer.DoesNotExist:
+                return qs.none()
+        return qs.none()
     filter_backends = (DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter)
     filterset_fields = ('batch', 'trainee', 'session_date', 'status')
     search_fields = (
