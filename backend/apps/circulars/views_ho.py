@@ -677,11 +677,13 @@ class HOCircularViewSet(viewsets.ModelViewSet):
         if not circular.all_centers:
             centers = circular.eligible_centers.all()
         font_path = settings.BASE_DIR / 'static' / 'fonts' / 'NikoshBAN.ttf'
+        sutonny_font_path = settings.BASE_DIR / 'static' / 'fonts' / 'SutonnyMJ.ttf'
         html = render_to_string('circulars/print_circular.html', {
             'circular': circular,
             'centers': centers,
             'course': circular.course,
             'font_path': font_path,
+            'sutonny_font_path': sutonny_font_path,
         })
         pdf = HTML(string=html).write_pdf()
         filename = f'circular_{circular.public_url or circular.id}.pdf'

@@ -15,10 +15,17 @@
             font-style: normal;
         }
 
+        @font-face {
+            font-family: 'SutonnyMJ';
+            src: url('{{ sutonny_font_path }}') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'Noto Sans Bengali', 'NikoshBAN', 'Arial', sans-serif;
+            font-family: 'SutonnyMJ', 'Noto Sans Bengali', 'NikoshBAN', 'Arial', sans-serif;
             font-size: 12px;
             line-height: 1.7;
             color: #222;

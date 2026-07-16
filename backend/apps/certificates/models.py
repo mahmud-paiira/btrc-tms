@@ -116,6 +116,7 @@ class Certificate(models.Model):
         from pathlib import Path
         font_path = Path(settings.STATICFILES_DIRS[0], 'fonts', 'NikoshBAN.ttf').as_uri()
         logo_path = Path(settings.STATICFILES_DIRS[0], 'images', 'BRTC_official_logo.png').as_uri()
+        sutonny_path = Path(settings.STATICFILES_DIRS[0], 'fonts', 'SutonnyMJ.ttf').as_uri()
         qr_path = self.qr_code_image.path if self.qr_code_image else ''
         qr_file_url = Path(qr_path).as_uri() if qr_path else ''
         html_string = render_to_string('certificates/certificate_template.html', {
@@ -124,6 +125,7 @@ class Certificate(models.Model):
             'batch': self.batch,
             'FONT_PATH': font_path,
             'LOGO_PATH': logo_path,
+            'SUTONNY_FONT_PATH': sutonny_path,
             'QR_FILE_URL': qr_file_url,
         })
         pdf_file = BytesIO()

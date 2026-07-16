@@ -10,6 +10,7 @@ from weasyprint import HTML
 
 FONT_PATH = Path(settings.STATICFILES_DIRS[0], 'fonts', 'NikoshBAN.ttf').as_uri()
 LOGO_PATH = Path(settings.STATICFILES_DIRS[0], 'images', 'BRTC_official_logo.png').as_uri()
+SUTONNY_FONT_PATH = Path(settings.STATICFILES_DIRS[0], 'fonts', 'SutonnyMJ.ttf').as_uri()
 
 
 def generate_pdf_for_certificate(certificate, template='certificates/certificate_template.html'):
@@ -23,6 +24,7 @@ def generate_pdf_for_certificate(certificate, template='certificates/certificate
         'SITE_URL': settings.SITE_URL,
         'FONT_PATH': FONT_PATH,
         'LOGO_PATH': LOGO_PATH,
+        'SUTONNY_FONT_PATH': SUTONNY_FONT_PATH,
         'QR_FILE_URL': qr_file_url,
     })
 
