@@ -168,6 +168,8 @@ class HOTraineeViewSet(viewsets.ModelViewSet):
                 center = None
                 if center_code:
                     center = Center.objects.filter(code__iexact=center_code).first()
+                    if not center and center_code.isdigit():
+                        center = Center.objects.filter(code=center_code.zfill(4)).first()
                 if not center and center_name:
                     center = Center.objects.filter(name_bn=center_name).first()
 
