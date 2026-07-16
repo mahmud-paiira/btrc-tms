@@ -45,6 +45,7 @@ THIRD_PARTY_APPS = [
     'ckeditor',
     'django_filters',
     'simple_history',
+    'django_celery_beat',
     'crispy_forms',
     'crispy_bootstrap5',
 ]

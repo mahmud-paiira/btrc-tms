@@ -22,6 +22,7 @@ django-ckeditor==6.7.2
 # Task Queue & Cache
 celery==5.4.0
 redis==5.1.1
+django-celery-beat==2.7.0
 
 # History / Audit
 django-simple-history==3.7.0
