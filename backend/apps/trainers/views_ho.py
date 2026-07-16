@@ -185,11 +185,12 @@ class HOTrainerViewSet(viewsets.ModelViewSet):
                             if phone and User.objects.filter(phone=phone).exists():
                                 phone = ''
                             email = data.get('email', '') or f'{generated_no.lower()}@brtc.app'
-                            user = User.objects.create(
+                            user = User.objects.create_user(
+                                email=email,
+                                password='trainer@123',
                                 full_name_bn=data.get('full_name_bn', '') or '\u2014',
                                 full_name_en=data.get('full_name_en', '') or '\u2014',
                                 phone=phone,
-                                email=email,
                                 nid=nid,
                                 user_type='trainer',
                             )
