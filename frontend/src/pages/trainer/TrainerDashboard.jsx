@@ -18,6 +18,9 @@ export default function TrainerDashboard() {
             <h4 className="mb-1">{user?.full_name_bn || user?.full_name_en || user?.email}</h4>
             <p className="mb-0 opacity-75">
               <i className="bi bi-person-badge me-1"></i>{t('nav.trainer', 'প্রশিক্ষক')}
+              {user?.center_name && (
+                <><span className="mx-1">|</span><i className="bi bi-geo-alt me-1"></i>{user.center_name}</>
+              )}
             </p>
           </div>
         </div>

@@ -10,16 +10,22 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     profile = UserProfileSerializer(read_only=True)
+    center_name = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = (
-            'id', 'email', 'username', 'user_type', 'center',
+            'id', 'email', 'username', 'user_type', 'center', 'center_name',
             'full_name_bn', 'full_name_en', 'phone', 'nid',
             'birth_certificate_no', 'profile_image', 'is_active',
             'last_login', 'created_at', 'profile',
         )
         read_only_fields = ('id', 'last_login', 'created_at')
+
+    def get_center_name(self, obj):
+        if obj.center:
+            return obj.center.name_bn
+        return None
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
