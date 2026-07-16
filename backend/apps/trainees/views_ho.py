@@ -178,7 +178,10 @@ class HOTraineeViewSet(viewsets.ModelViewSet):
                     nid = data.get('nid', '')
                     if not existing:
                         if not nid:
-                            results['errors'].append(f'সারি {row_idx}: "{reg_no}" - এনআইডি ছাড়া নতুন প্রশিক্ষণার্থী তৈরি সম্ভব নয়')
+                            results['errors'].append(f'সারি {row_idx}: "{reg_no}" - এনআইডি ছাড়া নতুন প্রশিক্ষণার্থী তৈরি সম্ভব নয়')
+                            continue
+                        if not center:
+                            results['errors'].append(f'সারি {row_idx}: "{reg_no}" - নতুন প্রশিক্ষণার্থী তৈরি করতে কেন্দ্রের কোড বা নাম আবশ্যক')
                             continue
                         from apps.accounts.models import User
                         existing_user = User.objects.filter(nid=nid).first() if nid else None
