@@ -489,7 +489,11 @@ function BulkImportModal({ show, onClose, onImported }) {
       const res = await hoService.importCenters(formData);
       setResults(res.data);
       if (res.data.created > 0 || res.data.updated > 0) {
-        toast.success(`${res.data.created} টি তৈরি, ${res.data.updated} টি আপডেট`);
+        const parts = [];
+        if (res.data.created > 0) parts.push(`${res.data.created} টি তৈরি`);
+        if (res.data.updated > 0) parts.push(`${res.data.updated} টি আপডেট`);
+        if (res.data.center_admins_created > 0) parts.push(`${res.data.center_admins_created} জন প্রশাসক তৈরি`);
+        toast.success(parts.join(', '));
         onImported();
       }
     } catch (err) {
@@ -553,6 +557,9 @@ function BulkImportModal({ show, onClose, onImported }) {
                 <div className="d-flex gap-3 mb-2">
                   <div className="badge bg-success fs-6">তৈরি: {formatNumber(results.created)}</div>
                   <div className="badge bg-info fs-6">আপডেট: {formatNumber(results.updated)}</div>
+                  {results.center_admins_created > 0 && (
+                    <div className="badge bg-warning text-dark fs-6">প্রশাসক তৈরি: {formatNumber(results.center_admins_created)}</div>
+                  )}
                 </div>
                 {results.errors && results.errors.length > 0 && (
                   <div className="border rounded p-2 bg-danger bg-opacity-10" style={{ maxHeight: 200, overflowY: 'auto' }}>
