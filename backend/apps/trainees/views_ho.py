@@ -119,14 +119,6 @@ class HOTraineeViewSet(viewsets.ModelViewSet):
             except Exception:
                 return Response({'error': 'ভুল ফাইল ফরম্যাট। Excel (.xlsx) বা CSV ফাইল আপলোড করুন।'}, status=400)
 
-        bn_required = {'রেজি. নং'}
-        header_set = set(header_row)
-        if not bn_required.issubset(header_set):
-            return Response({
-                'error': 'প্রয়োজনীয় কলাম নেই। হেডারে "রেজি. নং" থাকা আবশ্যক।',
-                'detected_headers': header_row,
-            }, status=400)
-
         field_map = {
             'রেজি. নং': 'registration_no', 'registration_no': 'registration_no',
             'নাম (বাংলা)': 'full_name_bn', 'name_bn': 'full_name_bn',
@@ -159,8 +151,9 @@ class HOTraineeViewSet(viewsets.ModelViewSet):
 
                 reg_no = data.get('registration_no', '').strip()
                 if not reg_no:
-                    results['errors'].append(f'সারি {row_idx}: রেজি. নং আবশ্যক')
-                    continue
+                    if not center:
+                        results['errors'].append(f'সারি {row_idx}: রেজি. নং বা কেন্দ্রের কোড/নাম আবশ্যক')
+                        continue
 
                 from apps.centers.models import Center
                 center_code = data.get('center_code', '').strip()
@@ -174,57 +167,56 @@ class HOTraineeViewSet(viewsets.ModelViewSet):
                     center = Center.objects.filter(name_bn=center_name).first()
 
                 existing = Trainee.objects.filter(registration_no=reg_no).first()
-                if not existing and reg_no.isdigit():
-                    generated_no = f'TRN-{reg_no}'
-                    existing = Trainee.objects.filter(registration_no=generated_no).first()
+                if not existing:
+                    from .models import generate_registration_no
                     nid = data.get('nid', '')
-                    if not existing:
-                        if not nid:
-                            results['errors'].append(f'সারি {row_idx}: "{reg_no}" - এনআইডি ছাড়া নতুন প্রশিক্ষণার্থী তৈরি সম্ভব নয়')
-                            continue
-                        if not center:
-                            results['errors'].append(f'সারি {row_idx}: "{reg_no}" - নতুন প্রশিক্ষণার্থী তৈরি করতে কেন্দ্রের কোড বা নাম আবশ্যক')
-                            continue
-                        from apps.accounts.models import User
-                        existing_user = User.objects.filter(nid=nid).first() if nid else None
-                        if existing_user:
-                            if data.get('full_name_bn'): existing_user.full_name_bn = data['full_name_bn']
-                            if data.get('full_name_en'): existing_user.full_name_en = data['full_name_en']
-                            phone = data.get('phone', '')
-                            if phone and User.objects.exclude(pk=existing_user.pk).filter(phone=phone).exists():
-                                phone = ''
-                            if phone: existing_user.phone = phone
-                            if data.get('email'): existing_user.email = data['email']
-                            existing_user.user_type = 'trainee'
-                            if center: existing_user.center = center
-                            existing_user.set_password('trainee123')
-                            existing_user.save()
-                            existing = Trainee.objects.filter(user=existing_user).first()
-                            if not existing:
-                                existing = Trainee.objects.create(user=existing_user, registration_no=generated_no, center=center)
-                            existing.registration_no = generated_no
-                            existing.save()
-                        if not existing or not existing.pk:
-                            phone = data.get('phone', '')
-                            if phone and User.objects.filter(phone=phone).exists():
-                                phone = ''
-                            email = data.get('email', '') or f'{generated_no.lower()}@brtc.app'
-                            user = User.objects.create(
-                                full_name_bn=data.get('full_name_bn', '') or '—',
-                                full_name_en=data.get('full_name_en', '') or '—',
-                                phone=phone,
-                                email=email,
-                                nid=nid,
-                                user_type='trainee',
-                            )
-                            user.center = center
-                            user.set_password('trainee123')
-                            user.save()
-                            existing = Trainee.objects.create(
-                                user=user,
-                                registration_no=generated_no,
-                                center=center,
-                            )
+                    if not nid:
+                        results['errors'].append(f'সারি {row_idx}: "{reg_no}" - এনআইডি ছাড়া নতুন প্রশিক্ষণার্থী তৈরি সম্ভব নয়')
+                        continue
+                    if not center:
+                        results['errors'].append(f'সারি {row_idx}: "{reg_no}" - নতুন প্রশিক্ষণার্থী তৈরি করতে কেন্দ্রের কোড বা নাম আবশ্যক')
+                        continue
+                    generated_no = generate_registration_no(center.code, center.name_en)
+                    from apps.accounts.models import User
+                    existing_user = User.objects.filter(nid=nid).first() if nid else None
+                    if existing_user:
+                        if data.get('full_name_bn'): existing_user.full_name_bn = data['full_name_bn']
+                        if data.get('full_name_en'): existing_user.full_name_en = data['full_name_en']
+                        phone = data.get('phone', '')
+                        if phone and User.objects.exclude(pk=existing_user.pk).filter(phone=phone).exists():
+                            phone = ''
+                        if phone: existing_user.phone = phone
+                        if data.get('email'): existing_user.email = data['email']
+                        existing_user.user_type = 'trainee'
+                        if center: existing_user.center = center
+                        existing_user.set_password('trainee123')
+                        existing_user.save()
+                        existing = Trainee.objects.filter(user=existing_user).first()
+                        if not existing:
+                            existing = Trainee.objects.create(user=existing_user, registration_no=generated_no, center=center)
+                        existing.registration_no = generated_no
+                        existing.save()
+                    if not existing or not existing.pk:
+                        phone = data.get('phone', '')
+                        if phone and User.objects.filter(phone=phone).exists():
+                            phone = ''
+                        email = data.get('email', '') or f'{generated_no.lower()}@brtc.app'
+                        user = User.objects.create(
+                            full_name_bn=data.get('full_name_bn', '') or '—',
+                            full_name_en=data.get('full_name_en', '') or '—',
+                            phone=phone,
+                            email=email,
+                            nid=nid,
+                            user_type='trainee',
+                        )
+                        user.center = center
+                        user.set_password('trainee123')
+                        user.save()
+                        existing = Trainee.objects.create(
+                            user=user,
+                            registration_no=generated_no,
+                            center=center,
+                        )
                     reg_no = generated_no
                 if not existing:
                     results['errors'].append(f'সারি {row_idx}: "{reg_no}" রেজি. নং পাওয়া যায়নি')
@@ -267,7 +259,7 @@ class HOTraineeViewSet(viewsets.ModelViewSet):
                    'এনআইডি', 'অবস্থা', 'কেন্দ্রের কোড', 'কেন্দ্রের নাম']
         ws.append(headers)
         sample = ['', 'উদাহরণ নাম', 'Example Name', 'email@example.com', '০১৭XXXXXXXX',
-                  '', 'enrolled', 'RSH_TCU', 'রাজশাহী ট্রেনিং সেন্টার']
+                  '', 'enrolled', '0019', 'বরিশাল ট্রেনিং সেন্টার']
         ws.append(sample)
         for col_idx in range(1, len(headers) + 1):
             cell = ws.cell(row=1, column=col_idx)

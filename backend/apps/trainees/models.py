@@ -8,10 +8,34 @@ from apps.centers.models import Center
 from apps.batches.models import Batch
 
 
-def generate_registration_no(center_code):
+MANUAL_PREFIX_OVERRIDES = {
+    '0009': 'CTG',
+    '0024': 'CTN',
+    '0007': 'NYG',
+    '0008': 'NSD',
+}
+
+SKIP_WORDS = {'Training', 'Centre', 'Center', 'Institute', 'the', 'of', 'Bus', 'Truck'}
+
+
+def generate_center_prefix(name_en):
+    words = [w.strip('(),') for w in name_en.split()]
+    loc_words = [w for w in words if w not in SKIP_WORDS]
+    if loc_words:
+        return loc_words[0][:3].upper()
+    return 'BRT'
+
+
+def generate_registration_no(center_code, center_name_en=''):
     from django.db.models import Max
+    if center_code in MANUAL_PREFIX_OVERRIDES:
+        prefix_3 = MANUAL_PREFIX_OVERRIDES[center_code]
+    elif center_name_en:
+        prefix_3 = generate_center_prefix(center_name_en)
+    else:
+        prefix_3 = 'BRT'
     year = date.today().year
-    prefix = f'BRTC-{center_code}-{year}-'
+    prefix = f'BRTC-{prefix_3}-{year}-'
     last = Trainee.objects.filter(
         registration_no__startswith=prefix
     ).aggregate(Max('registration_no'))['registration_no__max']
@@ -112,7 +136,9 @@ class Trainee(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.registration_no and self.center:
-            self.registration_no = generate_registration_no(self.center.code)
+            self.registration_no = generate_registration_no(
+                self.center.code, self.center.name_en,
+            )
         super().save(*args, **kwargs)
 
     def __str__(self):

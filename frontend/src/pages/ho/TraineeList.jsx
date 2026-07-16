@@ -13,6 +13,10 @@ export default function TraineeList() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [centerFilter, setCenterFilter] = useState('');
+  const [batchFilter, setBatchFilter] = useState('');
+  const [centers, setCenters] = useState([]);
+  const [batches, setBatches] = useState([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const pageSize = 25;
@@ -25,12 +29,34 @@ export default function TraineeList() {
   const [showBulkDelete, setShowBulkDelete] = useState(false);
   const [bulkDeleting, setBulkDeleting] = useState(false);
 
+  useEffect(() => {
+    hoService.listCenters({ page_size: 9999 }).then(res => {
+      const list = res.data.results || res.data || [];
+      setCenters(list);
+    }).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (centerFilter) {
+      hoService.listBatches({ center: centerFilter, page_size: 9999 }).then(res => {
+        setBatches(res.data.results || res.data || []);
+      }).catch(() => setBatches([]));
+    } else {
+      hoService.listBatches({ page_size: 9999 }).then(res => {
+        setBatches(res.data.results || res.data || []);
+      }).catch(() => setBatches([]));
+    }
+    setBatchFilter('');
+  }, [centerFilter]);
+
   const fetchTrainees = useCallback(async () => {
     setLoading(true);
     try {
       const params = { page, page_size: pageSize };
       if (search) params.search = search;
       if (statusFilter) params.status = statusFilter;
+      if (centerFilter) params.center = centerFilter;
+      if (batchFilter) params.batch = batchFilter;
       const res = await hoService.listTrainees(params);
       setTrainees(res.data.results || res.data || []);
       setTotal(res.data.count || (res.data.results || []).length);
@@ -39,10 +65,10 @@ export default function TraineeList() {
     } finally {
       setLoading(false);
     }
-  }, [search, statusFilter, page]);
+  }, [search, statusFilter, centerFilter, batchFilter, page]);
 
   useEffect(() => { fetchTrainees(); }, [fetchTrainees]);
-  useEffect(() => { setPage(1); }, [search, statusFilter]);
+  useEffect(() => { setPage(1); }, [search, statusFilter, centerFilter, batchFilter]);
 
   const totalPages = Math.ceil(total / pageSize);
 
@@ -99,6 +125,8 @@ export default function TraineeList() {
       if (selectedIds.size > 0) params.ids = [...selectedIds].join(',');
       else if (search) params.search = search;
       if (statusFilter) params.status = statusFilter;
+      if (centerFilter) params.center = centerFilter;
+      if (batchFilter) params.batch = batchFilter;
       const res = await hoService.exportTrainees(params);
       const blob = new Blob([res.data]);
       const url = window.URL.createObjectURL(blob);
@@ -146,11 +174,23 @@ export default function TraineeList() {
       <div className="card shadow-sm mb-3" style={{ borderRadius: 12, border: 'none' }}>
         <div className="card-body">
           <div className="row g-2 align-items-center">
-            <div className="col-md-5">
+            <div className="col-md-3">
               <input className="form-control form-control-sm" placeholder="নাম, রেজি. নং, ফোনে সার্চ..."
                 value={search} onChange={e => setSearch(e.target.value)} />
             </div>
-            <div className="col-md-3">
+            <div className="col-md-2">
+              <select className="form-select form-select-sm" value={centerFilter} onChange={e => setCenterFilter(e.target.value)}>
+                <option value="">সকল কেন্দ্র</option>
+                {centers.map(c => <option key={c.id} value={c.id}>{c.name_bn}</option>)}
+              </select>
+            </div>
+            <div className="col-md-2">
+              <select className="form-select form-select-sm" value={batchFilter} onChange={e => setBatchFilter(e.target.value)}>
+                <option value="">সকল ব্যাচ</option>
+                {batches.map(b => <option key={b.id} value={b.id}>{b.batch_name_bn || b.batch_name_en}</option>)}
+              </select>
+            </div>
+            <div className="col-md-2">
               <select className="form-select form-select-sm" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
                 <option value="">সকল অবস্থা</option>
                 <option value="enrolled">নথিভুক্ত</option>
@@ -213,20 +253,20 @@ export default function TraineeList() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={9} className="text-center py-4"><div className="spinner-border spinner-border-sm me-2" />লোড হচ্ছে...</td></tr>
+                <tr><td colSpan={10} className="text-center py-4"><div className="spinner-border spinner-border-sm me-2" />লোড হচ্ছে...</td></tr>
               ) : trainees.length === 0 ? (
-                <tr><td colSpan={9} className="text-center text-secondary py-4">কোনো প্রশিক্ষণার্থী পাওয়া যায়নি</td></tr>
+                <tr><td colSpan={10} className="text-center text-secondary py-4">কোনো প্রশিক্ষণার্থী পাওয়া যায়নি</td></tr>
               ) : (
                 trainees.map((t, idx) => (
                   <tr key={t.id}>
                     <td><input type="checkbox" className="form-check-input" checked={selectedIds.has(t.id)} onChange={() => handleSelectOne(t.id)} /></td>
                     <td className="text-secondary">{(page - 1) * pageSize + idx + 1}</td>
                     <td className="fw-semibold">{t.registration_no || '-'}</td>
-                    <td>{t.user_full_name_bn || t.user_email || '-'}</td>
+                    <td>{t.user_name || t.user_email || '-'}</td>
                     <td className="d-none d-md-table-cell">{t.user_nid || '-'}</td>
                     <td className="d-none d-md-table-cell">{t.user_phone || '-'}</td>
                     <td className="d-none d-lg-table-cell">{t.center_name || t.center_name_bn || '-'}</td>
-                    <td className="d-none d-lg-table-cell">{t.batch_name_bn || '-'}</td>
+                    <td className="d-none d-lg-table-cell">{t.batch_name || '-'}</td>
                     <td>
                       <span className={`badge bg-${STATUS_BG[t.status] || 'secondary'} bg-opacity-10 text-${STATUS_BG[t.status] || 'secondary'} px-2 py-1`}>
                         {t.status_display || t.status}
