@@ -207,7 +207,6 @@ export default function HoSelectedTrainees() {
       )}
 
       <div className="card shadow-sm table-card" style={{ borderRadius: 12, border: 'none' }}>
-        <div className="table-responsive">
           <table className="b-table w-100">
             <thead>
               <tr>
@@ -261,7 +260,6 @@ export default function HoSelectedTrainees() {
               )}
             </tbody>
           </table>
-        </div>
         {totalPages > 1 && (
           <div className="b-pagination">
             <small>দেখানো হচ্ছে {Math.min((page-1)*pageSize+1, total)}-{Math.min(page*pageSize, total)} এর {total}</small>

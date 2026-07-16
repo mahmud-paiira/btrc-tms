@@ -311,7 +311,6 @@ export default function HoApprovalManagement() {
               </div>
             </div>
           ) : (
-            <div className="table-responsive">
               <table className="b-table w-100">
                 <thead>
                   <tr>
@@ -373,7 +372,6 @@ export default function HoApprovalManagement() {
                   ))}
                 </tbody>
               </table>
-            </div>
           )}
         </div>
       </div>

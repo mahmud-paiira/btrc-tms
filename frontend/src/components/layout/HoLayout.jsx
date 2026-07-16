@@ -26,7 +26,6 @@ const SECTIONS = [
       { to: '/ho/assessors', icon: 'bi-person-check', labelKey: 'nav.assessors', labelBn: 'মূল্যায়নকারী', module: 'assessors' },
       { to: '/ho/circulars', icon: 'bi-megaphone', labelKey: 'nav.circulars', labelBn: 'সার্কুলার', module: null },
       { to: '/ho/trainees', icon: 'bi-people', labelKey: 'nav.trainees', labelBn: 'প্রশিক্ষণার্থী', module: null },
-      { to: '/ho/approvals', icon: 'bi-check2-circle', labelKey: 'nav.approvals', labelBn: 'অনুমোদন', module: null, badgeKey: 'pendingApprovals' },
       { to: '/ho/reports', icon: 'bi-file-earmark-bar-graph', labelKey: 'nav.reports', labelBn: 'প্রতিবেদন', module: 'reports' },
       { to: '/ho/users', icon: 'bi-people', labelKey: 'nav.users', labelBn: 'ব্যবহারকারী', module: 'users' },
       { to: '/ho/master-data', icon: 'bi-database', labelKey: 'nav.masterData', labelBn: 'মাস্টার ডাটা', module: null },

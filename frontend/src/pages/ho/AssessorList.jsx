@@ -285,7 +285,6 @@ export default function AssessorList() {
       )}
 
       <div className="card shadow-sm table-card" style={{ borderRadius: 12, border: 'none' }}>
-        <div className="table-responsive">
           <table className="b-table w-100">
             <thead>
               <tr>
@@ -308,10 +307,10 @@ export default function AssessorList() {
             <tbody>
               {loading ? (
                 <tr><td colSpan={11} className="text-center py-4"><div className="spinner-border spinner-border-sm me-2" />লোড হচ্ছে...</td></tr>
-              ) : assessors.length === 0 ? (
-                <tr><td colSpan={11} className="text-center text-secondary py-4">কোনো মূল্যায়নকারী পাওয়া যায়নি</td></tr>
+              ) : items.length === 0 ? (
+                <tr><td colSpan={11} className="text-center text-secondary py-4">কোনো মূল্যায়নকারী পাওয়া যায়নি</td></tr>
               ) : (
-                assessors.map((a, idx) => (
+                items.map((a, idx) => (
                   <tr key={a.id}>
                     <td><input type="checkbox" className="form-check-input" checked={selectedIds.has(a.id)} onChange={() => handleSelectOne(a.id)} /></td>
                     <td className="text-secondary">{(page - 1) * pageSize + idx + 1}</td>
@@ -362,7 +361,6 @@ export default function AssessorList() {
               )}
             </tbody>
           </table>
-        </div>
         <div className="b-pagination">
           <span className="page-info">মোট: {totalCount} জন</span>
           {Math.ceil(totalCount / pageSize) > 1 && (

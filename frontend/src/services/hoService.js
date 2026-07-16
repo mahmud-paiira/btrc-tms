@@ -177,6 +177,7 @@ const hoService = {
   createHOUser(data) { return api.post('/ho/users/', data); },
   updateHOUser(id, data) { return api.put(`/ho/users/${id}/`, data); },
   deleteHOUser(id) { return api.delete(`/ho/users/${id}/`); },
+  bulkDeleteHOUsers(ids) { return api.post('/ho/users/bulk_delete/', { ids }); },
   toggleHOUser(id) { return api.post(`/ho/users/${id}/toggle_status/`); },
   resetPasswordHOUser(id, data) { return api.post(`/ho/users/${id}/reset_password/`, data); },
   resetMfaHOUser(id) { return api.post(`/ho/users/${id}/reset_mfa/`); },

@@ -300,7 +300,6 @@ export default function TrainerList() {
       )}
 
       <div className="card shadow-sm table-card" style={{ borderRadius: 12, border: 'none' }}>
-        <div className="table-responsive">
           <table className="b-table w-100">
             <thead>
               <tr>
@@ -380,7 +379,6 @@ export default function TrainerList() {
               )}
             </tbody>
           </table>
-        </div>
         <div className="b-pagination">
           <span className="page-info">মোট: {totalCount} জন প্রশিক্ষক</span>
           {Math.ceil(totalCount / pageSize) > 1 && (

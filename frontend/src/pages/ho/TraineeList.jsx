@@ -193,7 +193,6 @@ export default function TraineeList() {
       )}
 
       <div className="card shadow-sm table-card" style={{ borderRadius: 12, border: 'none' }}>
-        <div className="table-responsive">
           <table className="b-table w-100">
             <thead>
               <tr>
@@ -249,7 +248,6 @@ export default function TraineeList() {
               )}
             </tbody>
           </table>
-        </div>
         {totalPages > 1 && (
           <div className="b-pagination">
             <span className="page-info">মোট: {formatNumber(total)} জন প্রশিক্ষণার্থী</span>

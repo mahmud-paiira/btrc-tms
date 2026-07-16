@@ -836,7 +836,6 @@ export default function HoCenterManagement() {
       </div>
 
       <div className="card border-0 shadow-sm table-card" style={{ borderRadius: 12, border: 'none' }}>
-        <div className="table-responsive">
           <table className="b-table w-100">
             <thead>
               <tr>
@@ -907,7 +906,6 @@ export default function HoCenterManagement() {
               )}
             </tbody>
           </table>
-        </div>
         <div className="b-pagination d-flex justify-content-between align-items-center py-2 px-3">
           <small className="text-secondary">মোট {formatNumber(total)} টি কেন্দ্র</small>
         </div>

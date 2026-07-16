@@ -416,7 +416,6 @@ export default function HoCourseManagement() {
           <div className="card shadow-sm table-card">
             <div className={loading ? 'card-body text-center py-5' : 'card-body p-0'}>
               {loading ? <div className="spinner-border text-primary" /> : (
-                <div className="table-responsive">
                   <table className="b-table w-100">
                     <thead>
                       <tr>
@@ -474,7 +473,6 @@ export default function HoCourseManagement() {
                         ))}
                     </tbody>
                   </table>
-                </div>
               )}
             </div>
             <div className="card-footer b-pagination">

@@ -12,6 +12,7 @@ import RoleManagement from './RoleManagement';
 const USER_TYPES = [
   { value: 'head_office', label: 'হেড অফিস' },
   { value: 'center_admin', label: 'কেন্দ্র প্রশাসক' },
+  { value: 'accountant', label: 'হিসাবরক্ষক' },
   { value: 'trainer', label: 'প্রশিক্ষক' },
   { value: 'assessor', label: 'মূল্যায়নকারী' },
   { value: 'trainee', label: 'প্রশিক্ষণার্থী' },
@@ -30,6 +31,9 @@ export default function UserList() {
   const [filters, setFilters] = useState({ user_type: '', center: '', status: '', search: '' });
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [showBulkDelete, setShowBulkDelete] = useState(false);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
   const pageSize = 25;
   useEffect(() => {
     hoService.listCenters({ status: 'active', page_size: 50 }).then(res => {
@@ -82,9 +86,46 @@ export default function UserList() {
   const handleResetPassword = async (user) => {
     try {
       const res = await hoService.resetPasswordHOUser(user.id);
-      toast.success(`${t('users.passwordReset', 'পাসওয়ার্ড রিসেট করা হয়েছে')}: ${res.data.new_password}`);
+      toast.success(`${t('users.passwordReset', 'পাসওয়ার্ড রিসেট করা হয়েছে')}: ${res.data.new_password}`);
     } catch {
       toast.error(t('users.passwordError', 'পাসওয়ার্ড রিসেট ব্যর্থ'));
+    }
+  };
+
+  const isProtected = (u) => u.is_superuser || u.user_type === 'head_office';
+
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedIds(new Set(users.filter(u => !isProtected(u)).map(u => u.id)));
+    } else {
+      setSelectedIds(new Set());
+    }
+  };
+
+  const handleSelectOne = (id) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleBulkDelete = async () => {
+    setBulkDeleting(true);
+    try {
+      const ids = [...selectedIds];
+      const { data } = await hoService.bulkDeleteHOUsers(ids);
+      if (data.errors?.length) toast.error(data.errors.join('\n'));
+      if (data.deleted > 0) toast.success(`${data.deleted} টি মুছে ফেলা হয়েছে`);
+      else if (!data.errors?.length) toast.warning('কিছু মুছে ফেলা যায়নি');
+      setSelectedIds(new Set());
+      setShowBulkDelete(false);
+      fetchUsers();
+    } catch {
+      toast.error(t('users.deleteError', 'মুছতে ব্যর্থ'));
+    } finally {
+      setBulkDeleting(false);
     }
   };
 
@@ -150,31 +191,51 @@ export default function UserList() {
         </div>
       </div>
 
-      <div className="card shadow-sm border-0 table-card overflow-hidden">
-        <div className="table-responsive">
-          <table className="b-table w-100">
+      {selectedIds.size > 0 && (
+        <div className="alert alert-info py-2 d-flex justify-content-between align-items-center mb-3">
+          <span><i className="bi bi-check-square me-1"></i>{selectedIds.size} টি নির্বাচিত</span>
+          <div className="d-flex gap-2">
+            <button className="btn btn-sm btn-danger" onClick={() => setShowBulkDelete(true)}>
+              <i className="bi bi-trash me-1"></i>নির্বাচিত মুছুন
+            </button>
+            <button className="btn btn-sm btn-outline-danger" onClick={() => setSelectedIds(new Set())}>
+              নির্বাচন বাতিল
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="card shadow-sm border-0 table-card">
+        <table className="b-table w-100">
             <thead>
               <tr>
-                <th className="ps-4"></th>
+                <th className="ps-4" style={{ width: 40 }}>
+                  <input type="checkbox" className="form-check-input" onChange={handleSelectAll}
+                    checked={users.length > 0 && users.filter(u => !isProtected(u)).length > 0 && selectedIds.size === users.filter(u => !isProtected(u)).length} />
+                </th>
                 <th>{t('users.name', 'নাম')}</th>
                 <th>ইমেইল</th>
                 <th>{t('users.type', 'ধরণ')}</th>
                 <th>{t('budget.center', 'কেন্দ্র')}</th>
                 <th>{t('users.phone', 'ফোন')}</th>
                 <th>{t('common.status', 'অবস্থা')}</th>
-                <th>{t('common.actions', 'অপশন')}</th>
+                <th className="text-center">{t('common.actions', 'অপশন')}</th>
               </tr>
             </thead>
             <tbody>
               {loading && (
-                <tr><td colSpan={9} className="text-center py-5"><div className="spinner-border text-primary" /></td></tr>
+                <tr><td colSpan={10} className="text-center py-5"><div className="spinner-border text-primary" /></td></tr>
               )}
               {!loading && users.length === 0 && (
-                <tr><td colSpan={9} className="text-center text-secondary py-5">{t('common.noData', 'কোন তথ্য নেই')}</td></tr>
+                <tr><td colSpan={10} className="text-center text-secondary py-5">{t('common.noData', 'কোন তথ্য নেই')}</td></tr>
               )}
               {!loading && users.map(u => (
-                  <tr key={u.id}>
+                  <tr key={u.id} className={selectedIds.has(u.id) ? 'table-active' : ''}>
                     <td className="ps-4">
+                      <input type="checkbox" className="form-check-input" checked={selectedIds.has(u.id)}
+                        disabled={isProtected(u)} onChange={() => handleSelectOne(u.id)} />
+                    </td>
+                    <td>
                       {u.profile_image_url ? (
                         <img src={u.profile_image_url} alt="" className="rounded-circle shadow-sm border"
                           style={{ width: 40, height: 40, objectFit: 'cover' }} />
@@ -218,7 +279,6 @@ export default function UserList() {
               ))}
             </tbody>
           </table>
-        </div>
         {totalPages > 1 && (
           <div className="card-footer bg-white d-flex justify-content-between align-items-center py-3 ps-4 pe-4 b-pagination">
             <small className="text-secondary page-info">{t('common.showing', 'দেখানো হচ্ছে')} {Math.min((page-1)*pageSize+1, total)}-{Math.min(page*pageSize, total)} {t('common.of', 'এর')} {total}</small>
@@ -234,6 +294,30 @@ export default function UserList() {
         onSaved={fetchUsers} user={editUser} centers={centers} />
       <BulkUserImport show={showImport} onClose={() => setShowImport(false)} onImported={fetchUsers} />
       <RoleManagement show={showRoles} onClose={() => setShowRoles(false)} />
+
+      {showBulkDelete && (
+        <div className="modal d-block" style={{ background: 'rgba(0,0,0,.5)' }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header bg-danger text-white">
+                <h5 className="modal-title"><i className="bi bi-exclamation-triangle me-2"></i>নিশ্চিতকরণ</h5>
+                <button type="button" className="btn-close btn-close-white" onClick={() => setShowBulkDelete(false)} />
+              </div>
+              <div className="modal-body">
+                <p className="mb-1">আপনি কি {selectedIds.size} টি ব্যবহারকারীকে মুছে ফেলতে চান?</p>
+                <small className="text-danger">অ্যাডমিন এবং সুপারঅ্যাডমিন ব্যবহারকারীদের মুছে ফেলা যাবে না।</small>
+              </div>
+              <div className="modal-footer">
+                <button className="btn btn-secondary" onClick={() => setShowBulkDelete(false)}>বাতিল</button>
+                <button className="btn btn-danger" onClick={handleBulkDelete} disabled={bulkDeleting}>
+                  {bulkDeleting ? <span className="spinner-border spinner-border-sm me-1" /> : <i className="bi bi-trash me-1"></i>}
+                  মুছুন
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

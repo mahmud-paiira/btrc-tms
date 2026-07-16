@@ -38,8 +38,8 @@ class HOSystemConfigViewSet(viewsets.ViewSet):
 
     # ── Settings ─────────────────────────────────────────────────────────
 
-    @action(detail=False, methods=['get', 'put'])
-    def settings(self, request):
+    @action(detail=False, methods=['get', 'put'], url_path='settings')
+    def system_settings(self, request):
         if request.method == 'GET':
             key = request.query_params.get('key')
             if key:
@@ -241,7 +241,6 @@ class HOSystemConfigViewSet(viewsets.ViewSet):
             result['cache'] = {'status': 'error', 'error': str(e)}
             result['status'] = 'degraded'
 
-        from django.conf import settings
         result['celery'] = {'status': 'unknown', 'broker': settings.CELERY_BROKER_URL}
         try:
             from celery.app.control import Inspect

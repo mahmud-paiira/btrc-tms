@@ -264,6 +264,28 @@ class HOUserViewSet(viewsets.ModelViewSet):
         serializer = ActionLogSerializer(logs, many=True)
         return Response(serializer.data)
 
+    @action(detail=False, methods=['post'], url_path='bulk_delete')
+    def bulk_delete(self, request):
+        ids = request.data.get('ids', [])
+        if not ids:
+            return Response({'error': 'কোন আইডি প্রদান করা হয়নি'}, status=400)
+        deleted = 0
+        errors = []
+        for pk in ids:
+            try:
+                obj = self.get_queryset().get(pk=pk)
+                if obj.is_superuser or obj.user_type == 'head_office':
+                    errors.append(f'{obj.email}: অ্যাডমিন/সুপারঅ্যাডমিনকে মুছে ফেলা যাবে না')
+                    continue
+                self.perform_destroy(obj)
+                deleted += 1
+            except User.DoesNotExist:
+                errors.append(f'ID {pk}: ব্যবহারকারী পাওয়া যায়নি')
+            except Exception as e:
+                msg = str(e.detail[0]) if hasattr(e, 'detail') and isinstance(e.detail, list) else str(e)
+                errors.append(msg)
+        return Response({'deleted': deleted, 'errors': errors})
+
     @action(detail=False, methods=['get'])
     def export(self, request):
         qs = self.filter_queryset(self.get_queryset())
