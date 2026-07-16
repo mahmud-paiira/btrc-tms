@@ -4,12 +4,13 @@ import csv
 import io
 
 import openpyxl
-from django.db.models import Q, Count, Prefetch
+from django.db.models import Q, Count, Prefetch, Subquery
 from django.http import HttpResponse
 from rest_framework import viewsets, status, permissions, filters as drf_filters
 from rest_framework.decorators import action
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
+from django_filters import rest_framework as filters
 from django_filters.rest_framework import DjangoFilterBackend
 
 from .models import Trainer, TrainerMapping
@@ -28,13 +29,21 @@ class IsHeadOffice(permissions.BasePermission):
         return request.user.user_type == 'head_office' or request.user.is_superuser
 
 
+class TrainerFilter(filters.FilterSet):
+    mapping_center = filters.NumberFilter(field_name='mappings__center_id', label='Center')
+
+    class Meta:
+        model = Trainer
+        fields = ('status', 'approval_status', 'expertise_area', 'years_of_experience', 'mapping_center')
+
+
 class HOTrainerViewSet(viewsets.ModelViewSet):
     queryset = Trainer.objects.select_related('user', 'approved_by').prefetch_related(
         Prefetch('mappings', queryset=TrainerMapping.objects.select_related('center', 'course', 'approved_by')),
     ).all()
     permission_classes = [permissions.IsAuthenticated, IsHeadOffice]
     filter_backends = (DjangoFilterBackend, drf_filters.SearchFilter, drf_filters.OrderingFilter)
-    filterset_fields = ('status', 'approval_status', 'expertise_area', 'years_of_experience')
+    filterset_class = TrainerFilter
     search_fields = (
         'trainer_no', 'nid', 'birth_certificate_no',
         'user__email', 'user__phone',
@@ -42,13 +51,6 @@ class HOTrainerViewSet(viewsets.ModelViewSet):
     )
     ordering_fields = ('trainer_no', 'years_of_experience', 'created_at')
     ordering = ('-created_at',)
-
-    def get_queryset(self):
-        qs = super().get_queryset()
-        mapping_center = self.request.query_params.get('mapping_center')
-        if mapping_center:
-            qs = qs.filter(mappings__center_id=mapping_center).distinct()
-        return qs
 
     def get_serializer_class(self):
         if self.action == 'list':
