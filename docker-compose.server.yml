@@ -77,7 +77,7 @@ services:
     container_name: brtc_frontend
     restart: unless-stopped
     volumes:
-      - ../nginx/frontend-internal.conf:/etc/nginx/conf.d/default.conf:ro
+      - /var/www/nginx/frontend-internal.conf:/etc/nginx/conf.d/default.conf:ro
       - ../data/static:/static:ro
       - ../data/media:/media:ro
     expose:
