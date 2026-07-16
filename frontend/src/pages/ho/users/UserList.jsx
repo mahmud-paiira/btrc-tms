@@ -213,6 +213,7 @@ export default function UserList() {
                   <input type="checkbox" className="form-check-input" onChange={handleSelectAll}
                     checked={users.length > 0 && users.filter(u => !isProtected(u)).length > 0 && selectedIds.size === users.filter(u => !isProtected(u)).length} />
                 </th>
+                <th className="d-none d-lg-table-cell"></th>
                 <th>{t('users.name', 'নাম')}</th>
                 <th>ইমেইল</th>
                 <th>{t('users.type', 'ধরণ')}</th>
@@ -224,10 +225,10 @@ export default function UserList() {
             </thead>
             <tbody>
               {loading && (
-                <tr><td colSpan={10} className="text-center py-5"><div className="spinner-border text-primary" /></td></tr>
+                <tr><td colSpan={9} className="text-center py-5"><div className="spinner-border text-primary" /></td></tr>
               )}
               {!loading && users.length === 0 && (
-                <tr><td colSpan={10} className="text-center text-secondary py-5">{t('common.noData', 'কোন তথ্য নেই')}</td></tr>
+                <tr><td colSpan={9} className="text-center text-secondary py-5">{t('common.noData', 'কোন তথ্য নেই')}</td></tr>
               )}
               {!loading && users.map(u => (
                   <tr key={u.id} className={selectedIds.has(u.id) ? 'table-active' : ''}>
@@ -235,7 +236,7 @@ export default function UserList() {
                       <input type="checkbox" className="form-check-input" checked={selectedIds.has(u.id)}
                         disabled={isProtected(u)} onChange={() => handleSelectOne(u.id)} />
                     </td>
-                    <td>
+                    <td className="d-none d-lg-table-cell">
                       {u.profile_image_url ? (
                         <img src={u.profile_image_url} alt="" className="rounded-circle shadow-sm border"
                           style={{ width: 40, height: 40, objectFit: 'cover' }} />
