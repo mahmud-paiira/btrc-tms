@@ -15,6 +15,7 @@ from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 
 from .models import Center, Infrastructure, Employee, ActionLog
+from apps.accounts.models import User
 from .serializers import (
     CenterListSerializer, CenterDetailSerializer,
     InfrastructureSerializer, EmployeeSerializer,
@@ -66,6 +67,21 @@ class HOCenterViewSet(viewsets.ModelViewSet):
             description=f'Created center {center.code} - {center.name_bn}',
             ip_address=self.request.META.get('REMOTE_ADDR', ''),
         )
+
+        email = f'center{center.code}@brtc.gov.bd'
+        if not User.objects.filter(email=email).exists():
+            User.objects.create_user(
+                email=email,
+                password='center@123',
+                user_type='center_admin',
+                center=center,
+                full_name_bn=f'কেন্দ্র প্রশাসক - {center.name_bn}',
+                full_name_en=f'Center Admin - {center.name_en}',
+                nid=f'{center.code.zfill(8)}NID00000',
+                phone=f'019{center.code.zfill(8)}',
+                birth_certificate_no=f'{center.code.zfill(10)}000000',
+                is_active=True,
+            )
 
     def perform_update(self, serializer):
         center = serializer.save()
@@ -177,7 +193,7 @@ class HOCenterViewSet(viewsets.ModelViewSet):
                 'detected_headers': header_row,
             }, status=400)
 
-        results = {'created': 0, 'updated': 0, 'errors': []}
+        results = {'created': 0, 'updated': 0, 'center_admins_created': 0, 'errors': []}
         field_map = {
             'name_bn': 'name_bn', 'নাম (বাংলা)': 'name_bn',
             'name_en': 'name_en', 'নাম (ইংরেজি)': 'name_en',
@@ -230,8 +246,27 @@ class HOCenterViewSet(viewsets.ModelViewSet):
                             cleaned[k] = v
                     if 'status' not in cleaned:
                         cleaned['status'] = 'active'
-                    Center.objects.create(**cleaned)
+                    center = Center.objects.create(**cleaned)
                     results['created'] += 1
+
+                    email = f'center{center.code}@brtc.gov.bd'
+                    if not User.objects.filter(email=email).exists():
+                        try:
+                            User.objects.create_user(
+                                email=email,
+                                password='center@123',
+                                user_type='center_admin',
+                                center=center,
+                                full_name_bn=f'কেন্দ্র প্রশাসক - {center.name_bn}',
+                                full_name_en=f'Center Admin - {center.name_en}',
+                                nid=f'{center.code.zfill(8)}NID00000',
+                                phone=f'019{center.code.zfill(8)}',
+                                birth_certificate_no=f'{center.code.zfill(10)}000000',
+                                is_active=True,
+                            )
+                            results['center_admins_created'] += 1
+                        except Exception as e:
+                            results['errors'].append(f'সারি {row_idx}: কেন্দ্র প্রশাসক তৈরি ব্যর্থ ({email}: {e})')
             except Exception as e:
                 results['errors'].append(f'সারি {row_idx}: {str(e)}')
 
