@@ -43,6 +43,13 @@ class HOTrainerViewSet(viewsets.ModelViewSet):
     ordering_fields = ('trainer_no', 'years_of_experience', 'created_at')
     ordering = ('-created_at',)
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+        mapping_center = self.request.query_params.get('mapping_center')
+        if mapping_center:
+            qs = qs.filter(mappings__center_id=mapping_center).distinct()
+        return qs
+
     def get_serializer_class(self):
         if self.action == 'list':
             return TrainerListSerializer
