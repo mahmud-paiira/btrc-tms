@@ -214,6 +214,10 @@ jobs:
             docker compose -f docker-compose.prod.yml run --rm backend \
               python manage.py migrate --noinput
 
+            # Ensure admin superuser exists
+            docker compose -f docker-compose.prod.yml run --rm backend \
+              python manage.py ensure_admin
+
             # Collect static
             docker compose -f docker-compose.prod.yml run --rm backend \
               python manage.py collectstatic --noinput --clear
