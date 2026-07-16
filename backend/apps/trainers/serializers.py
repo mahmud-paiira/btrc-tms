@@ -51,10 +51,13 @@ class TrainerListSerializer(serializers.ModelSerializer):
 
     def get_center_names(self, obj):
         mappings = getattr(obj, 'mappings', None)
-        if mappings is None:
-            return None
-        names = list(dict.fromkeys(m.center.name_bn for m in mappings.all() if m.center))
-        return ', '.join(names) if names else None
+        if mappings is not None:
+            names = list(dict.fromkeys(m.center.name_bn for m in mappings.all() if m.center))
+            if names:
+                return ', '.join(names)
+        if hasattr(obj, 'user') and obj.user and getattr(obj.user, 'center', None):
+            return obj.user.center.name_bn
+        return None
 
 
 class TrainerDetailSerializer(serializers.ModelSerializer):

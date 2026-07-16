@@ -188,7 +188,7 @@ export default function TrainerList() {
         <span>প্রিন্টের তারিখ: ${formatDate(new Date())}</span>
       </div>
       <table>
-        <tr><th>ক্রমিক</th><th>নাম (বাংলা)</th><th>নাম (ইংরেজি)</th><th>ইমেইল</th><th>ফোন</th><th>অভিজ্ঞতা</th></tr>
+        <tr><th>ক্রমিক</th><th>নাম (বাংলা)</th><th>নাম (ইংরেজি)</th><th>ইমেইল</th><th>ফোন</th><th>কেন্দ্র</th><th>অভিজ্ঞতা</th></tr>
         ${items.map((t, i) => {
           return `<tr>
             <td style="text-align:center;width:40px;">${i + 1}</td>
@@ -196,6 +196,7 @@ export default function TrainerList() {
             <td>${t.user_full_name_en || '—'}</td>
             <td>${t.user_email || '—'}</td>
             <td>${t.user_phone || '—'}</td>
+            <td>${t.center_names || '—'}</td>
             <td style="text-align:center;">${t.years_of_experience ? t.years_of_experience + ' বছর' : '—'}</td>
           </tr>`;
         }).join('')}
@@ -214,7 +215,7 @@ export default function TrainerList() {
     try {
       const formData = new FormData();
       formData.append('file', importFile);
-      const res = await api.post('/trainers/import_list/', formData);
+      const res = await api.post('/ho/trainers/import_list/', formData);
       setImportResults(res.data);
       if (res.data.updated > 0) {
         toast.success(`${res.data.updated} টি আপডেট`);
@@ -437,7 +438,7 @@ export default function TrainerList() {
                   </div>
                   <div className="d-flex gap-2 mt-2">
                     <button className="btn btn-outline-success flex-shrink-0" onClick={async () => {
-                      try { const res = await api.get('/trainers/download_template/', { responseType: 'blob' }); const url = window.URL.createObjectURL(new Blob([res.data])); const a = document.createElement('a'); a.href = url; a.download = 'trainer_import_template.xlsx'; a.click(); a.remove(); window.URL.revokeObjectURL(url); } catch { toast.error('টেমপ্লেট ডাউনলোড ব্যর্থ'); }
+                      try { const res = await api.get('/ho/trainers/download_template/', { responseType: 'blob' }); const url = window.URL.createObjectURL(new Blob([res.data])); const a = document.createElement('a'); a.href = url; a.download = 'trainer_import_template.xlsx'; a.click(); a.remove(); window.URL.revokeObjectURL(url); } catch { toast.error('টেমপ্লেট ডাউনলোড ব্যর্থ'); }
                     }} type="button">
                       <i className="bi bi-download me-1"></i>টেমপ্লেট
                     </button>

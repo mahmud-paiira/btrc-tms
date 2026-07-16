@@ -152,15 +152,21 @@ class TrainerViewSet(viewsets.ModelViewSet):
         headers = [
             'প্রশিক্ষক নং', 'নাম (বাংলা)', 'নাম (ইংরেজি)', 'ইমেইল', 'ফোন',
             'এনআইডি', 'শিক্ষাগত যোগ্যতা', 'অভিজ্ঞতা (বছর)', 'দক্ষতার ক্ষেত্র',
-            'স্ট্যাটাস', 'অনুমোদন স্ট্যাটাস', 'তৈরির তারিখ',
+            'কেন্দ্র', 'স্ট্যাটাস', 'অনুমোদন স্ট্যাটাস', 'তৈরির তারিখ',
         ]
         rows = []
         for t in qs:
+            center_names = ', '.join(
+                dict.fromkeys(m.center.name_bn for m in t.mappings.all() if m.center)
+            ) if t.mappings.all() else (
+                t.user.center.name_bn if t.user and getattr(t.user, 'center', None) else ''
+            )
             rows.append([
                 t.trainer_no, t.user.full_name_bn, t.user.full_name_en,
                 t.user.email, t.user.phone, t.nid,
                 t.education.name_bn if t.education else (t.education_qualification or ''),
                 t.years_of_experience or '', t.expertise_area or '',
+                center_names,
                 t.status, t.approval_status,
                 t.created_at.strftime('%Y-%m-%d %H:%M') if t.created_at else '',
             ])
@@ -371,10 +377,10 @@ class TrainerViewSet(viewsets.ModelViewSet):
         headers = ['প্রশিক্ষক নং', 'নাম (বাংলা)', 'নাম (ইংরেজি)', 'ইমেইল', 'ফোন',
                    'এনআইডি', 'শিক্ষাগত যোগ্যতা', 'অভিজ্ঞতা (বছর)', 'দক্ষতার ক্ষেত্র',
                    'স্ট্যাটাস', 'অনুমোদন স্ট্যাটাস',
-                   'কেন্দ্রের কোড', 'কোর্সের কোড']
+                   'কেন্দ্রের কোড', 'কেন্দ্রের নাম', 'কোর্সের কোড']
         ws.append(headers)
         sample = ['', 'উদাহরণ নাম', 'Example Name', 'email@example.com', '০১৭XXXXXXXX',
-                  '', '', '', '', 'pending', 'pending', 'RSH_TCU', 'DTP-0001']
+                  '', '', '', '', 'pending', 'pending', 'RSH_TCU', 'রাজশাহী ট্রেনিং সেন্টার', 'DTP-0001']
         ws.append(sample)
         for col_idx in range(1, len(headers) + 1):
             cell = ws.cell(row=1, column=col_idx)
