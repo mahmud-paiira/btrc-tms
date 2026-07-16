@@ -156,6 +156,7 @@ export default function HoLayout() {
         links={sectionsWithBadges}
         brand={{
           icon: 'bi-building-gear',
+          logo: '/src/assets/images/BRTC_official_logo.png',
           titleBn: t('site.hoTitle', 'হেড অফিস'),
           subBn: 'BRTC',
         }}

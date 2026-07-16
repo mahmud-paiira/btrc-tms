@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-toastify';
 import { useTranslation } from '../../hooks/useTranslation';
 import LanguageSwitcher from '../../components/common/LanguageSwitcher';
+import logo from '../../assets/images/BRTC_official_logo.png';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -40,7 +41,7 @@ export default function Login() {
 
         <div className="text-center">
           <div className="login-logo">
-            <i className="bi bi-shield-lock" />
+            <img src={logo} alt="BRTC" style={{ width: 80, height: 80, objectFit: 'contain' }} />
           </div>
           <h1 className="login-title">BRTC TMS</h1>
           <p className="login-subtitle">

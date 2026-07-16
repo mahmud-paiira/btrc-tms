@@ -6,6 +6,7 @@ import publicService from '../../services/publicService';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useAuth } from '../../contexts/AuthContext';
 import LanguageSwitcher from '../../components/common/LanguageSwitcher';
+import logo from '../../assets/images/BRTC_official_logo.png';
 
 export default function TraineeLogin() {
   const { t } = useTranslation();
@@ -68,7 +69,7 @@ export default function TraineeLogin() {
       <div className="login-card login-card-trainee">
         <div className="text-center">
           <div className="login-logo login-logo-trainee">
-            <i className="bi bi-people-fill" />
+            <img src={logo} alt="BRTC" style={{ width: 80, height: 80, objectFit: 'contain' }} />
           </div>
           <h1 className="login-title">
             {t('auth.traineePortal', 'প্রশিক্ষণার্থী পোর্টাল')}

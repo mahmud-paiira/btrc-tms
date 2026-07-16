@@ -103,6 +103,7 @@ export default function Layout() {
         links={sidebarLinks}
         brand={{
           icon: 'bi-truck',
+          logo: '/src/assets/images/BRTC_official_logo.png',
           titleKey: 'site.title',
           titleBn: 'BRTC TMS',
           subKey: 'site.subtitle',

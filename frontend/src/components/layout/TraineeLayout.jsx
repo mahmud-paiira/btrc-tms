@@ -48,6 +48,7 @@ export default function TraineeLayout() {
         links={links}
         brand={{
           icon: 'bi-mortarboard-fill',
+          logo: '/src/assets/images/BRTC_official_logo.png',
           titleKey: 'auth.traineePortal',
           titleBn: 'প্রশিক্ষণার্থী পোর্টাল',
           subKey: 'auth.traineeLoginSubtitle',

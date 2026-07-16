@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import certificateService from '../../services/certificateService';
+import logo from '../../assets/images/BRTC_official_logo.png';
 import './PublicVerify.css';
 
 export default function PublicVerify() {
@@ -63,7 +64,7 @@ export default function PublicVerify() {
             {/* Header */}
             <div className="text-center mb-4">
               <div className="verify-logo mb-3">
-                <i className="bi bi-patch-check-fill text-primary" style={{ fontSize: 48 }}></i>
+                <img src={logo} alt="BRTC" style={{ width: 80, height: 80, objectFit: 'contain' }} />
               </div>
               <h3 className="fw-bold">সার্টিফিকেট যাচাই</h3>
               <p className="text-muted">

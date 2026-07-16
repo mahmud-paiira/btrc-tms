@@ -62,7 +62,11 @@ export default function Sidebar({ links, brand, light }) {
         {/* Brand */}
         <div className="brand">
           <div className="brand-logo">
-            <i className={brand?.icon || 'bi-truck'}></i>
+            {brand?.logo ? (
+              <img src={brand.logo} alt="BRTC" style={{ width: 40, height: 40, objectFit: 'contain' }} />
+            ) : (
+              <i className={brand?.icon || 'bi-truck'}></i>
+            )}
           </div>
           <div className="brand-text">
             <div className="brand-title">{t(brand?.titleKey || 'site.titleShort', brand?.titleBn || 'BRTC TMS')}</div>

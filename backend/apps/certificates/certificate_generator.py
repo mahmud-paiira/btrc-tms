@@ -9,6 +9,7 @@ from django.core.files.base import ContentFile
 from weasyprint import HTML
 
 FONT_PATH = Path(settings.STATICFILES_DIRS[0], 'fonts', 'NikoshBAN.ttf').as_uri()
+LOGO_PATH = Path(settings.STATICFILES_DIRS[0], 'images', 'BRTC_official_logo.png').as_uri()
 
 
 def generate_pdf_for_certificate(certificate, template='certificates/certificate_template.html'):
@@ -21,6 +22,7 @@ def generate_pdf_for_certificate(certificate, template='certificates/certificate
         'STATIC_URL': settings.STATIC_URL,
         'SITE_URL': settings.SITE_URL,
         'FONT_PATH': FONT_PATH,
+        'LOGO_PATH': LOGO_PATH,
         'QR_FILE_URL': qr_file_url,
     })
 
