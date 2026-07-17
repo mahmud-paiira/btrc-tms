@@ -1111,6 +1111,10 @@ export default function RegisterAndApply() {
           <div className="modal-dialog modal-dialog-centered modal-sm">
             <div className="modal-content">
               <div className="modal-body text-center p-4">
+                <div className="alert alert-success py-2 mb-3">
+                  <i className="bi bi-check-circle-fill me-1"></i>
+                  নিবন্ধন সফল হয়েছে!
+                </div>
                 <div className="mb-3">
                   <i className="bi bi-phone fs-1 text-primary"></i>
                 </div>
