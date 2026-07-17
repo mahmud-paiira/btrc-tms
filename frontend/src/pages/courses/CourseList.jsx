@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from '../../services/api';
 import { formatDate } from '../../utils/dateFormatter';
+import { useAuth } from '../../contexts/AuthContext';
 
 const STATUS_BG = { active: 'success', inactive: 'secondary', draft: 'warning' };
 const TYPE_BG = { vocational: 'primary', technical: 'info', short_course: 'success' };
@@ -24,6 +25,8 @@ export default function CourseList() {
   const [importLoading, setImportLoading] = useState(false);
   const [importResults, setImportResults] = useState(null);
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isAdmin = user?.user_type === 'head_office' || user?.is_superuser;
 
   const fetchCourses = useCallback(async () => {
     setLoading(true);
@@ -191,12 +194,16 @@ export default function CourseList() {
       <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <h4 className="fw-bold mb-0"><i className="bi bi-book me-2"></i>কোর্সসমূহ</h4>
         <div className="d-flex gap-2">
-          <button className="btn btn-outline-info btn-sm" onClick={() => { setImportFile(null); setImportResults(null); setShowImport(true); }}>
-            <i className="bi bi-upload me-1"></i>ইম্পোর্ট
-          </button>
-          <button className="btn btn-primary btn-sm" onClick={() => toast.info('কোর্স তৈরির ফর্ম শীঘ্রই আসছে')}>
-            <i className="bi bi-plus-lg me-1"></i>নতুন কোর্স
-          </button>
+          {isAdmin && (
+            <button className="btn btn-outline-info btn-sm" onClick={() => { setImportFile(null); setImportResults(null); setShowImport(true); }}>
+              <i className="bi bi-upload me-1"></i>ইম্পোর্ট
+            </button>
+          )}
+          {isAdmin && (
+            <button className="btn btn-primary btn-sm" onClick={() => toast.info('কোর্স তৈরির ফর্ম শীঘ্রই আসছে')}>
+              <i className="bi bi-plus-lg me-1"></i>নতুন কোর্স
+            </button>
+          )}
         </div>
       </div>
 
@@ -242,9 +249,11 @@ export default function CourseList() {
             <button className="btn btn-sm btn-secondary" onClick={handlePrint}>
               <i className="bi bi-printer me-1"></i>প্রিন্ট
             </button>
-            <button className="btn btn-sm btn-danger" onClick={() => setShowBulkDelete(true)}>
-              <i className="bi bi-trash"></i> নির্বাচিত মুছুন
-            </button>
+            {isAdmin && (
+              <button className="btn btn-sm btn-danger" onClick={() => setShowBulkDelete(true)}>
+                <i className="bi bi-trash"></i> নির্বাচিত মুছুন
+              </button>
+            )}
             <button className="btn btn-sm btn-outline-danger" onClick={() => setSelectedIds(new Set())}>
               নির্বাচন বাতিল
             </button>
@@ -288,16 +297,20 @@ export default function CourseList() {
                     <td className="d-none d-md-table-cell">{c.fee ? `৳${c.fee.toLocaleString('bn-BD')}` : '-'}</td>
                     <td><span className={`status-dot dot-${c.status}`}></span> <span style={{fontSize:13,color:'#334155'}}>{c.status_display || c.status}</span></td>
                     <td className="act-col">
-                      <div className="dropdown act-dropdown">
-                        <button className="dropdown-toggle" data-bs-toggle="dropdown" type="button" data-bs-strategy="fixed">
-                          <i className="bi bi-three-dots-vertical"></i>
-                        </button>
-                        <ul className="dropdown-menu dropdown-menu-end">
-                          <li><button className="dropdown-item" onClick={() => navigate(`/courses/${c.id}/edit`)}><i className="bi bi-pencil me-2"></i>সম্পাদনা</button></li>
-                          <li><hr className="dropdown-divider my-1" /></li>
-                          <li><button className="dropdown-item text-danger" onClick={() => handleDelete(c.id, c.code)}><i className="bi bi-trash me-2"></i>মুছুন</button></li>
-                        </ul>
-                      </div>
+                      {isAdmin ? (
+                        <div className="dropdown act-dropdown">
+                          <button className="dropdown-toggle" data-bs-toggle="dropdown" type="button" data-bs-strategy="fixed">
+                            <i className="bi bi-three-dots-vertical"></i>
+                          </button>
+                          <ul className="dropdown-menu dropdown-menu-end">
+                            <li><button className="dropdown-item" onClick={() => navigate(`/courses/${c.id}/edit`)}><i className="bi bi-pencil me-2"></i>সম্পাদনা</button></li>
+                            <li><hr className="dropdown-divider my-1" /></li>
+                            <li><button className="dropdown-item text-danger" onClick={() => handleDelete(c.id, c.code)}><i className="bi bi-trash me-2"></i>মুছুন</button></li>
+                          </ul>
+                        </div>
+                      ) : (
+                        <span className="text-secondary" style={{ fontSize: 12 }}>শুধুমাত্র দেখুন</span>
+                      )}
                     </td>
                   </tr>
                 ))

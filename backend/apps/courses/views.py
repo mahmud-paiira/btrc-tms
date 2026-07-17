@@ -4,11 +4,20 @@ from datetime import date
 
 import openpyxl
 from django.http import HttpResponse
-from rest_framework import viewsets, filters, status
+from rest_framework import viewsets, filters, status, permissions
 from rest_framework.decorators import action
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
+
+
+class IsHeadOfficeOrSuperuser(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if not request.user.is_authenticated:
+            return False
+        return request.user.user_type == 'head_office' or request.user.is_superuser
+
+
 from .models import (
     Course,
     CourseConfiguration,
@@ -39,6 +48,11 @@ class CourseViewSet(viewsets.ModelViewSet):
     search_fields = ('code', 'name_bn', 'name_en')
     ordering_fields = ('code', 'created_at', 'fee', 'duration_months')
     ordering = ('-created_at',)
+
+    def get_permissions(self):
+        if self.action in ('list', 'retrieve', 'export_list', 'download_template'):
+            return [permissions.IsAuthenticated()]
+        return [permissions.IsAuthenticated(), IsHeadOfficeOrSuperuser()]
 
     def get_serializer_class(self):
         if self.action == 'list':
