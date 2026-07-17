@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from apps.common.utils import to_english_digits
 from .models import Application
 
 
@@ -49,16 +50,17 @@ class ApplicationWriteSerializer(serializers.ModelSerializer):
         read_only_fields = ('application_no', 'status', 'applied_at', 'reviewed_at')
 
     def validate_phone(self, value):
+        value = to_english_digits(value).strip()
         if not value.isdigit() or len(value) != 11:
             raise serializers.ValidationError('ফোন নম্বর ১১ ডিজিটের হতে হবে (01XXXXXXXXX)')
         if not value.startswith('01'):
-            raise serializers.ValidationError('ফোন নম্বর 01 দিয়ে শুরু হতে হবে')
+            raise serializers.ValidationError('ফোন নম্বর 01 দিয়ে শুরু হতে হবে')
         return value
 
     def validate_nid(self, value):
-        clean = value.replace(' ', '').replace('-', '')
-        if len(clean) not in (10, 17):
-            raise serializers.ValidationError('এনআইডি ১০ বা ১৭ ডিজিটের হতে হবে')
+        clean = to_english_digits(value).replace(' ', '').replace('-', '')
+        if len(clean) not in (10, 13, 17):
+            raise serializers.ValidationError('এনআইডি ১০, ১৩ বা ১৭ ডিজিটের হতে হবে')
         return clean
 
     def validate_date_of_birth(self, value):

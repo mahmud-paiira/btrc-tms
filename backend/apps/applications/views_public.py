@@ -5,6 +5,7 @@ from rest_framework.decorators import api_view, parser_classes
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from django.conf import settings
+from apps.common.utils import to_english_digits
 from .models import Application
 from .serializers_public import (
     NIDUploadSerializer,
@@ -63,7 +64,7 @@ def ocr_extract(request):
 
 @api_view(['GET'])
 def check_nid(request, nid):
-    clean_nid = nid.replace(' ', '').replace('-', '')
+    clean_nid = to_english_digits(nid).replace(' ', '').replace('-', '')
     exists = Application.objects.filter(nid=clean_nid).exists()
     return Response({
         'exists': exists,
@@ -74,11 +75,11 @@ def check_nid(request, nid):
 
 @api_view(['POST'])
 def verify_nid(request):
-    nid = request.data.get('nid', '').replace(' ', '').replace('-', '')
+    nid = to_english_digits(request.data.get('nid', '')).replace(' ', '').replace('-', '')
     date_of_birth = request.data.get('date_of_birth', '')
 
-    if len(nid) not in (10, 17):
-        return Response({'verified': False, 'message': 'এনআইডি ১০ বা ১৭ ডিজিটের হতে হবে'}, status=400)
+    if len(nid) not in (10, 13, 17):
+        return Response({'verified': False, 'message': 'এনআইডি ১০, ১৩ বা ১৭ ডিজিটের হতে হবে'}, status=400)
     if not date_of_birth:
         return Response({'verified': False, 'message': 'জন্ম তারিখ নির্বাচন করুন'}, status=400)
 

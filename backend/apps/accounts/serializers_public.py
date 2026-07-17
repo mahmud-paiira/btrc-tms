@@ -1,13 +1,7 @@
 from django.contrib.auth import authenticate
 from rest_framework import serializers
+from apps.common.utils import to_english_digits
 from .models import User, UserProfile
-
-BANGLA_DIGITS = '০১২৩৪৫৬৭৮৯'
-
-def to_english_digits(value):
-    for i, bd in enumerate(BANGLA_DIGITS):
-        value = value.replace(bd, str(i))
-    return value
 
 
 class PublicRegisterSerializer(serializers.ModelSerializer):

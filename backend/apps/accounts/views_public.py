@@ -6,6 +6,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
+from apps.common.utils import to_english_digits
 
 from .models import User, OTPVerification, LoginLog
 from .serializers_public import (
@@ -134,8 +135,8 @@ def public_resend_otp(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def public_check_user(request):
-    phone = request.data.get('phone', '')
-    nid = request.data.get('nid', '')
+    phone = to_english_digits(request.data.get('phone', '')).strip()
+    nid = to_english_digits(request.data.get('nid', '')).strip()
     exists = False
     if phone and phone.isdigit() and len(phone) == 11:
         exists = User.objects.filter(phone=phone).exists()
