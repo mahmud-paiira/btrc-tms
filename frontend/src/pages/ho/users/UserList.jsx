@@ -86,9 +86,9 @@ export default function UserList() {
   const handleResetPassword = async (user) => {
     try {
       const res = await hoService.resetPasswordHOUser(user.id);
-      toast.success(`${t('users.passwordReset', 'পাসওয়ার্ড রিসেট করা হয়েছে')}: ${res.data.new_password}`);
+      toast.success(`Password reset: ${res.data.new_password}`);
     } catch {
-      toast.error(t('users.passwordError', 'পাসওয়ার্ড রিসেট ব্যর্থ'));
+      toast.error('Password reset failed');
     }
   };
 

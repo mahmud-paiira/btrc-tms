@@ -213,7 +213,7 @@ class HOUserViewSet(viewsets.ModelViewSet):
             description=f'Password reset for {user.email}',
             ip_address=request.META.get('REMOTE_ADDR', ''),
         )
-        return Response({'new_password': new_password, 'detail': 'পাসওয়ার্ড রিসেট করা হয়েছে'})
+        return Response({'new_password': new_password, 'detail': 'Password reset successful'})
 
     @action(detail=True, methods=['post'])
     def toggle_status(self, request, pk=None):
