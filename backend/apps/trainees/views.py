@@ -242,6 +242,36 @@ class TraineeViewSet(viewsets.ModelViewSet):
 
         return Response(results)
 
+    @action(detail=False, methods=['post'], url_path='bulk-assign-batch')
+    def bulk_assign_batch(self, request):
+        ids = request.data.get('ids', [])
+        batch_id = request.data.get('batch_id')
+        if not ids:
+            return Response({'error': 'কোন আইডি প্রদান করা হয়নি'}, status=400)
+        if batch_id is None:
+            return Response({'error': 'ব্যাচ নির্বাচন করুন'}, status=400)
+        from apps.batches.models import Batch
+        try:
+            batch = Batch.objects.get(pk=batch_id)
+        except Batch.DoesNotExist:
+            return Response({'error': 'ব্যাচ পাওয়া যায়নি'}, status=404)
+        user = request.user
+        if user.user_type == 'center_admin' and user.center:
+            if batch.center_id != user.center_id:
+                return Response({'error': 'আপনার কেন্দ্রের ব্যাচ নির্বাচন করুন'}, status=403)
+        updated = 0
+        errors = []
+        for pk in ids:
+            try:
+                obj = self.get_queryset().get(pk=pk)
+                obj.batch = batch
+                obj.save(update_fields=['batch', 'updated_at'])
+                updated += 1
+            except Exception as e:
+                msg = str(e.detail[0]) if hasattr(e, 'detail') and isinstance(e.detail, list) else str(e)
+                errors.append(msg)
+        return Response({'updated': updated, 'batch': batch.batch_name_bn or batch.batch_no, 'errors': errors})
+
     @action(detail=False, methods=['post'])
     def bulk_delete(self, request):
         ids = request.data.get('ids', [])

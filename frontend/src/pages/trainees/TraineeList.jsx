@@ -24,6 +24,10 @@ export default function TraineeList() {
   const [importResults, setImportResults] = useState(null);
   const [showBulkDelete, setShowBulkDelete] = useState(false);
   const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [batches, setBatches] = useState([]);
+  const [assignBatchId, setAssignBatchId] = useState('');
+  const [showBulkAssign, setShowBulkAssign] = useState(false);
+  const [bulkAssigning, setBulkAssigning] = useState(false);
 
   const fetchTrainees = useCallback(async () => {
     setLoading(true);
@@ -44,6 +48,12 @@ export default function TraineeList() {
   useEffect(() => { fetchTrainees(); }, [fetchTrainees]);
   useEffect(() => { setPage(1); }, [search, statusFilter]);
 
+  useEffect(() => {
+    api.get('/batches/batches/', { params: { page_size: 9999 } })
+      .then(res => setBatches(res.data.results || res.data || []))
+      .catch(() => {});
+  }, []);
+
   const totalPages = Math.ceil(total / pageSize);
 
   const handleDelete = async (id, name) => {
@@ -62,7 +72,7 @@ export default function TraineeList() {
     try {
       const res = await api.post('/trainees/bulk_delete/', { ids: [...selectedIds] });
       const data = res.data;
-      toast.success(data.deleted + ' টি মুছে ফেলা হয়েছে');
+      toast.success(data.deleted + ' টি মুছে ফেলা হয়েছে');
       if (data.errors && data.errors.length > 0) {
         toast.error(data.errors.join(', '));
       }
@@ -73,6 +83,31 @@ export default function TraineeList() {
       toast.error('মুছতে ব্যর্থ');
     } finally {
       setBulkDeleting(false);
+    }
+  };
+
+  const handleBulkAssign = async () => {
+    if (!assignBatchId) { toast.warning('ব্যাচ নির্বাচন করুন'); return; }
+    setBulkAssigning(true);
+    try {
+      const res = await api.post('/trainees/bulk-assign-batch/', {
+        ids: [...selectedIds],
+        batch_id: Number(assignBatchId),
+      });
+      const data = res.data;
+      toast.success(`${data.updated} জনকে "${data.batch}" ব্যাচে নির্ধারণ করা হয়েছে`);
+      if (data.errors && data.errors.length > 0) {
+        toast.error(data.errors.join(', '));
+      }
+      setSelectedIds(new Set());
+      setAssignBatchId('');
+      setShowBulkAssign(false);
+      fetchTrainees();
+    } catch (err) {
+      const msg = err.response?.data?.error || 'ব্যাচ নির্ধারণ ব্যর্থ';
+      toast.error(msg);
+    } finally {
+      setBulkAssigning(false);
     }
   };
 
@@ -230,9 +265,24 @@ export default function TraineeList() {
       </div>
 
       {selectedIds.size > 0 && (
-        <div className="alert alert-info py-2 d-flex justify-content-between align-items-center mb-3">
+        <div className="alert alert-info py-2 d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
           <span><i className="bi bi-check-square me-1"></i>{selectedIds.size} টি নির্বাচিত</span>
-          <div className="d-flex gap-2">
+          <div className="d-flex gap-2 align-items-center flex-wrap">
+            <div className="input-group input-group-sm" style={{ width: 220 }}>
+              <select className="form-select form-select-sm" value={assignBatchId}
+                onChange={e => setAssignBatchId(e.target.value)}>
+                <option value="">-- ব্যাচ নির্বাচন --</option>
+                {batches.map(b => (
+                  <option key={b.id} value={b.id}>{b.batch_name_bn || b.batch_no}</option>
+                ))}
+              </select>
+              <button className="btn btn-outline-primary" onClick={() => {
+                if (!assignBatchId) { toast.warning('ব্যাচ নির্বাচন করুন'); return; }
+                setShowBulkAssign(true);
+              }}>
+                <i className="bi bi-arrow-right-circle me-1"></i>ব্যাচে নির্ধারণ
+              </button>
+            </div>
             <div className="btn-group btn-group-sm">
               <button className="btn btn-sm btn-success" onClick={() => handleExport('xlsx')}>
                 <i className="bi bi-download me-1"></i>নির্বাচিত এক্সপোর্ট
@@ -249,10 +299,10 @@ export default function TraineeList() {
               <i className="bi bi-printer me-1"></i>প্রিন্ট
             </button>
             <button className="btn btn-sm btn-danger" onClick={() => setShowBulkDelete(true)}>
-              <i className="bi bi-trash"></i> নির্বাচিত মুছুন
+              <i className="bi bi-trash"></i> মুছুন
             </button>
-            <button className="btn btn-sm btn-outline-danger" onClick={() => setSelectedIds(new Set())}>
-              নির্বাচন বাতিল
+            <button className="btn btn-sm btn-outline-danger" onClick={() => { setSelectedIds(new Set()); setAssignBatchId(''); }}>
+              বাতিল
             </button>
           </div>
         </div>
@@ -407,12 +457,37 @@ export default function TraineeList() {
                 <button type="button" className="btn-close btn-close-white" onClick={() => setShowBulkDelete(false)} />
               </div>
               <div className="modal-body">
-                <p className="mb-0">আপনি কি {selectedIds.size} টি প্রশিক্ষণার্থী মুছে ফেলতে চান? এটি অপরিবর্তনীয়।</p>
+                <p className="mb-0">আপনি কি {selectedIds.size} টি প্রশিক্ষণার্থী মুছে ফেলতে চান? এটি অপরিবর্তনীয়।</p>
               </div>
               <div className="modal-footer">
                 <button className="btn btn-secondary" onClick={() => setShowBulkDelete(false)}>বাতিল</button>
                 <button className="btn btn-danger" onClick={handleBulkDelete} disabled={bulkDeleting}>
                   {bulkDeleting ? <><span className="spinner-border spinner-border-sm me-1" />মুছছে...</> : 'মুছুন'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showBulkAssign && (
+        <div className="modal d-block" style={{ background: 'rgba(0,0,0,.5)' }}>
+          <div className="modal-dialog modal-sm modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header bg-primary text-white">
+                <h6 className="modal-title"><i className="bi bi-arrow-right-circle me-2"></i>ব্যাচে নির্ধারণ</h6>
+                <button type="button" className="btn-close btn-close-white" onClick={() => setShowBulkAssign(false)} />
+              </div>
+              <div className="modal-body">
+                <p className="mb-2">আপনি কি <strong>{selectedIds.size}</strong> জন প্রশিক্ষণার্থীকে
+                  "<strong>{batches.find(b => b.id === Number(assignBatchId))?.batch_name_bn || batches.find(b => b.id === Number(assignBatchId))?.batch_no || ''}</strong>"
+                  ব্যাচে নির্ধারণ করতে চান?</p>
+                <small className="text-secondary">এটি নির্বাচিত প্রশিক্ষণার্থীদের বর্তমান ব্যাচ প্রতিস্থাপন করবে।</small>
+              </div>
+              <div className="modal-footer">
+                <button className="btn btn-secondary" onClick={() => setShowBulkAssign(false)}>বাতিল</button>
+                <button className="btn btn-primary" onClick={handleBulkAssign} disabled={bulkAssigning}>
+                  {bulkAssigning ? <><span className="spinner-border spinner-border-sm me-1" />নির্ধারণ করছে...</> : <><i className="bi bi-check-lg me-1"></i>নির্ধারণ করুন</>}
                 </button>
               </div>
             </div>
