@@ -4,7 +4,7 @@ import publicService from '../../services/publicService';
 import circularService from '../../services/circularService';
 import BanglaInput from '../../components/common/BanglaInput';
 import { useAuth } from '../../contexts/AuthContext';
-import { convertToBanglaDigits } from '../../utils/numberFormatter';
+import { convertToBanglaDigits, toEnglishDigits } from '../../utils/numberFormatter';
 import ApplySuccess from './ApplySuccess';
 import './RegistrationForm.css';
 
@@ -171,7 +171,8 @@ export default function RegisterAndApply() {
 
   const handleRegChange = (e) => {
     const { name, value } = e.target;
-    setRegForm(prev => ({ ...prev, [name]: value }));
+    const cleaned = (name === 'phone' || name === 'nid') ? toEnglishDigits(value).replace(/[^0-9]/g, '') : value;
+    setRegForm(prev => ({ ...prev, [name]: cleaned }));
     if (regErrors[name]) setRegErrors(prev => ({ ...prev, [name]: null }));
   };
 

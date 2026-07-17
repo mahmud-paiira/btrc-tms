@@ -2,6 +2,13 @@ from django.contrib.auth import authenticate
 from rest_framework import serializers
 from .models import User, UserProfile
 
+BANGLA_DIGITS = '০১২৩৪৫৬৭৮৯'
+
+def to_english_digits(value):
+    for i, bd in enumerate(BANGLA_DIGITS):
+        value = value.replace(bd, str(i))
+    return value
+
 
 class PublicRegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
@@ -25,20 +32,24 @@ class PublicRegisterSerializer(serializers.ModelSerializer):
         )
 
     def validate_phone(self, value):
+        value = to_english_digits(value).strip()
         if not value.isdigit() or len(value) != 11:
             raise serializers.ValidationError('ফোন নম্বর ১১ ডিজিটের হতে হবে (01XXXXXXXXX)')
         if not value.startswith('01'):
-            raise serializers.ValidationError('ফোন নম্বর 01 দিয়ে শুরু হতে হবে')
+            raise serializers.ValidationError('ফোন নম্বর 01 দিয়ে শুরু হতে হবে')
         if User.objects.filter(phone=value).exists():
-            raise serializers.ValidationError('এই মোবাইল নম্বর দিয়ে ইতিমধ্যে একাউন্ট আছে')
+            raise serializers.ValidationError('এই মোবাইল নম্বর দিয়ে ইতিমধ্যে একাউন্ট আছে')
         return value
 
     def validate_nid(self, value):
         clean = value.replace(' ', '').replace('-', '')
-        if len(clean) not in (10, 17):
-            raise serializers.ValidationError('এনআইডি ১০ বা ১৭ ডিজিটের হতে হবে')
+        clean = to_english_digits(clean)
+        if len(clean) not in (10, 13, 17):
+            raise serializers.ValidationError('এনআইডি ১০, ১৩ বা ১৭ ডিজিটের হতে হবে')
+        if not clean.isdigit():
+            raise serializers.ValidationError('এনআইডি শুধুমাত্র সংখ্যা হতে হবে')
         if User.objects.filter(nid=clean).exists():
-            raise serializers.ValidationError('এই এনআইডি দিয়ে ইতিমধ্যে একাউন্ট আছে')
+            raise serializers.ValidationError('এই এনআইডি দিয়ে ইতিমধ্যে একাউন্ট আছে')
         return clean
 
     def validate(self, data):
@@ -82,6 +93,7 @@ class PublicOTPVerifySerializer(serializers.Serializer):
     otp_code = serializers.CharField(max_length=6, label='OTP কোড')
 
     def validate_phone(self, value):
+        value = to_english_digits(value).strip()
         if not value.isdigit() or len(value) != 11:
             raise serializers.ValidationError('ফোন নম্বর ১১ ডিজিটের হতে হবে')
         return value
@@ -89,10 +101,10 @@ class PublicOTPVerifySerializer(serializers.Serializer):
 
 class PublicLoginSerializer(serializers.Serializer):
     identifier = serializers.CharField(label='মোবাইল বা এনআইডি')
-    password = serializers.CharField(label='পাসওয়ার্ড')
+    password = serializers.CharField(label='পাসওয়ার্ড')
 
     def validate(self, data):
-        identifier = data['identifier'].strip()
+        identifier = to_english_digits(data['identifier'].strip())
         password = data['password']
 
         try:
