@@ -303,13 +303,16 @@ export default function CourseList() {
                             <i className="bi bi-three-dots-vertical"></i>
                           </button>
                           <ul className="dropdown-menu dropdown-menu-end">
+                            <li><button className="dropdown-item" onClick={() => navigate(`/center-admin/courses/${c.id}`)}><i className="bi bi-eye me-2"></i>বিস্তারিত</button></li>
                             <li><button className="dropdown-item" onClick={() => navigate(`/courses/${c.id}/edit`)}><i className="bi bi-pencil me-2"></i>সম্পাদনা</button></li>
                             <li><hr className="dropdown-divider my-1" /></li>
                             <li><button className="dropdown-item text-danger" onClick={() => handleDelete(c.id, c.code)}><i className="bi bi-trash me-2"></i>মুছুন</button></li>
                           </ul>
                         </div>
                       ) : (
-                        <span className="text-secondary" style={{ fontSize: 12 }}>শুধুমাত্র দেখুন</span>
+                        <button className="btn btn-sm btn-outline-primary" onClick={() => navigate(`/center-admin/courses/${c.id}`)}>
+                          <i className="bi bi-eye me-1"></i>বিস্তারিত
+                        </button>
                       )}
                     </td>
                   </tr>

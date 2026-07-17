@@ -19,6 +19,7 @@ import BatchList from './pages/batches/BatchList';
 import BatchCreate from './pages/batches/BatchCreate';
 import BatchDetail from './pages/batches/BatchDetail';
 import CourseList from './pages/courses/CourseList';
+import CourseDetail from './pages/courses/CourseDetail';
 import TrainerList from './pages/trainers/TrainerList';
 import TrainerDetailPage from './pages/trainers/TrainerDetailPage';
 import TraineeList from './pages/trainees/TraineeList';
@@ -134,6 +135,7 @@ function App() {
             <Route path="center-admin/assessors" element={<CenterAssessorList />} />
             <Route path="center-admin/assessors/:id" element={<AssessorDetailPage />} />
             <Route path="center-admin/courses" element={<CourseList />} />
+            <Route path="center-admin/courses/:id" element={<CourseDetail />} />
             <Route path="center-admin/shifts" element={<ShiftList />} />
             <Route path="center-admin/holidays" element={<HolidayList />} />
             <Route path="center-admin/allowances" element={<AllowanceList />} />
