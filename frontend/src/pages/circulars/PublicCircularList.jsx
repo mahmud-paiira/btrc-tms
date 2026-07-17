@@ -109,7 +109,7 @@ export default function PublicCircularList() {
                     <tr><th className="bg-light">সার্কুলার নম্বর</th><td>{circular.circular_no ? convertToBanglaDigits(circular.circular_no) : '-'}</td></tr>
                     <tr><th className="bg-light">সংস্করণ</th><td>{convertToBanglaDigits(circular.edition)}</td></tr>
                     <tr><th className="bg-light">কোর্স</th><td>{circular.course_name}</td></tr>
-                    <tr><th className="bg-light">মেয়াদ</th><td>{circular.course_duration ? `${circular.course_duration} মাস` : '-'}</td></tr>
+                    <tr><th className="bg-light">মেয়াদ</th><td>{circular.course_duration_months ? `${convertToBanglaDigits(circular.course_duration_months)} মাস` : '-'}</td></tr>
                     <tr><th className="bg-light">মোট আসন</th><td>{convertToBanglaDigits(circular.total_seats)}</td></tr>
                     <tr><th className="bg-light">অবশিষ্ট আসন</th>
                       <td><span className={`fw-bold ${circular.remaining_seats <= 5 ? 'text-danger' : 'text-success'}`}>{convertToBanglaDigits(circular.remaining_seats)}</span></td>
