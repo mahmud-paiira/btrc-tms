@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from apps.common.utils import to_english_digits
 from .models import User, UserProfile
 
 
@@ -56,6 +57,7 @@ class LoginSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True, label='পাসওয়ার্ড')
 
     def validate_email(self, value):
+        value = to_english_digits(value).strip()
         if '@' in value:
             if not User.objects.filter(email=value).exists():
                 raise serializers.ValidationError('এই ইমেইলে কোনো ব্যবহারকারী নেই')
