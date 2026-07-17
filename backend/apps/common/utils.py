@@ -1,5 +1,4 @@
-BANGLA_DIGITS = '\u09e6\u09e7\u09e8\u09e9\u09ea\u09eb\u09ec\u09ed\u09ee\u09ef'
-
+BANGLA_DIGITS = '০১২৩৪৫৬৭৮৯'
 
 def to_english_digits(value):
     """Convert Bengali/Arabic-Indic digits to English digits."""
