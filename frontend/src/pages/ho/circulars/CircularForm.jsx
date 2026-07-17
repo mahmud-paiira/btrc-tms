@@ -67,7 +67,7 @@ export default function CircularForm({ editData, onClose, onDone }) {
     training_end_date: editData?.training_end_date || '',
     total_seats: editData?.total_seats || '',
     fee: editData?.fee || '',
-    default_overflow_percentage: editData?.default_overflow_percentage ?? 20,
+    default_overflow_percentage: editData?.default_overflow_percentage ?? 15,
     routing_weight_seats: editData?.routing_weight_seats ?? 0.5,
     routing_weight_distance: editData?.routing_weight_distance ?? 0.3,
     routing_weight_merit: editData?.routing_weight_merit ?? 0.2,
@@ -189,7 +189,7 @@ export default function CircularForm({ editData, onClose, onDone }) {
         })),
         auto_screen_total_score: checklistItems.reduce((sum, item) => sum + Number(item.score || 0), 0),
         auto_screen_min_score: form.auto_screen_min_score || checklistItems.reduce((sum, item) => sum + Number(item.score || 0), 0),
-        default_overflow_percentage: Number(form.default_overflow_percentage) || 20,
+        default_overflow_percentage: Number(form.default_overflow_percentage) || 15,
         routing_weight_seats: Number(form.routing_weight_seats) || 0.5,
         routing_weight_distance: Number(form.routing_weight_distance) || 0.3,
         routing_weight_merit: Number(form.routing_weight_merit) || 0.2,
@@ -571,28 +571,13 @@ export default function CircularForm({ editData, onClose, onDone }) {
                 <div className="p-3 rounded-3 bg-light mb-3">
                   <div className="d-flex align-items-center gap-2 mb-2">
                     <i className="bi bi-diagram-3 text-primary"></i>
-                    <span className="fw-semibold" style={{ fontSize: 13 }}>রাউটিং, ওভারফ্লো ও ওয়েটলিস্ট</span>
+                    <span className="fw-semibold" style={{ fontSize: 13 }}>রাউটিং, বাফার ও ওয়েটলিস্ট</span>
                   </div>
                   <div className="row g-2">
                     <div className="col-md-3">
-                      <label className="form-label" style={{ fontSize: 12 }}>ডিফল্ট ওভারফ্লো (%)</label>
+                      <label className="form-label" style={{ fontSize: 12 }}>বাফার %</label>
                       <input type="number" min="0" max="100" step="0.01" className="form-control border-0 bg-white py-2 shadow-sm" style={{ fontSize: 13, borderRadius: 10 }}
                         value={form.default_overflow_percentage} onChange={e => update('default_overflow_percentage', e.target.value)} />
-                    </div>
-                    <div className="col-md-3">
-                      <label className="form-label" style={{ fontSize: 12 }}>w₁ (আসন ওজন)</label>
-                      <input type="number" min="0" max="1" step="0.05" className="form-control border-0 bg-white py-2 shadow-sm" style={{ fontSize: 13, borderRadius: 10 }}
-                        value={form.routing_weight_seats} onChange={e => update('routing_weight_seats', e.target.value)} />
-                    </div>
-                    <div className="col-md-3">
-                      <label className="form-label" style={{ fontSize: 12 }}>w₂ (দূরত্ব ওজন)</label>
-                      <input type="number" min="0" max="1" step="0.05" className="form-control border-0 bg-white py-2 shadow-sm" style={{ fontSize: 13, borderRadius: 10 }}
-                        value={form.routing_weight_distance} onChange={e => update('routing_weight_distance', e.target.value)} />
-                    </div>
-                    <div className="col-md-3">
-                      <label className="form-label" style={{ fontSize: 12 }}>w₃ (মেধা ওজন)</label>
-                      <input type="number" min="0" max="1" step="0.05" className="form-control border-0 bg-white py-2 shadow-sm" style={{ fontSize: 13, borderRadius: 10 }}
-                        value={form.routing_weight_merit} onChange={e => update('routing_weight_merit', e.target.value)} />
                     </div>
                     <div className="col-md-3">
                       <label className="form-label" style={{ fontSize: 12 }}>ওয়েটলিস্ট বৈধতা (দিন)</label>
