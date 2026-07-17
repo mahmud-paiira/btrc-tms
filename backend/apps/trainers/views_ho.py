@@ -4,7 +4,6 @@ import csv
 import io
 
 import openpyxl
-from apps.common.utils import to_english_digits
 from django.db.models import Q, Count, Prefetch, Subquery
 from django.http import HttpResponse
 from rest_framework import viewsets, status, permissions, filters as drf_filters
@@ -166,9 +165,7 @@ class HOTrainerViewSet(viewsets.ModelViewSet):
                     data[mapped] = v.strip() if v else ''
 
                 if data.get('phone'):
-                    data['phone'] = to_english_digits(data['phone']).replace('-', '')
-                if data.get('nid'):
-                    data['nid'] = to_english_digits(data['nid']).replace(' ', '').replace('-', '')
+                    data['phone'] = data['phone'].replace('-', '')
                 if data.get('email') and data['email'] in ('\u2013', '\u2014', '-', '/'):
                     data['email'] = ''
 

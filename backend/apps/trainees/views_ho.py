@@ -3,7 +3,6 @@ import io
 from datetime import date
 
 import openpyxl
-from apps.common.utils import to_english_digits
 from django.http import HttpResponse
 from rest_framework import viewsets, filters, status
 from rest_framework.decorators import action
@@ -146,9 +145,7 @@ class HOTraineeViewSet(viewsets.ModelViewSet):
                     data[mapped] = v.strip() if v else ''
 
                 if data.get('phone'):
-                    data['phone'] = to_english_digits(data['phone']).replace('-', '')
-                if data.get('nid'):
-                    data['nid'] = to_english_digits(data['nid']).replace(' ', '').replace('-', '')
+                    data['phone'] = data['phone'].replace('-', '')
                 if data.get('email') and data['email'] in ('–', '—', '-', '/'):
                     data['email'] = ''
 

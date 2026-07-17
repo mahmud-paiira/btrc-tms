@@ -3,7 +3,6 @@ import io
 from datetime import date
 
 import openpyxl
-from apps.common.utils import to_english_digits
 from django.http import HttpResponse
 from django.utils import timezone
 from rest_framework import viewsets, filters, status, permissions
@@ -261,11 +260,6 @@ class AssessorViewSet(viewsets.ModelViewSet):
                 for k, v in raw.items():
                     mapped = field_map.get(k.strip().lower(), k.strip().lower())
                     data[mapped] = v.strip() if v else ''
-
-                if data.get('phone'):
-                    data['phone'] = to_english_digits(data['phone']).replace('-', '')
-                if data.get('nid'):
-                    data['nid'] = to_english_digits(data['nid']).replace(' ', '').replace('-', '')
 
                 assessor_no = data.get('assessor_no', '').strip()
                 if not assessor_no:
