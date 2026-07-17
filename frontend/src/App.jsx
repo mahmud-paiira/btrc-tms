@@ -22,6 +22,7 @@ import CourseList from './pages/courses/CourseList';
 import TrainerList from './pages/trainers/TrainerList';
 import TrainerDetailPage from './pages/trainers/TrainerDetailPage';
 import TraineeList from './pages/trainees/TraineeList';
+import TraineeDetail from './pages/trainees/TraineeDetail';
 import TraineeEdit from './pages/trainees/TraineeEdit';
 import ReportList from './pages/reports/ReportList';
 import JobPlacementForm from './pages/jobs/JobPlacementForm';
@@ -126,6 +127,7 @@ function App() {
             <Route path="center-admin/jobs/tracking" element={<JobTrackingForm />} />
             <Route path="center-admin/jobs/summary" element={<PlacementSummary />} />
             <Route path="center-admin/trainees" element={<TraineeList />} />
+            <Route path="center-admin/trainees/:id" element={<TraineeDetail />} />
             <Route path="center-admin/trainees/:id/edit" element={<TraineeEdit />} />
             <Route path="center-admin/trainers" element={<TrainerList />} />
             <Route path="center-admin/trainers/:id" element={<TrainerDetailPage />} />
