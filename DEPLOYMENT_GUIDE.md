@@ -4,6 +4,7 @@
 
 - [Deployment Options](#deployment-options)
 - [Docker Deployment (Recommended)](#docker-deployment-recommended)
+- [Server Deployment (Production)](#server-deployment-production)
 - [Manual Deployment](#manual-deployment)
 - [Production Configuration](#production-configuration)
 - [CI/CD Pipeline](#cicd-pipeline)
@@ -16,12 +17,41 @@
 
 ## Deployment Options
 
-| Method | Use Case | Complexity |
-|--------|----------|------------|
-| Docker Compose (dev) | Development / Staging | Low |
-| Docker Compose (prod) | Production — single server | Medium |
-| CI/CD + Docker | Production — automated | High |
-| Manual (no Docker) | When Docker isn't available | High |
+| Method | Use Case | File | Complexity |
+|--------|----------|------|------------|
+| Docker Compose (dev) | Development / Staging | `docker-compose.yml` | Low |
+| Docker Compose (prod) | Production — full stack | `docker-compose.prod.yml` | Medium |
+| Docker Compose (server) | Production — server with shared network | `docker-compose.server.yml` | Medium |
+| CI/CD + Docker | Automated build & push to GHCR | `.github/workflows/deploy.yml` | Low |
+| Manual (no Docker) | When Docker isn't available | — | High |
+
+### Architecture Overview
+
+```
+Production (server behind VPN):
+┌─────────────────────────────────────────────────────┐
+│  Nginx (external)                                   │
+│    ├── /            → Frontend (React SPA, port 80) │
+│    ├── /api/*       → Backend (Gunicorn, port 8000)  │
+│    ├── /admin/*     → Backend (Django Admin)         │
+│    ├── /swagger/*   → Backend (API Docs)             │
+│    └── /static/     → Shared volume                  │
+│    └── /media/      → Shared volume                  │
+│                                                     │
+│  Backend container (ghcr.io/dream71project/backend)  │
+│    ├── Gunicorn (4 workers, 120s timeout)            │
+│    ├── Tesseract OCR (Bengali + English)             │
+│    └── WeasyPrint (PDF generation, SutonnyMJ font)   │
+│                                                     │
+│  Frontend container (ghcr.io/dream71project/frontend)│
+│    ├── Nginx 1.25 (serves built SPA)                │
+│    └── Static files mounted from shared volume       │
+│                                                     │
+│  Shared Network: btrc_network (external)             │
+│    ├── PostgreSQL (db)                               │
+│    └── Redis (redis)                                 │
+└─────────────────────────────────────────────────────┘
+```
 
 ---
 
@@ -38,7 +68,7 @@
 
 ```bash
 # Clone the repository
-git clone <repo-url> project
+git clone https://github.com/dream71project/brtc-training.git project
 cd project
 
 # Copy environment file
@@ -48,133 +78,92 @@ cp .env.example .env
 # Start all services
 docker compose up -d
 
+# Run migrations
+docker compose exec backend python manage.py migrate
+
+# Ensure admin user exists
+docker compose exec backend python manage.py ensure_admin
+
 # Verify
 curl http://localhost/api/health/
 ```
 
 Services started:
-- `db` — PostgreSQL 15 on port 5432
-- `redis` — Redis 7 on port 6379
-- `backend` — Django + Gunicorn on port 8000
-- `celery_worker` — Async task worker
-- `frontend` — Vite dev server on port 5173
-- `nginx` — Reverse proxy on port 80
 
-### Production Deployment
+| Service | Image | Port | Purpose |
+|---------|-------|------|---------|
+| `db` | postgres:15-alpine | 5432 | PostgreSQL database |
+| `redis` | redis:7-alpine | 6379 | Cache & Celery broker |
+| `backend` | Django + Gunicorn | 8000 | REST API |
+| `celery_worker` | Celery worker | — | Async task processing |
+| `frontend` | Vite dev server | 5173 | React SPA |
+| `nginx` | nginx:1.25-alpine | 80 | Reverse proxy |
 
-#### 1. Configure Environment
+---
 
-Create `.env` with production values:
+## Server Deployment (Production)
 
-```bash
-DJANGO_SECRET_KEY=<generate-a-secure-random-key>
-DJANGO_DEBUG=False
-DJANGO_ALLOWED_HOSTS=your-domain.com,www.your-domain.com
+The production server uses a shared Docker network (`btrc_network`) where PostgreSQL and Redis are managed separately. The `docker-compose.server.yml` only manages the application containers.
 
-DB_NAME=brtc_tms
-DB_USER=brtc_user
-DB_PASSWORD=<strong-db-password>
-DB_HOST=db
-DB_PORT=5432
+### Server Directory Structure
 
-CORS_ALLOWED_ORIGINS=https://your-domain.com
-
-CELERY_BROKER_URL=redis://:redis-password@redis:6379/0
-CELERY_RESULT_BACKEND=redis://:redis-password@redis:6379/0
-
-# Redis cache (alternative to locmem)
-CACHE_BACKEND=redis
-REDIS_CACHE_URL=redis://:redis-password@redis:6379/1
-
-# Email (SMTP)
-EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
-EMAIL_USE_TLS=True
-EMAIL_HOST_USER=your-email@gmail.com
-EMAIL_HOST_PASSWORD=<app-password>
-DEFAULT_FROM_EMAIL=BRTC TMS <noreply@your-domain.com>
-
-# SMS
-SMS_BACKEND=twilio
-TWILIO_ACCOUNT_SID=your-twilio-sid
-TWILIO_AUTH_TOKEN=your-twilio-token
-TWILIO_PHONE_NUMBER=+8801XXXXXXX
-
-# Site URL (for certificate links, emails)
-SITE_URL=https://your-domain.com
-
-# SSL certificate paths
-SSL_CERT_PATH=/etc/ssl/certs/your-domain.crt
-SSL_KEY_PATH=/etc/ssl/private/your-domain.key
-
-# Tesseract OCR (usually at /usr/bin/tesseract in Docker)
-TESSERACT_PATH=/usr/bin/tesseract
-TESSERACT_LANG=ben+eng
+```
+/var/www/brtc/                          # or your deploy path
+├── docker-compose.server.yml           # Application containers
+├── .env                                # Environment variables
+├── data/
+│   ├── static/                         # Django collectstatic output
+│   └── media/                          # User uploads
+├── nginx/
+│   └── frontend-internal.conf          # Frontend Nginx config
+└── btrc_network                        # Shared Docker network (external)
 ```
 
-#### 2. Deploy with Docker Compose
+### Deploying Updates
+
+When CI/CD pushes new images to GHCR, update the server:
 
 ```bash
+# SSH to server (or access via VPN)
+cd /var/www/brtc
+
 # Pull latest images
-docker compose -f docker-compose.prod.yml pull
+docker compose -f docker-compose.server.yml pull
 
-# Start services
-docker compose -f docker-compose.prod.yml up -d
+# Restart backend (pulls new image)
+docker compose -f docker-compose.server.yml up -d backend
 
-# Run migrations (first time or after model changes)
-docker compose -f docker-compose.prod.yml exec backend python manage.py migrate
+# Restart frontend (pulls new image)
+docker compose -f docker-compose.server.yml up -d frontend
 
-# Collect static files
-docker compose -f docker-compose.prod.yml exec backend python manage.py collectstatic --noinput
+# Run migrations (if model changes)
+docker compose -f docker-compose.server.yml exec backend python manage.py migrate
 
-# Seed data (optional)
-docker compose -f docker-compose.prod.yml exec backend python manage.py seed_data
-docker compose -f docker-compose.prod.yml exec backend python manage.py seed_sample_data
+# Ensure admin user exists
+docker compose -f docker-compose.server.yml exec backend python manage.py ensure_admin
 
-# Check logs
-docker compose -f docker-compose.prod.yml logs -f
+# Verify
+curl http://localhost:8000/api/health/
 ```
 
-#### 3. Verify Deployment
+### Server Container Details
 
-```bash
-# Health check
-curl https://your-domain.com/api/health/
+| Service | Image | Container | Purpose |
+|---------|-------|-----------|---------|
+| `backend` | `ghcr.io/dream71project/backend:latest` | `brtc_backend` | Django + Gunicorn |
+| `frontend` | `ghcr.io/dream71project/frontend:latest` | `brtc_frontend` | Nginx + React SPA |
 
-# Check running containers
-docker compose -f docker-compose.prod.yml ps
+Both containers connect to the shared `btrc_network` to reach PostgreSQL and Redis (managed externally).
 
-# View backend logs
-docker compose -f docker-compose.prod.yml logs backend
+### Enabling Celery (Optional)
+
+Celery workers are available but commented out in `docker-compose.server.yml`. To enable:
+
+```yaml
+# Uncomment celery_worker and celery_beat sections in docker-compose.server.yml
+# Then restart:
+docker compose -f docker-compose.server.yml up -d
 ```
-
-### Docker Services (Production)
-
-| Service | Image | Replicas | Port | Healthcheck |
-|---------|-------|----------|------|-------------|
-| `db` | postgres:16-alpine | 1 | 5432 (localhost) | pg_isready |
-| `redis` | redis:7-alpine | 1 | — | redis ping |
-| `backend` | ghcr.io/brtc/backend | 2+ | 8000 (expose) | /api/health/ |
-| `celery_worker` | ghcr.io/brtc/backend | 1 | — | — |
-| `celery_beat` | ghcr.io/brtc/backend | 1 | — | — |
-| `nginx` | nginx:1.25-alpine | 1 | 80, 443 | curl localhost |
-
-### Building Docker Images
-
-```bash
-# Backend
-docker build -t ghcr.io/brtc/backend:latest -f backend/Dockerfile.prod backend/
-docker push ghcr.io/brtc/backend:latest
-
-# Frontend
-docker build -t ghcr.io/brtc/frontend:latest -f frontend/Dockerfile.prod frontend/
-docker push ghcr.io/brtc/frontend:latest
-```
-
-The production Dockerfiles use multi-stage builds:
-- **Backend**: Builder stage compiles Python wheels → runtime stage with minimal deps
-- **Frontend**: Builder stage runs `npm ci && npm run build` → nginx stage serves static files
 
 ---
 
@@ -189,11 +178,12 @@ sudo apt install -y python3.11 python3.11-venv python3-pip
 sudo apt install -y postgresql redis-server
 sudo apt install -y nginx
 sudo apt install -y tesseract-ocr tesseract-ocr-ben
-sudo apt install -y libpq-dev libpango-1.0-0 libcairo2
+sudo apt install -y libpq-dev libpango-1.0-0 libpangocairo-1.0-0 libcairo2
+sudo apt install -y libgdk-pixbuf-2.0-0 libffi-dev libglib2.0-0
 sudo apt install -y build-essential
 
 # Clone project
-git clone <repo-url> /var/www/brtc
+git clone https://github.com/dream71project/brtc-training.git /var/www/brtc
 cd /var/www/brtc/backend
 
 # Python virtual environment
@@ -207,16 +197,16 @@ sudo -u postgres createuser brtc_user -P
 sudo -u postgres createdb brtc_tms -O brtc_user
 
 # Configure environment
-cp .env.example .env
-# Edit .env with production values
+cp ../.env.example .env
+# Edit .env with production values (see Production Configuration section)
 
 # Migrate & collectstatic
 python manage.py migrate
+python manage.py ensure_admin
 python manage.py collectstatic --noinput
-
-# Configure Gunicorn service
-sudo nano /etc/systemd/system/brtc-backend.service
 ```
+
+### Gunicorn Systemd Service
 
 ```ini
 # /etc/systemd/system/brtc-backend.service
@@ -263,7 +253,7 @@ npm run build
 # The built files will be in dist/ — serve via nginx
 ```
 
-### Celery
+### Celery Systemd Service
 
 ```ini
 # /etc/systemd/system/brtc-celery.service
@@ -292,13 +282,13 @@ WantedBy=multi-user.target
 # /etc/nginx/sites-available/brtc
 server {
     listen 80;
-    server_name your-domain.com;
+    server_name training.brtc.gov.bd;
     return 301 https://$server_name$request_uri;
 }
 
 server {
     listen 443 ssl http2;
-    server_name your-domain.com;
+    server_name training.brtc.gov.bd;
 
     ssl_certificate /etc/ssl/certs/your-domain.crt;
     ssl_certificate_key /etc/ssl/private/your-domain.key;
@@ -315,6 +305,8 @@ server {
     gzip on;
     gzip_types text/plain text/css application/json application/javascript image/svg+xml;
     gzip_min_length 1000;
+
+    client_max_body_size 20M;
 
     # Static files (from Django collectstatic)
     location /static/ {
@@ -344,14 +336,10 @@ server {
         root /var/www/brtc/frontend/dist;
         index index.html;
         try_files $uri $uri/ /index.html;
-
-        # Security headers for SPA
-        add_header X-Frame-Options DENY;
-        add_header X-Content-Type-Options nosniff;
     }
 
-    # Internal health check
-    location /health/ {
+    # Health check
+    location /api/health/ {
         access_log off;
         allow 127.0.0.1;
         allow 172.0.0.0/8;
@@ -373,10 +361,10 @@ server {
 - [ ] Redis password set
 - [ ] HTTPS enabled (TLS 1.2+)
 - [ ] `CORS_ALLOWED_ORIGINS` set to exact domain(s)
-- [ ] `ALLOWED_HOSTS` set to exact domain(s)
+- [ ] `DJANGO_ALLOWED_HOSTS` set to exact domain(s)
 - [ ] Non-root user for backend process
 - [ ] Database port not exposed to internet
-- [ ] File upload size limits configured
+- [ ] File upload size limits configured (`client_max_body_size 20M` in Nginx)
 - [ ] Rate limiting enabled (default: 100/hr anonymous, 1000/hr authenticated)
 - [ ] Regular backups configured
 
@@ -386,23 +374,46 @@ All configurable via `.env` file:
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `DJANGO_SECRET_KEY` | Yes | — | Django secret key (generate with `python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"`) |
+| `DJANGO_SECRET_KEY` | Yes | — | Django secret key |
 | `DJANGO_DEBUG` | Yes | `False` | Must be `False` in production |
 | `DJANGO_ALLOWED_HOSTS` | Yes | — | Comma-separated allowed hosts |
 | `DB_NAME` | Yes | `brtc_tms` | PostgreSQL database name |
 | `DB_USER` | Yes | `postgres` | PostgreSQL user |
 | `DB_PASSWORD` | Yes | — | PostgreSQL password |
-| `DB_HOST` | Yes | `localhost` | PostgreSQL host |
+| `DB_HOST` | Yes | `localhost` | PostgreSQL host (use `db` in Docker) |
 | `DB_PORT` | Yes | `5432` | PostgreSQL port |
 | `CELERY_BROKER_URL` | Yes | — | Redis URL for Celery broker |
 | `CELERY_RESULT_BACKEND` | Yes | — | Redis URL for Celery results |
 | `CORS_ALLOWED_ORIGINS` | Yes | — | Comma-separated allowed origins |
-| `SITE_URL` | Yes | `http://localhost:8000` | Public site URL |
-| `EMAIL_HOST` | For email | — | SMTP server |
-| `DEFAULT_FROM_EMAIL` | For email | — | From address for emails |
-| `SMS_BACKEND` | For SMS | `console` | `twilio` or `console` |
-| `TWILIO_ACCOUNT_SID` | For Twilio | — | Twilio account SID |
-| `TESSERACT_PATH` | For OCR | — | Path to tesseract binary |
+| `REDIS_PASSWORD` | For Redis | — | Redis auth password |
+| `EMAIL_HOST_USER` | For email | — | SMTP username |
+| `EMAIL_HOST_PASSWORD` | For email | — | SMTP password |
+| `TESSERACT_PATH` | For OCR | `/usr/bin/tesseract` | Path to tesseract binary |
+| `TESSERACT_LANG` | For OCR | `ben+eng` | OCR languages |
+
+Generate a secret key:
+```bash
+python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+```
+
+### Default Credentials
+
+| Role | Email | Password |
+|------|-------|----------|
+| Head Office Admin | `admin@brtc.gov.bd` | `admin123` |
+| Center Admin | `center{code}@brtc.gov.bd` | `center@123` |
+| Trainer | (created via import) | `trainer@123` |
+| Trainee | (created via registration) | `trainee123` |
+
+Center admin users are auto-created when centers are imported or created. The `ensure_admin` management command ensures the admin user exists:
+
+```bash
+# Create admin if missing
+python manage.py ensure_admin
+
+# Force reset admin password
+python manage.py ensure_admin --force
+```
 
 ### Performance Tuning
 
@@ -415,7 +426,6 @@ All configurable via `.env` file:
 
 **Celery:**
 ```bash
-# Adjust based on workload
 --concurrency=4
 --max-tasks-per-child=1000
 ```
@@ -436,61 +446,129 @@ keepalive_timeout 65;
 client_max_body_size 20M;        # Match Django's DATA_UPLOAD_MAX_MEMORY_SIZE
 ```
 
+### Production Dockerfiles
+
+**Backend (`backend/Dockerfile.prod`):**
+
+Multi-stage build with Python 3.11-slim:
+
+```
+Stage 1 (builder):
+  - Install build tools + libpq-dev
+  - pip wheel requirements.txt
+
+Stage 2 (runtime):
+  - System deps: libpq, pango/pangocairo (WeasyPrint), gdk-pixbuf,
+    libffi, libglib, tesseract-ocr, tesseract-ocr-ben, libgl1
+  - Install Python wheels from builder
+  - COPY application code
+  - collectstatic
+  - Run as non-root 'django' user (UID 1000)
+  - Gunicorn (4 workers, 120s timeout)
+  - Health check: /api/health/ every 30s
+```
+
+**Frontend (`frontend/Dockerfile.prod`):**
+
+Two-stage build:
+
+```
+Stage 1 (builder):
+  - Node 18-alpine
+  - npm install → npm run build
+
+Stage 2 (runtime):
+  - Nginx 1.25-alpine
+  - Timezone: Asia/Dhaka
+  - Copy dist/ to nginx html directory
+  - Copy nginx/prod.conf as default config
+  - Health check: curl localhost every 30s
+```
+
 ---
 
 ## CI/CD Pipeline
+
+### Overview
+
+The CI/CD pipeline uses GitHub Actions to build Docker images and push them to GitHub Container Registry (GHCR). The server then pulls these images manually or via a deployment script.
 
 ### GitHub Actions Workflow
 
 File: `.github/workflows/deploy.yml`
 
-The pipeline has 5 sequential jobs:
-
-```mermaid
-flowchart LR
-    A[Push/Tag] --> B[test-backend]
-    A --> C[test-frontend]
-    B --> D[build-and-push]
-    C --> D
-    D --> E[deploy]
-    E --> F[notify]
 ```
+Trigger: Push to 'deploy' branch (or manual workflow_dispatch)
+    │
+    ├── build-backend ──→ Build Docker image → Push to ghcr.io/dream71project/backend:latest
+    │
+    └── build-frontend ──→ Build Docker image → Push to ghcr.io/dream71project/frontend:latest
+```
+
+The two jobs run **in parallel** — there are no test jobs or deployment steps. The pipeline only builds and pushes.
 
 ### Pipeline Details
 
-**1. `test-backend`**
-- Services: PostgreSQL 16, Redis 7
-- Python 3.11, system deps (Tesseract + Bengali data)
-- `python manage.py migrate && python manage.py test`
+**1. `build-backend`**
+- Runs on: `ubuntu-latest`
+- Uses Docker Buildx with GitHub Actions cache (`type=gha`)
+- Builds from: `backend/Dockerfile.prod`
+- Pushes to: `ghcr.io/dream71project/backend:latest`
 
-**2. `test-frontend`**
-- Node 18, npm cache
-- `npm ci && npm run lint && npm run build`
+**2. `build-frontend`**
+- Runs on: `ubuntu-latest`
+- Uses Docker Buildx with GitHub Actions cache (`type=gha`)
+- Builds from: `frontend/Dockerfile.prod`
+- Context: `.` (root — needed for nginx config)
+- Pushes to: `ghcr.io/dream71project/frontend:latest`
 
-**3. `build-and-push`** (only on push/tag to main)
-- Build backend + frontend Docker images
-- Push to GitHub Container Registry (`ghcr.io/brtc/*`)
-
-**4. `deploy`**
-- SSH to production server
-- Pull latest images
-- Run migrations and collectstatic
-- Restart services with zero downtime
-
-**5. `notify`**
-- Slack notification on success/failure
-- Email notification on failure
-
-### Triggering a Deployment
+### Triggering a Build
 
 ```bash
-# Push to main triggers the pipeline
-git push origin main
+# Push to deploy branch triggers the pipeline
+git push dream71 deploy
 
-# Or create a tag for versioned releases
-git tag v1.2.3
-git push origin v1.2.3
+# Or use GitHub Actions manual dispatch
+gh workflow run deploy.yml --ref deploy
 ```
+
+### Post-Build: Server Deployment
+
+The CI/CD does NOT automatically deploy to the server. After images are pushed:
+
+```bash
+# On the production server
+cd /var/www/brtc
+
+# Pull new images
+docker compose -f docker-compose.server.yml pull
+
+# Restart containers
+docker compose -f docker-compose.server.yml up -d
+
+# Run migrations if needed
+docker compose -f docker-compose.server.yml exec backend python manage.py migrate
+
+# Ensure admin user
+docker compose -f docker-compose.server.yml exec backend python manage.py ensure_admin
+```
+
+### Image Registry
+
+| Image | Registry Path | Tag |
+|-------|--------------|-----|
+| Backend | `ghcr.io/dream71project/backend` | `latest` |
+| Frontend | `ghcr.io/dream71project/frontend` | `latest` |
+
+> **Note:** Only the `latest` tag is used. There is no versioned tagging.
+
+### Docker Compose Files
+
+| File | Purpose | Builds from | Pulls from |
+|------|---------|-------------|------------|
+| `docker-compose.yml` | Local development | Local Dockerfiles | — |
+| `docker-compose.prod.yml` | Full production stack | Local Dockerfiles | — |
+| `docker-compose.server.yml` | Server (shared network) | — | GHCR |
 
 ---
 
@@ -498,15 +576,13 @@ git push origin v1.2.3
 
 ### Tesseract Installation
 
-**Docker (Ubuntu base):**
+**Docker (included in backend Dockerfile.prod):**
 ```dockerfile
 RUN apt-get update && apt-get install -y \
     tesseract-ocr \
     tesseract-ocr-ben \
     && rm -rf /var/lib/apt/lists/*
 ```
-
-The production `Dockerfile.prod` already includes this in the builder stage.
 
 **Manual (Ubuntu/Debian):**
 ```bash
@@ -528,35 +604,34 @@ TESSERACT_LANG=ben+eng
 ```
 
 - Docker: Tesseract is at `/usr/bin/tesseract` by default
-- Manual install: run `which tesseract` to confirm path
+- Windows: `C:\Program Files\Tesseract-OCR\tesseract.exe`
+
+### Bengali Tesseract Data Download
+
+```bash
+# Via Django admin endpoint
+curl -X POST https://training.brtc.gov.bd/api/admin/download-ben-data/
+
+# Manual download
+wget https://github.com/tesseract-ocr/tessdata/raw/main/ben.traineddata \
+  -O /usr/share/tesseract-ocr/5/tessdata/ben.traineddata
+```
 
 ### OCR Performance Considerations
 
 | Concern | Mitigation |
 |---------|-----------|
-| Image upload size | Limit to 5MB in Nginx + Django |
+| Image upload size | Limit to 5MB in Nginx + Django (`DATA_UPLOAD_MAX_MEMORY_SIZE=10485760`) |
 | Processing time | NID extraction takes 2-5 seconds |
 | Concurrent requests | Celery for high-volume OCR (not yet implemented) |
 | Storage | Old processed images cleaned via cron |
 | Tesseract crashes | pytesseract wraps exceptions gracefully |
 | Low confidence | Manual review fallback for < 60% confidence |
 
-### OCR Monitoring
+### OCR Admin Pages
 
-1. Check `/admin/ocr-status/` for Tesseract health
-2. Monitor `OcrAuditLog` entries for failure rates
-3. Set up alerts if confidence drops below threshold
-4. Check the health endpoint: `GET /api/health/` includes OCR status
-
-### OCR Troubleshooting in Production
-
-| Symptom | Cause | Fix |
-|---------|-------|-----|
-| `TesseractNotFoundError` | Tesseract not installed | Verify `TESSERACT_PATH` |
-| Empty extraction results | Bengali data missing | Install `tesseract-ocr-ben` |
-| Low confidence (< 60%) | Poor image quality | Guide users to upload clearer images |
-| `ben` language not available | Language data not downloaded | `apt install tesseract-ocr-ben` |
-| Timeout on OCR requests | Large/slow images | Increase Gunicorn `--timeout` or move OCR to Celery |
+- `/admin/ocr-status/` — View Tesseract status, version, Bengali data availability
+- `/admin/ocr-test/` — Upload an NID image and test OCR extraction
 
 ---
 
@@ -580,24 +655,27 @@ docker compose exec backend python manage.py migrate <app_name> <previous_migrat
 
 ### Backup
 
-The project includes an automated backup script at `scripts/backup.sh`:
-
 ```bash
 # Manual backup
-./scripts/backup.sh
+pg_dump -U postgres brtc_tms > brtc_tms_backup.sql
 
-# Or using Docker
+# Via Docker
 docker compose exec db pg_dump -U postgres brtc_tms | gzip > backup_$(date +%Y%m%d).sql.gz
+
+# Automated backup script
+./scripts/backup.sh
 ```
+
+A full database backup exists at `brtc_tms_backup.sql` in the project root.
 
 ### Restore
 
 ```bash
 # From backup file
-gunzip -c backup_20250101.sql.gz | docker compose exec -T db psql -U postgres brtc_tms
+psql -U postgres brtc_tms < brtc_tms_backup.sql
 
-# From SQL dump
-cat backup.sql | docker compose exec -T db psql -U postgres brtc_tms
+# From gzipped backup
+gunzip -c backup_20260101.sql.gz | docker compose exec -T db psql -U postgres brtc_tms
 ```
 
 ### Data Migration (to new server)
@@ -606,67 +684,95 @@ cat backup.sql | docker compose exec -T db psql -U postgres brtc_tms
 # On old server
 pg_dump -U postgres -h localhost brtc_tms > dump.sql
 
-# Transfer file (scp, rsync, etc.)
+# Transfer file
 scp dump.sql user@new-server:/tmp/
 
 # On new server
-cat /tmp/dump.sql | docker compose exec -T db psql -U postgres brtc_tms
+psql -U postgres brtc_tms < /tmp/dump.sql
+```
+
+### Management Commands
+
+```bash
+# Ensure admin user exists
+python manage.py ensure_admin
+
+# Force reset admin password
+python manage.py ensure_admin --force
+
+# OCR test
+python manage.py test_ocr
+python manage.py test_ocr --image=path/to/nid.jpg
 ```
 
 ---
 
 ## Monitoring & Maintenance
 
-### Health Check Endpoints
+### Health Check
 
-| Endpoint | Description |
-|----------|-------------|
-| `GET /api/health/` | Overall system health (DB, cache, Celery, storage, API, backup) |
-| `GET /api/admin/ocr-status/` | OCR-specific status (Tesseract version, Bengali data) |
+| Endpoint | Method | Response |
+|----------|--------|----------|
+| `GET /api/health/` | GET | `{"status": "ok"}` |
 
 ### Logging
 
-The production Docker Compose uses Docker's logging driver. View logs:
-
+**Docker logs:**
 ```bash
 # All services
-docker compose -f docker-compose.prod.yml logs -f
+docker compose -f docker-compose.server.yml logs -f
 
-# Specific service
-docker compose -f docker-compose.prod.yml logs -f backend
-docker compose -f docker-compose.prod.yml logs -f nginx
+# Backend only
+docker compose -f docker-compose.server.yml logs -f backend
 
 # Last 100 lines
-docker compose -f docker-compose.prod.yml logs --tail=100 backend
+docker compose -f docker-compose.server.yml logs --tail=100 backend
+```
+
+Docker logging is configured with rotation:
+```yaml
+logging:
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: 3
+```
+
+### Container Status
+
+```bash
+# Check running containers
+docker compose -f docker-compose.server.yml ps
+
+# Check resource usage
+docker stats --no-stream
 ```
 
 ### Regular Maintenance Tasks
 
 | Frequency | Task | Command |
 |-----------|------|---------|
-| Daily | Database backup | `scripts/backup.sh` (via cron) |
-| Weekly | Clear old OCR temp files | `find /tmp/ocr_* -mtime +7 -delete` |
+| Daily | Database backup | `pg_dump -U postgres brtc_tms > backup_$(date +%Y%m%d).sql` |
+| Weekly | Clear old logs | `docker system prune -f` |
 | Monthly | Review error logs | `docker compose logs --since 30d backend \| grep ERROR` |
 | Monthly | Django system check | `python manage.py check --deploy` |
-| As needed | Clear cache | `docker compose exec redis redis-cli FLUSHALL` |
-| As needed | Rebuild search indexes | `python manage.py rebuild_index` (if Haystack/Watson used) |
+| As needed | Clear Redis cache | `docker compose exec redis redis-cli FLUSHALL` |
+| As needed | Rebuild Docker images | `docker compose -f docker-compose.server.yml pull && up -d` |
 
 ### Scaling
 
 For high-traffic deployments:
 
-1. **Scale backend horizontally**: Increase `backend` service replicas
+1. **Scale backend horizontally:**
    ```bash
    docker compose -f docker-compose.prod.yml up -d --scale backend=4
    ```
 
-2. **Database connection pooling**: Add PgBouncer between backend and PostgreSQL
+2. **Database connection pooling:** Add PgBouncer between backend and PostgreSQL
 
-3. **CDN for static/media files**: Serve `static/` and `media/` from CDN (configure in `settings.py`)
+3. **CDN for static/media files:** Serve `static/` and `media/` from CDN
 
-4. **Redis Sentinel/Cluster**: For high-availability Redis
-
-5. **Separate OCR workers**: Offload OCR processing to dedicated Celery workers
+4. **Redis Sentinel/Cluster:** For high-availability Redis
 
 ---
 
@@ -676,38 +782,41 @@ For high-traffic deployments:
 
 | Problem | Likely Cause | Solution |
 |---------|-------------|----------|
-| `Connection refused` to DB | PostgreSQL not started | `docker compose start db` |
+| `Connection refused` to DB | PostgreSQL not started or wrong host | Check `DB_HOST` in `.env`; if Docker, use `db` not `localhost` |
 | `ModuleNotFoundError` | Missing Python deps | `pip install -r requirements.txt` |
 | Static files 404 | `collectstatic` not run | `python manage.py collectstatic --noinput` |
-| CORS errors in browser | Wrong `CORS_ALLOWED_ORIGINS` | Set to frontend URL exactly |
-| 502 Bad Gateway from nginx | Backend not running | `docker compose ps backend` |
+| CORS errors in browser | Wrong `CORS_ALLOWED_ORIGINS` | Set to exact frontend URL |
+| 502 Bad Gateway | Backend not running | `docker compose ps backend` then check logs |
 | 413 Request Entity Too Large | File upload exceeds limit | Increase `client_max_body_size` in nginx |
 | Celery tasks not executing | Redis not reachable | Check `CELERY_BROKER_URL` |
 | JWT token invalid | Clock skew | Sync server time with NTP |
-| Permission denied on media | Wrong ownership | `chown -R www-data:www-data media/` |
+| Permission denied on media | Wrong ownership | `chown -R 1000:1000 data/media/` |
 | OCR returning gibberish | Bengali tessdata missing | Install `tesseract-ocr-ben` package |
+| Login 500 error | Backend crash or import error | Check `docker compose logs backend` for traceback |
+| Admin user deleted | Admin not in database | Run `python manage.py ensure_admin` |
+| Server can't find GHCR image | Not logged in or network issue | `docker login ghcr.io` with valid token |
+| Bengali digits not converting | `apps.common` module missing | Ensure `apps/common/utils.py` and `apps/common/__init__.py` exist |
 
 ### Health Check Reference
 
 A healthy system returns from `GET /api/health/`:
 
 ```json
-{
-  "database": "ok",
-  "cache": "ok",
-  "celery": "ok",
-  "storage": "ok",
-  "api": "ok",
-  "backup": "ok",
-  "ocr": {
-    "tesseract_installed": true,
-    "tesseract_version": "5.3.3",
-    "bengali_data": true
-  }
-}
+{"status": "ok"}
 ```
 
-Any `status` field returning something other than `ok` indicates a problem requiring investigation.
+### Viewing Error Logs
+
+```bash
+# Backend error logs
+docker compose -f docker-compose.server.yml logs backend 2>&1 | grep -i error
+
+# Django traceback (if DEBUG=True temporarily)
+docker compose -f docker-compose.server.yml exec backend python manage.py shell
+
+# Nginx error logs
+docker compose -f docker-compose.server.yml logs nginx 2>&1 | grep error
+```
 
 ### Getting Help
 
@@ -716,3 +825,4 @@ Any `status` field returning something other than `ok` indicates a problem requi
 - Check nginx error logs: `docker compose logs nginx | grep error`
 - Run Django system check: `python manage.py check --deploy`
 - Verify environment: `docker compose exec backend env | grep DJANGO`
+- Health check: `curl https://training.brtc.gov.bd/api/health/`

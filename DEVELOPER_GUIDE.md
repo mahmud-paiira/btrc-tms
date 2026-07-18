@@ -8,6 +8,8 @@
 - [Backend Architecture](#backend-architecture)
 - [Frontend Architecture](#frontend-architecture)
 - [OCR Module](#ocr-module)
+- [Utility Modules](#utility-modules)
+- [Deployment](#deployment)
 - [Coding Standards](#coding-standards)
 - [Common Workflows](#common-workflows)
 
@@ -24,7 +26,7 @@
 | Task Queue | Celery 5.4 + Redis broker |
 | Auth | JWT (SimpleJWT) — 2h access, 7d refresh |
 | OCR | Tesseract 5 + pytesseract + OpenCV |
-| PDF | WeasyPrint + QRCode |
+| PDF | WeasyPrint + QRCode + SutonnyMJ font |
 | Rich Text | CKEditor 4 |
 | Excel | openpyxl |
 | API Docs | drf-yasg (Swagger / ReDoc) |
@@ -44,40 +46,50 @@ Project/
 │   │   ├── urls.py               # Root URL routing
 │   │   ├── celery.py             # Celery app config
 │   │   └── wsgi.py / asgi.py     # WSGI/ASGI entry points
-│   ├── apps/                     # 16 Django apps
-│   │   ├── accounts/             # User model, JWT auth, roles
+│   ├── apps/                     # 19 Django apps + 1 utility module
+│   │   ├── accounts/             # User model, JWT auth, roles, public auth
+│   │   ├── allowance/            # Allowance tiers & finance
 │   │   ├── applications/         # Trainee applications + OCR
 │   │   │   └── ocr/              # NID OCR extraction module
 │   │   ├── assessments/          # Trainee competency evaluation
 │   │   ├── assessors/            # Assessor management
 │   │   ├── attendance/           # Session attendance, QR check-in
 │   │   ├── batches/              # Training batches, week plans
-│   │   ├── centers/              # Training center profiles
+│   │   ├── centers/              # Training center profiles + HO views
 │   │   ├── certificates/         # Certificate generation & PDF
-│   │   ├── circulars/            # Admission circulars
-│   │   ├── courses/              # Course definitions
-│   │   ├── finance/              # Budget & voucher management
+│   │   ├── circulars/            # Admission circulars + HO views
+│   │   ├── common/               # Shared utilities (NOT a Django app)
+│   │   │   └── utils.py          # to_english_digits() converter
+│   │   ├── courses/              # Course definitions + HO views
+│   │   ├── finance/              # Budget & voucher workflow
 │   │   ├── jobplacement/         # Employment tracking
-│   │   ├── notifications/        # SMS, email, in-app alerts
+│   │   ├── notifications/        # In-app alerts
 │   │   ├── reports/              # Report generation engine
-│   │   ├── system_config/        # System-wide settings
-│   │   └── trainees/             # Trainee profiles & portal
+│   │   ├── system_config/        # System-wide settings + public endpoints
+│   │   ├── trainees/             # Trainee profiles, import/export, bulk ops
+│   │   └── trainers/             # Trainer management + HO views
 │   ├── templates/                # Django HTML templates
-│   ├── static/                   # Static source files
+│   ├── static/                   # Static source files (fonts, images)
+│   │   ├── fonts/SutonnyMJ.ttf   # Bengali font for PDF generation
+│   │   └── images/BRTC_official_logo.png
 │   ├── media/                    # User-uploaded files
+│   ├── manage.py
 │   ├── requirements.txt
 │   ├── Dockerfile / Dockerfile.prod
-│   └── manage.py
+│   └── .env
 ├── frontend/                     # React SPA
 │   ├── src/
+│   │   ├── assets/               # SCSS, images (BRTC logo)
 │   │   ├── components/           # Reusable UI components
+│   │   │   ├── common/           # OCRUpload, BanglaInput, etc.
+│   │   │   └── layout/           # Layout, HoLayout, TraineeLayout, Sidebar
 │   │   ├── contexts/             # React contexts (Auth, Language)
 │   │   ├── hooks/                # Custom hooks (useTranslation)
 │   │   ├── locales/              # Translation JSON (en.json)
-│   │   ├── pages/                # Route-level page components
-│   │   ├── services/             # Axios API service modules
+│   │   ├── pages/                # Route-level page components (23 dirs)
+│   │   ├── services/             # Axios API service modules (16 files)
 │   │   ├── store/                # Zustand global state
-│   │   └── utils/                # Formatters, permissions helpers
+│   │   └── utils/                # Formatters (numberFormatter), permissions
 │   ├── package.json
 │   ├── vite.config.js
 │   └── Dockerfile / Dockerfile.prod
@@ -88,30 +100,63 @@ Project/
 │   └── backup.sh                 # PostgreSQL backup script
 ├── docker-compose.yml            # Dev environment
 ├── docker-compose.prod.yml       # Production environment
+├── docker-compose.server.yml     # Server (GHCR pull) config
+├── brtc_tms_backup.sql           # Database backup
+├── Data_Entry/                   # Import templates (Excel)
 ├── .env.example                  # Environment variable template
-└── .github/workflows/deploy.yml  # CI/CD pipeline
+├── .github/workflows/deploy.yml  # CI/CD pipeline
+├── DEVELOPER_GUIDE.md            # This file
+├── DEPLOYMENT_GUIDE.md           # Server deployment guide
+├── TESTING_GUIDE.md              # Testing procedures
+└── User Manual/                  # End-user documentation
 ```
 
 ### Backend Apps Overview
 
 | App | Purpose | Key Models |
 |-----|---------|------------|
-| `accounts` | Auth, users, roles | `User`, `Role`, `LoginLog`, `UserProfile` |
+| `accounts` | Auth, users, roles, public OTP auth | `User`, `UserProfile`, `LoginLog` |
+| `allowance` | Allowance tiers & finance | `AllowanceCategory`, `AllowanceTier` |
 | `applications` | Trainee applications + NID OCR | `Application`, `OcrAuditLog` |
-| `assessments` | Competency evaluation | `Assessment` |
+| `assessments` | Competency evaluation | `Assessment`, `BatchAssessor` |
 | `assessors` | Assessor profiles | `Assessor`, `AssessorMapping` |
 | `attendance` | Session tracking & QR check-in | `Attendance`, `AttendanceSummary` |
 | `batches` | Training batches & schedules | `Batch`, `BatchWeekPlan`, `BatchEnrollment` |
 | `centers` | Training center management | `Center`, `Infrastructure`, `Employee` |
 | `certificates` | Certificate PDF & QR generation | `Certificate` |
 | `circulars` | Admission circulars | `Circular` |
+| `common` | Shared utilities (not a Django app) | — |
 | `courses` | Course definitions | `Course`, `CourseChapter`, `UnitOfCompetency` |
 | `finance` | Budget & voucher workflow | `Budget`, `Voucher`, `VoucherItem` |
 | `jobplacement` | Employment tracking | `JobPlacement` |
-| `notifications` | Multi-channel alerts | `Notification` |
+| `notifications` | In-app alerts | `Notification` |
 | `reports` | Report generation engine | `Report`, `ScheduledReport` |
-| `system_config` | System configuration | `SystemSetting`, `EmailTemplate`, `SmsTemplate` |
-| `trainees` | Trainee profiles | `Trainee` |
+| `system_config` | System-wide settings | `SystemSetting`, `EmailTemplate`, `SmsTemplate` |
+| `trainees` | Trainee profiles, import/export | `Trainee` |
+| `trainers` | Trainer management | `Trainer`, `TrainerMapping` |
+
+> **Note:** The `common` module at `apps/common/utils.py` is a shared utility package, not a Django app. It is **not** registered in `INSTALLED_APPS`.
+
+### Frontend Services Overview
+
+| Service File | Purpose |
+|-------------|---------|
+| `api.js` | Base Axios instance with JWT interceptors |
+| `allowanceService.js` | Allowance tier management |
+| `applicationService.js` | Application CRUD |
+| `assessmentService.js` | Assessment operations |
+| `assessorService.js` | Assessor management |
+| `attendanceService.js` | Attendance tracking |
+| `batchService.js` | Batch CRUD |
+| `certificateService.js` | Certificate operations |
+| `centerDashboardService.js` | Center admin dashboard data |
+| `circularService.js` | Circular management |
+| `dashboardService.js` | Dashboard statistics |
+| `hoService.js` | Head Office operations |
+| `jobService.js` | Job placement |
+| `ocrService.js` | NID OCR extraction |
+| `publicService.js` | Public registration, OTP, login |
+| `traineeService.js` | Trainee portal operations |
 
 ---
 
@@ -167,9 +212,8 @@ pip install -r requirements.txt
 # Run migrations
 python manage.py migrate
 
-# Seed test data
-python manage.py seed_data
-python manage.py seed_sample_data
+# Create admin user
+python manage.py ensure_admin
 
 # Start development server
 python manage.py runserver
@@ -208,19 +252,18 @@ This starts all services: PostgreSQL, Redis, backend (Gunicorn), frontend (Vite)
 - Swagger docs: `http://localhost:8000/swagger/`
 - ReDoc: `http://localhost:8000/redoc/`
 - Django admin: `http://localhost:8000/admin/`
+- Health check: `http://localhost:8000/api/health/`
 
-Default login credentials after seeding:
+Default credentials after setup:
 
 | Role | Email | Password |
 |------|-------|----------|
-| Head Office | admin@brtc.gov.bd | admin123 |
-| Center Admin (Dhaka) | center@brtc.gov.bd | center123 |
-| Center Admin (CTG) | ctgadmin@brtc.gov.bd | ctg123 |
-| Center Admin (Khulna) | khladmin@brtc.gov.bd | khl123 |
-| Center Admin (Rajshahi) | rshadmin@brtc.gov.bd | rsh123 |
-| Trainer | trainer@brtc.gov.bd | trainer123 |
-| Assessor | assessor@brtc.gov.bd | assessor123 |
-| Trainee | trainee@brtc.gov.bd | trainee123 |
+| Head Office Admin | admin@brtc.gov.bd | admin123 |
+| Center Admin | center{code}@brtc.gov.bd | center@123 |
+| Trainer | (created via import) | trainer@123 |
+| Trainee | (created via registration) | trainee123 |
+
+> **Note:** Center admin users are auto-created when a new center is created or imported. The default password is `center@123` and email follows the pattern `center{code}@brtc.gov.bd` (e.g., `center0001@brtc.gov.bd`).
 
 ---
 
@@ -230,21 +273,124 @@ Default login credentials after seeding:
 
 - **JWT tokens** via `djangorestframework-simplejwt`
 - Access token: 2 hours, Refresh token: 7 days (with rotation)
-- User types: `head_office`, `center_admin`, `trainer`, `assessor`, `trainee`
+- User types: `head_office`, `center_admin`, `accountant`, `trainer`, `assessor`, `trainee`
 - Permission classes check `user.user_type` for portal access
-- Head Office views use `IsHeadOffice` permission on separate ViewSets
+- Head Office views use `IsHeadOfficeOrSuperuser` permission on separate ViewSets
+- Login supports both email and phone number
 
 ### URL Structure
 
 ```
-/api/auth/           → Login, logout, me, password reset
-/api/center/         → Center-admin dashboard endpoints
-/api/ho/             → Head Office admin endpoints
-/api/public/         → Public endpoints (circulars, apply, verify)
-/api/trainee/me/     → Trainee portal (dashboard, schedule, etc.)
+/api/auth/           → Login, logout, me, user CRUD, password reset
+/api/centers/        → Center CRUD, import/export
+/api/courses/        → Course CRUD (read for all, write for HO only)
 /api/trainers/       → Trainer management
 /api/assessors/      → Assessor management
+/api/circulars/      → Circular management
+/api/applications/   → Application management
+/api/batches/        → Batch management
+/api/attendance/     → Attendance tracking
+/api/assessments/    → Assessment scoring
+/api/certificates/   → Certificate generation
+/api/trainees/       → Trainee profiles, import/export
+/api/trainee/        → Trainee portal (dashboard, schedule, etc.)
+/api/jobplacement/   → Job placement tracking
+/api/reports/        → Report generation
+/api/notifications/  → Notification system
+/api/allowance/      → Allowance tiers
+/api/center/         → Center-admin dashboard endpoints
+/api/center/attendance/  → Center attendance
+/api/assessor/       → Assessor portal
+/api/ho/             → Head Office admin endpoints
+/api/ho/system/      → System settings, health
+/api/public/         → Public circulars, certificate verify
+/api/public/auth/    → Public registration, OTP, login
 ```
+
+### Center-Level Data Isolation
+
+The system enforces center-level data isolation:
+
+- **Center admins** can only see/train/manage data for their own center
+- **Trainers** see only their own center's data
+- **Assessors** see only their own center's data
+- **Head Office / Superuser** sees all centers
+
+Implementation:
+
+```python
+# In views.py — get_queryset() filters by request.user.center
+def get_queryset(self):
+    qs = super().get_queryset()
+    if self.request.user.user_type == 'head_office':
+        return qs  # Head office sees everything
+    if self.request.user.center:
+        return qs.filter(center=self.request.user.center)
+    return qs.none()
+```
+
+### Permission Classes
+
+```python
+# apps/courses/views.py — Read for all, write for HO only
+def get_permissions(self):
+    if self.action in ('list', 'retrieve', 'export', 'download_template'):
+        return [permissions.IsAuthenticated()]
+    return [permissions.IsAuthenticated(), IsHeadOfficeOrSuperuser()]
+```
+
+### Registration Number Format
+
+Trainee registration numbers follow the format:
+
+```
+BRTC-{CENTER_PREFIX}-{YEAR}-{5-digit sequence}
+```
+
+Examples:
+- `BRTC-BAR-2026-00001` (Barisal)
+- `BRTC-CTG-2026-00003` (Chittagong)
+- `BRTC-DHK-2026-00010` (Dhaka)
+
+Center prefix rules:
+- Derived from the center name (first 3 letters of the romanized name)
+- Manual overrides for collision avoidance:
+  | Center | Prefix |
+  |--------|--------|
+  | Chittagong | CTG |
+  | Chittagonj | CTN |
+  | Narayanganj | NYG |
+  | Narsingdi | NSD |
+
+### Bengali Digit Conversion
+
+The system converts Bengali/Arabic-Indic digits (০-৯) to English digits (0-9) across all input flows. This ensures phone numbers and NIDs entered in Bengali script are stored correctly.
+
+```python
+# apps/common/utils.py
+BANGLA_DIGITS = '\u09e6\u09e7\u09e8\u09e9\u09ea\u09eb\u09ec\u09ed\u09ee\u09ef'
+
+def to_english_digits(value):
+    """Convert Bengali/Arabic-Indic digits to English digits."""
+    if not isinstance(value, str):
+        value = str(value)
+    for i, bd in enumerate(BANGLA_DIGITS):
+        value = value.replace(bd, str(i))
+    return value
+```
+
+Applied in:
+- Admin login serializer (`accounts/serializers.py`)
+- Public registration, OTP, and login serializers (`accounts/serializers_public.py`)
+- Trainee import (`trainees/views.py`, `trainees/views_ho.py`)
+- Trainer import (`trainers/views.py`, `trainers/views_ho.py`)
+- Assessor import (`assessors/views.py`)
+- Application validators (`applications/serializers.py`, `applications/serializers_public.py`)
+- NID verification (`applications/views_public.py`)
+
+### NID Validation
+
+NID numbers are validated to accept **10, 13, or 17 digits** (covers old, new, and smart card formats).
 
 ### Maker-Checker-Approver Workflow (Finance)
 
@@ -255,11 +401,13 @@ Default login credentials after seeding:
 
 ### Key Patterns
 
-- All HO views use separate ViewSets in `views_ho.py` with `IsHeadOffice` permission
+- All HO views use separate ViewSets in `views_ho.py` with `IsHeadOfficeOrSuperuser` permission
 - All API endpoints log to `ActionLog` for audit trail
 - System configuration changes are audit-logged
 - Bangla `verbose_name` on all model fields
 - Config values are typed (string, integer, boolean, float) in key-value store
+- DRF router `basename` must be specified when using `get_queryset()` instead of `queryset`
+- Action methods on ViewSets should not be named `settings` (shadows `self.settings`)
 
 ---
 
@@ -271,11 +419,63 @@ Routes in `App.jsx` are organized by portal:
 
 | Prefix | Layout | Purpose |
 |--------|--------|---------|
-| `/` | `Layout.jsx` | Center admin, trainer, assessor |
+| `/` | `Layout.jsx` | Center admin, trainer, assessor, accountant |
 | `/ho/*` | `HoLayout.jsx` | Head Office admin (with sidebar) |
 | `/trainee/*` | `TraineeLayout.jsx` | Trainee portal |
-| `/login` | — | Login page |
-| `/public/*` | — | Public circulars, certificate verification |
+| `/login` | — | Admin login page |
+| `/ho/login` | — | Head Office login |
+| `/trainee/login` | — | Trainee login |
+| `/register-and-apply` | — | Public registration + application |
+| `/circulars` | — | Public circular listing |
+| `/verify/certificate/:certNo` | — | Public certificate verification |
+
+### Role-Based Routing
+
+The `RootRedirect` component handles post-login routing based on `user_type`:
+
+| Role | Redirect To |
+|------|------------|
+| `head_office` | `/ho/dashboard` |
+| `center_admin` | `/center-admin/batches` |
+| `accountant` | `/center-admin/allowances` |
+| `trainer` | `/trainer/dashboard` |
+| `assessor` | `/assessor/dashboard` |
+| `trainee` | `/trainee/dashboard` |
+
+### Center Admin Pages
+
+| Route | Page |
+|-------|------|
+| `/center-admin/applications` | Application review list |
+| `/center-admin/applications/:id` | Application detail |
+| `/center-admin/batches` | Batch list |
+| `/center-admin/batches/create` | Batch creation |
+| `/center-admin/batches/:id` | Batch detail |
+| `/center-admin/attendance/batch/:id` | Attendance calendar |
+| `/center-admin/certificates/issue` | Certificate issuance |
+| `/center-admin/trainees` | Trainee list with bulk batch assign |
+| `/center-admin/trainees/:id` | Trainee detail |
+| `/center-admin/trainees/:id/edit` | Trainee edit |
+| `/center-admin/trainers` | Trainer list |
+| `/center-admin/courses` | Course list (read-only) |
+| `/center-admin/courses/:id` | Course detail |
+
+### Head Office Pages
+
+| Route | Page |
+|-------|------|
+| `/ho/dashboard` | Main dashboard |
+| `/ho/centers` | Center management |
+| `/ho/courses` | Course management |
+| `/ho/users` | User management with bulk delete |
+| `/ho/trainers` | Trainer management with import/export |
+| `/ho/trainees` | Trainee management with center/batch filters |
+| `/ho/assessors` | Assessor management |
+| `/ho/circulars` | Circular management |
+| `/ho/finance` | Financial dashboard |
+| `/ho/reports` | Reports |
+| `/ho/system` | System settings |
+| `/ho/system/health` | System health check |
 
 ### Global State (Zustand)
 
@@ -290,14 +490,14 @@ Routes in `App.jsx` are organized by portal:
 - Bengali is the primary language, English fallback
 - `useTranslation()` hook returns `t(key, fallbackBn)` function
 - Translation keys in `locales/en.json`
-- Bangla font: `NikoshBAN`, sized at 20px (vs 16px English)
+- Bengali font: `Noto Sans Bengali` (browser), `SutonnyMJ` (PDF generation)
 
 ### API Layer
 
 - Axios instance with interceptor in `services/api.js`
 - Automatic token injection from localStorage
 - 401 response triggers token refresh; if refresh fails, redirects to login
-- App-specific service modules (e.g., `traineeService.js`, `hoService.js`)
+- 16 app-specific service modules (e.g., `traineeService.js`, `hoService.js`)
 
 ### Permission System
 
@@ -346,7 +546,7 @@ User uploads NID image → OCRUpload.jsx → POST /api/public/ocr/extract/
 
 | Field | Source | Regex Pattern |
 |-------|--------|---------------|
-| NID Number | Front image | 10, 11, 13, or 17 digits |
+| NID Number | Front image | 10, 13, or 17 digits |
 | Name (Bengali) | Front image | Bengali characters |
 | Father's Name | Front image | Bengali text after "পিতা" |
 | Mother's Name | Front image | Bengali text after "মাতা" |
@@ -407,27 +607,115 @@ python apps/applications/ocr/generate_test_images_v2.py
 
 ---
 
+## Utility Modules
+
+### Bengali Digit Converter (`apps/common/utils.py`)
+
+A shared utility module for converting Bengali/Arabic-Indic digits to English digits. Used across all import, registration, and validation flows.
+
+```python
+BANGLA_DIGITS = '\u09e6\u09e7\u09e8\u09e9\u09ea\u09eb\u09ec\u09ed\u09ee\u09ef'
+
+def to_english_digits(value):
+    """Convert Bengali/Arabic-Indic digits to English digits."""
+    if not isinstance(value, str):
+        value = str(value)
+    for i, bd in enumerate(BANGLA_DIGITS):
+        value = value.replace(bd, str(i))
+    return value
+```
+
+> **Important:** This module uses Unicode escape sequences (`\u09e6`–`\u09ef`) instead of literal Bengali characters to avoid encoding issues in Docker/server environments.
+
+### Frontend Number Formatter (`utils/numberFormatter.js`)
+
+Provides `convertToBanglaDigits()` and `toEnglishDigits()` for frontend display and input handling.
+
+---
+
+## Deployment
+
+### CI/CD Pipeline
+
+The project uses GitHub Actions for CI/CD:
+
+- **Trigger:** Push to `deploy` branch on `dream71project/brtc-training`
+- **What it does:** Builds Docker images for backend and frontend, pushes to GitHub Container Registry (GHCR)
+- **Images:** `ghcr.io/dream71project/backend:latest` and `ghcr.io/dream71project/frontend:latest`
+- **What it does NOT do:** Does not auto-deploy to the server (server is behind VPN)
+
+### Docker Images
+
+**Backend (`backend/Dockerfile.prod`):**
+- Multi-stage build: Python 3.11-slim
+- Installs: libpq, pango (WeasyPrint), tesseract-ocr + tesseract-ocr-ben, OpenCV deps
+- Runs as non-root `django` user
+- Collects static files during build
+- Serves via Gunicorn (4 workers, 120s timeout)
+- Health check: `/api/health/` every 30s
+
+**Frontend (`frontend/Dockerfile.prod`):**
+- Multi-stage build: Node 18-alpine → Nginx 1.25-alpine
+- Timezone set to Asia/Dhaka
+- Serves built SPA via Nginx
+
+### Server Deployment
+
+The server uses `docker-compose.server.yml` which pulls pre-built images from GHCR:
+
+```bash
+# On the server:
+cd /path/to/docker
+docker compose -f docker-compose.server.yml pull
+docker compose -f docker-compose.server.yml up -d
+```
+
+The backend container connects to:
+- PostgreSQL (external, on `db` host)
+- Redis (external, on `redis` host)
+- Shared Docker network: `btrc_network`
+
+### Database Backup
+
+```bash
+# Manual backup
+pg_dump -U postgres brtc_tms > brtc_tms_backup.sql
+
+# Restore
+psql -U postgres brtc_tms < brtc_tms_backup.sql
+```
+
+### Management Commands
+
+```bash
+# Ensure admin user exists (run after migrations)
+python manage.py ensure_admin
+
+# Force password reset for admin
+python manage.py ensure_admin --force
+```
+
+---
+
 ## Coding Standards
 
 ### Python (Backend)
 
-- **No linter/formatter currently configured** — it's recommended to add `ruff`:
-  ```bash
-  pip install ruff
-  ruff check .
-  ```
 - Follow Django best practices: fat models, thin views, business logic in services
 - Use `@action` decorators for ViewSet custom endpoints
 - All model fields must have `verbose_name` in Bengali
 - Write API views in `views_ho.py` for Head Office endpoints
 - Audit-log all mutations via `ActionLog`
+- **Do not** name action methods `settings` (conflicts with DRF's `self.settings`)
+- Use `basename=` in `router.register()` when ViewSet uses `get_queryset()` instead of `queryset`
+- Use Unicode escape sequences for Bengali characters in utility modules to avoid encoding issues
 
 ### JavaScript/React (Frontend)
 
 - ESLint configured for JS/JSX (run `npm run lint`)
 - Use functional components with hooks
 - Import pattern: React → libraries → contexts → components → services → utils
-- All user-facing strings use `t(key, bnFallback)` for Bengali/English support
+- All user-facing strings use Bengali text (primary language is Bengali)
 - Keep state management in Zustand store for global state; local state via `useState`
 - Service modules encapsulate all API calls
 
@@ -442,6 +730,8 @@ python apps/applications/ocr/generate_test_images_v2.py
 | URL routes | `kebab-case` | `/center-admin/applications` |
 | API endpoints | `snake_case` | `/api/trainee/me/attendance/` |
 | Git commits | Present tense, descriptive | `Add trainee schedule page` |
+| Center codes | 4-digit zero-padded | `0001`, `0025` |
+| Registration no. | `BRTC-{PREFIX}-{YEAR}-{SEQ}` | `BRTC-BAR-2026-00001` |
 
 ---
 
@@ -464,9 +754,17 @@ python apps/applications/ocr/generate_test_images_v2.py
 ```python
 # Backend: views_ho.py
 class HOSomeViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticated, IsHeadOffice]
+    permission_classes = [permissions.IsAuthenticated, IsHeadOfficeOrSuperuser]
     queryset = SomeModel.objects.all()
     serializer_class = SomeSerializer
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if self.request.user.user_type == 'head_office':
+            return qs
+        if self.request.user.center:
+            return qs.filter(center=self.request.user.center)
+        return qs.none()
 
     @action(detail=True, methods=['post'])
     def custom_action(self, request, pk=None):
@@ -487,11 +785,9 @@ urlpatterns = router.urls
 ```jsx
 // pages/ho/SomePage.jsx
 import { useState, useEffect } from 'react';
-import { useTranslation } from '../../hooks/useTranslation';
 import hoService from '../../services/hoService';
 
 export default function SomePage() {
-  const { t } = useTranslation();
   const [data, setData] = useState(null);
 
   useEffect(() => {
@@ -503,21 +799,39 @@ export default function SomePage() {
 ```
 
 ```jsx
-// App.jsx — add route
+// App.jsx — add route under HoLayout
 <Route path="some-path" element={<SomePage />} />
+```
+
+### Importing Data via Excel
+
+```python
+# Backend: add import action to ViewSet
+@action(detail=False, methods=['post'])
+def import_list(self, request):
+    file = request.FILES.get('file')
+    wb = load_workbook(file)
+    ws = wb.active
+    # Parse rows, validate, create objects
+    return Response({'imported': count, 'errors': errors})
+```
+
+```bash
+# Download template
+GET /api/ho/<resource>/import_template/
+
+# Upload and import
+POST /api/ho/<resource>/import_list/
 ```
 
 ### Seeding Data
 
 ```bash
-# Basic 5 users (admin, center, trainer, assessor, trainee)
-python manage.py seed_data
-
-# Comprehensive sample data (4 centers, 5 courses, 12 trainees, etc.)
-python manage.py seed_sample_data
+# Ensure admin user exists
+python manage.py ensure_admin
 ```
 
-Seed scripts are idempotent (use `get_or_create`) and can be run multiple times.
+The `ensure_admin` command is idempotent and safe to run multiple times. It creates the admin user if missing, or resets the password with `--force`.
 
 ### Running Celery Tasks
 
@@ -538,3 +852,20 @@ celery -A brtc_tms worker -l info
 # Trigger task from code
 generate_report.delay(report_id)
 ```
+
+### Bulk Operations
+
+The system supports bulk operations across most entities:
+
+- **Bulk Delete:** Checkbox selection + confirmation modal (centers, users, trainees, courses, batches, circulars)
+- **Bulk Import:** Excel file upload with template download
+- **Bulk Batch Assignment:** Select trainees + choose target batch
+
+### Bengali Input Handling
+
+The system provides two components for Bengali text input:
+
+1. **`BanglaInput`** (`components/common/BanglaInput.jsx`) — Phonetic Bengali input with Avro phonetic conversion
+2. **`numberFormatter`** (`utils/numberFormatter.js`) — Converts Bengali digits to/from English for display
+
+All phone and NID inputs apply `to_english_digits()` server-side to normalize Bengali digit input.

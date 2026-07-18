@@ -112,6 +112,12 @@ export default function Navbar({ breadcrumb, extra }) {
             <ul className="dropdown-menu dropdown-menu-end">
               <li><span className="dropdown-item-text text-secondary"><small>{user.email}</small></span></li>
               <li><hr className="dropdown-divider" /></li>
+              <li>
+                <a className="dropdown-item" href="/user-manual.html" target="_blank" rel="noopener noreferrer">
+                  <i className="bi bi-book me-2"></i>{t('site.userManual', 'ব্যবহারকারী ম্যানুয়াল')}
+                </a>
+              </li>
+              <li><hr className="dropdown-divider" /></li>
               <li><button className="dropdown-item text-danger" onClick={handleLogout}>
                 <i className="bi bi-box-arrow-right me-2"></i>{t('site.logout', 'লগআউট')}
               </button></li>
