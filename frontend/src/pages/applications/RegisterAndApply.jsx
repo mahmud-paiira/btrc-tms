@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import publicService from '../../services/publicService';
 import circularService from '../../services/circularService';
-import BanglaInput from '../../components/common/BanglaInput';
 import { useAuth } from '../../contexts/AuthContext';
 import { convertToBanglaDigits, toEnglishDigits } from '../../utils/numberFormatter';
 import ApplySuccess from './ApplySuccess';
@@ -27,6 +26,15 @@ function calculateAge(dob) {
   const m = today.getMonth() - birth.getMonth();
   if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
   return age;
+}
+
+function SectionCard({ icon, title, children }) {
+  return (
+    <div className="form-section-card mb-4">
+      <div className="form-section-header"><i className={`bi ${icon} me-2`}></i><span>{title}</span></div>
+      <div className="form-section-body"><div className="row g-3">{children}</div></div>
+    </div>
+  );
 }
 
 export default function RegisterAndApply() {
@@ -413,46 +421,6 @@ export default function RegisterAndApply() {
     }
   };
 
-  const renderField = (name, label, opts = {}) => {
-    const { type = 'text', placeholder = '', required = true, col = 'col-12', options, readOnly, bangla } = opts;
-    const hasError = errors[name];
-    return (
-      <div className={col}>
-        <label className="form-label fw-medium">{label}{required && <span className="text-danger ms-1">*</span>}</label>
-        {type === 'textarea' ? (
-          bangla ? (
-            <BanglaInput as="textarea" className={`form-control ${hasError ? 'is-invalid' : ''}`} name={name} value={form[name]} onChange={handleChange} rows={3} placeholder={placeholder} />
-          ) : (
-            <textarea className={`form-control ${hasError ? 'is-invalid' : ''}`} name={name} value={form[name]} onChange={handleChange} rows={3} placeholder={placeholder} />
-          )
-        ) : type === 'select' ? (
-          <select className={`form-select ${hasError ? 'is-invalid' : ''}`} name={name} value={form[name]} onChange={handleChange}>
-            <option value="">-- নির্বাচন করুন --</option>
-            {(options || []).map(o => (<option key={o.value} value={o.value}>{o.label}</option>))}
-          </select>
-        ) : type === 'file' ? (
-          <div>
-            {photoPreview ? (
-              <div className="d-flex align-items-center gap-2">
-                <img src={photoPreview} alt="Profile" className="rounded" style={{ width: 80, height: 80, objectFit: 'cover' }} />
-                <button className="btn btn-sm btn-outline-danger" onClick={() => { setForm(p => ({ ...p, profile_image: null })); setPhotoPreview(null); }}>
-                  <i className="bi bi-trash"></i>
-                </button>
-              </div>
-            ) : (
-              <input className={`form-control ${hasError ? 'is-invalid' : ''}`} type="file" accept="image/*" name="profile_image" onChange={handleChange} />
-            )}
-          </div>
-        ) : bangla ? (
-          <BanglaInput as="input" type={type} className={`form-control ${hasError ? 'is-invalid' : ''}`} name={name} value={form[name]} onChange={handleChange} placeholder={placeholder} readOnly={readOnly} />
-        ) : (
-          <input type={type} className={`form-control ${hasError ? 'is-invalid' : ''}`} name={name} value={form[name]} onChange={handleChange} placeholder={placeholder} readOnly={readOnly} />
-        )}
-        {hasError && <div className="invalid-feedback">{typeof hasError === 'string' ? hasError : 'এই ক্ষেত্রটি প্রয়োজনীয়'}</div>}
-      </div>
-    );
-  };
-
   const renderChecklistField = (item) => {
     const inputType = CRITERIA_INPUT_TYPES[item.criteria_type] || 'text';
     const fieldName = `checklist_${item.id}`;
@@ -487,13 +455,6 @@ export default function RegisterAndApply() {
       </div>
     );
   };
-
-  const SectionCard = ({ icon, title, children }) => (
-    <div className="form-section-card mb-4">
-      <div className="form-section-header"><i className={`bi ${icon} me-2`}></i><span>{title}</span></div>
-      <div className="form-section-body"><div className="row g-3">{children}</div></div>
-    </div>
-  );
 
   if (submitted) {
     return <ApplySuccess data={submitted} />;
@@ -573,7 +534,7 @@ export default function RegisterAndApply() {
                             <div className="row g-3">
                               <div className="col-md-6">
                                 <label className="form-label">নাম (বাংলায়) <span className="text-danger">*</span></label>
-                                <BanglaInput as="input" className={`form-control ${regErrors.full_name_bn ? 'is-invalid' : ''}`} name="full_name_bn" value={regForm.full_name_bn} onChange={handleRegChange} placeholder="আপনার নাম বাংলায় লিখুন" />
+                                <input className={`form-control ${regErrors.full_name_bn ? 'is-invalid' : ''}`} name="full_name_bn" value={regForm.full_name_bn} onChange={handleRegChange} placeholder="আপনার নাম বাংলায় লিখুন" />
                                 {regErrors.full_name_bn && <div className="invalid-feedback">{regErrors.full_name_bn}</div>}
                               </div>
                               <div className="col-md-6">
@@ -752,12 +713,12 @@ export default function RegisterAndApply() {
                           </div>
                           <div className="col-md-6">
                             <label className="form-label fw-medium">পিতার নাম <span className="text-danger">*</span></label>
-                            <BanglaInput className={`form-control ${errors.father_name_bn ? 'is-invalid' : ''}`} name="father_name_bn" value={form.father_name_bn} onChange={handleChange} placeholder="পিতার নাম লিখুন" />
+                            <input className={`form-control ${errors.father_name_bn ? 'is-invalid' : ''}`} name="father_name_bn" value={form.father_name_bn} onChange={handleChange} placeholder="পিতার নাম লিখুন" />
                             {errors.father_name_bn && <div className="invalid-feedback">{errors.father_name_bn}</div>}
                           </div>
                           <div className="col-md-6">
                             <label className="form-label fw-medium">মাতার নাম <span className="text-danger">*</span></label>
-                            <BanglaInput className={`form-control ${errors.mother_name_bn ? 'is-invalid' : ''}`} name="mother_name_bn" value={form.mother_name_bn} onChange={handleChange} placeholder="মাতার নাম লিখুন" />
+                            <input className={`form-control ${errors.mother_name_bn ? 'is-invalid' : ''}`} name="mother_name_bn" value={form.mother_name_bn} onChange={handleChange} placeholder="মাতার নাম লিখুন" />
                             {errors.mother_name_bn && <div className="invalid-feedback">{errors.mother_name_bn}</div>}
                           </div>
                           <div className="col-md-6">
@@ -839,7 +800,7 @@ export default function RegisterAndApply() {
                           </div>
                           <div className="col-12">
                             <label className="form-label fw-medium">বিস্তারিত ঠিকানা <span className="text-danger">*</span></label>
-                            <BanglaInput as="textarea" className={`form-control ${errors.present_address ? 'is-invalid' : ''}`} name="present_address" value={form.present_address} onChange={handleChange} rows={2} placeholder="গ্রাম/রাস্তা, বাড়ি নম্বর, পোস্ট অফিস ইত্যাদি"></BanglaInput>
+                            <textarea className={`form-control ${errors.present_address ? 'is-invalid' : ''}`} name="present_address" value={form.present_address} onChange={handleChange} rows={2} placeholder="গ্রাম/রাস্তা, বাড়ি নম্বর, পোস্ট অফিস ইত্যাদি"></textarea>
                             {errors.present_address && <div className="invalid-feedback">{errors.present_address}</div>}
                           </div>
                         </SectionCard>
@@ -877,9 +838,9 @@ export default function RegisterAndApply() {
                           </div>
                           <div className="col-12">
                             <label className="form-label fw-medium">বিস্তারিত ঠিকানা</label>
-                            <BanglaInput as="textarea" className="form-control" name="permanent_address" value={form.permanent_address}
+                            <textarea className="form-control" name="permanent_address" value={form.permanent_address}
                               onChange={handleChange} rows={2} disabled={sameAsPresent}
-                              placeholder={sameAsPresent ? 'বর্তমান ঠিকানার মতোই হবে' : 'গ্রাম/রাস্তা, বাড়ি নম্বর, পোস্ট অফিস ইত্যাদি'}></BanglaInput>
+                              placeholder={sameAsPresent ? 'বর্তমান ঠিকানার মতোই হবে' : 'গ্রাম/রাস্তা, বাড়ি নম্বর, পোস্ট অফিস ইত্যাদি'}></textarea>
                           </div>
                         </SectionCard>
 

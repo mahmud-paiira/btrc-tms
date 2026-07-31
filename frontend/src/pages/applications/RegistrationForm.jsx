@@ -4,7 +4,6 @@ import publicService from '../../services/publicService';
 import circularService from '../../services/circularService';
 import ApplySuccess from './ApplySuccess';
 import './RegistrationForm.css';
-import BanglaInput from '../../components/common/BanglaInput';
 import { convertToBanglaDigits } from '../../utils/numberFormatter';
 
 const CRITERIA_INPUT_TYPES = {
@@ -28,6 +27,20 @@ function calculateAge(dob) {
   const m = today.getMonth() - birth.getMonth();
   if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
   return age;
+}
+
+function SectionCard({ icon, title, children }) {
+  return (
+    <div className="form-section-card mb-4">
+      <div className="form-section-header">
+        <i className={`bi ${icon} me-2`}></i>
+        <span>{title}</span>
+      </div>
+      <div className="form-section-body">
+        <div className="row g-3">{children}</div>
+      </div>
+    </div>
+  );
 }
 
 export default function RegistrationForm() {
@@ -269,7 +282,7 @@ export default function RegistrationForm() {
   }
 
   const renderField = (name, label, opts = {}) => {
-    const { type = 'text', placeholder = '', required = true, col = 'col-12', options, readOnly, bangla } = opts;
+    const { type = 'text', placeholder = '', required = true, col = 'col-12', options, readOnly } = opts;
     const hasError = errors[name];
     return (
       <div className={col}>
@@ -278,11 +291,7 @@ export default function RegistrationForm() {
           {required && <span className="text-danger ms-1">*</span>}
         </label>
         {type === 'textarea' ? (
-          bangla ? (
-            <BanglaInput as="textarea" className={`form-control ${hasError ? 'is-invalid' : ''}`} name={name} value={form[name]} onChange={handleChange} rows={3} placeholder={placeholder} />
-          ) : (
-            <textarea className={`form-control ${hasError ? 'is-invalid' : ''}`} name={name} value={form[name]} onChange={handleChange} rows={3} placeholder={placeholder} />
-          )
+          <textarea className={`form-control ${hasError ? 'is-invalid' : ''}`} name={name} value={form[name]} onChange={handleChange} rows={3} placeholder={placeholder} />
         ) : type === 'select' ? (
           <select
             className={`form-select ${hasError ? 'is-invalid' : ''}`}
@@ -309,11 +318,7 @@ export default function RegistrationForm() {
             )}
           </div>
         ) : (
-          bangla ? (
-            <BanglaInput as="input" type={type} className={`form-control ${hasError ? 'is-invalid' : ''}`} name={name} value={form[name]} onChange={handleChange} placeholder={placeholder} readOnly={readOnly} />
-          ) : (
-            <input type={type} className={`form-control ${hasError ? 'is-invalid' : ''}`} name={name} value={form[name]} onChange={handleChange} onBlur={name === 'nid' ? handleNidBlur : undefined} placeholder={placeholder} readOnly={readOnly} />
-          )
+          <input type={type} className={`form-control ${hasError ? 'is-invalid' : ''}`} name={name} value={form[name]} onChange={handleChange} onBlur={name === 'nid' ? handleNidBlur : undefined} placeholder={placeholder} readOnly={readOnly} />
         )}
         {hasError && <div className="invalid-feedback">{typeof hasError === 'string' ? hasError : 'এই ক্ষেত্রটি প্রয়োজনীয়'}</div>}
         {name === 'nid' && nidChecking && (
@@ -434,18 +439,6 @@ export default function RegistrationForm() {
 
     const centers = circular?.eligible_centers || [];
 
-    const SectionCard = ({ icon, title, children }) => (
-      <div className="form-section-card mb-4">
-        <div className="form-section-header">
-          <i className={`bi ${icon} me-2`}></i>
-          <span>{title}</span>
-        </div>
-        <div className="form-section-body">
-          <div className="row g-3">{children}</div>
-        </div>
-      </div>
-    );
-
     return (
       <div>
         <div className="verified-badge mb-4">
@@ -483,10 +476,10 @@ export default function RegistrationForm() {
         )}
 
         <SectionCard icon="bi-person-badge" title="ব্যক্তিগত তথ্য">
-          {renderField('name_bn', 'নাম (বাংলায়)', { col: 'col-md-6', bangla: true })}
+          {renderField('name_bn', 'নাম (বাংলায়)', { col: 'col-md-6' })}
           {renderField('name_en', 'নাম (ইংরেজিতে)', { required: false, col: 'col-md-6' })}
-          {renderField('father_name_bn', 'পিতার নাম', { col: 'col-md-6', bangla: true })}
-          {renderField('mother_name_bn', 'মাতার নাম', { col: 'col-md-6', bangla: true })}
+          {renderField('father_name_bn', 'পিতার নাম', { col: 'col-md-6' })}
+          {renderField('mother_name_bn', 'মাতার নাম', { col: 'col-md-6' })}
           {renderField('phone', 'মোবাইল নম্বর', { col: 'col-md-4', placeholder: '01XXXXXXXXX' })}
           {renderField('email', 'ইমেইল', { type: 'email', required: false, col: 'col-md-4' })}
           <div className="col-md-4">
@@ -519,9 +512,9 @@ export default function RegistrationForm() {
           </div>
           <div className="col-12">
             <label className="form-label fw-medium">বিস্তারিত ঠিকানা <span className="text-danger">*</span></label>
-            <BanglaInput as="textarea" className={`form-control ${errors.present_address ? 'is-invalid' : ''}`}
+            <textarea className={`form-control ${errors.present_address ? 'is-invalid' : ''}`}
               name="present_address" value={form.present_address} onChange={handleChange}
-              rows={2} placeholder="গ্রাম/রাস্তা, বাড়ি নম্বর, পোস্ট অফিস ইত্যাদি"></BanglaInput>
+              rows={2} placeholder="গ্রাম/রাস্তা, বাড়ি নম্বর, পোস্ট অফিস ইত্যাদি"></textarea>
             {errors.present_address && <div className="invalid-feedback">{errors.present_address}</div>}
           </div>
         </SectionCard>
@@ -561,10 +554,10 @@ export default function RegistrationForm() {
           </div>
           <div className="col-12">
             <label className="form-label fw-medium">বিস্তারিত ঠিকানা</label>
-            <BanglaInput as="textarea" className="form-control"
+            <textarea className="form-control"
               name="permanent_address" value={form.permanent_address} onChange={handleChange}
               rows={2} disabled={sameAsPresent}
-              placeholder={sameAsPresent ? 'বর্তমান ঠিকানার মতোই হবে' : 'গ্রাম/রাস্তা, বাড়ি নম্বর, পোস্ট অফিস ইত্যাদি'}></BanglaInput>
+              placeholder={sameAsPresent ? 'বর্তমান ঠিকানার মতোই হবে' : 'গ্রাম/রাস্তা, বাড়ি নম্বর, পোস্ট অফিস ইত্যাদি'}></textarea>
             {sameAsPresent && <small className="text-muted mt-1 d-block"><i className="bi bi-info-circle me-1"></i>বর্তমান ঠিকানার মতোই স্বয়ংক্রিয়ভাবে পূরণ হবে</small>}
           </div>
         </SectionCard>
