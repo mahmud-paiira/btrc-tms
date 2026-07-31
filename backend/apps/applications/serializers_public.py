@@ -59,20 +59,16 @@ class PublicApplySerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('ফোন নম্বর ১১ ডিজিটের হতে হবে (01XXXXXXXXX)')
         if not value.startswith('01'):
             raise serializers.ValidationError('ফোন নম্বর 01 দিয়ে শুরু হতে হবে')
+        if Application.objects.filter(phone=value).exists():
+            raise serializers.ValidationError('এই মোবাইল নম্বর দিয়ে ইতিমধ্যে আবেদন করা হয়েছে')
         return value
 
     def validate_nid(self, value):
         clean = to_english_digits(value).replace(' ', '').replace('-', '')
         if len(clean) not in (10, 13, 17):
             raise serializers.ValidationError('এনআইডি ১০, ১৩ বা ১৭ ডিজিটের হতে হবে')
-        request = self.context.get('request')
-        # Skip NID uniqueness check if user already has application for this circular
-        if request and request.user.is_authenticated:
-            user = request.user
-            if Application.objects.filter(user=user, nid=clean).exists():
-                return clean
         if Application.objects.filter(nid=clean).exists():
-            raise serializers.ValidationError('এই এনআইডি নম্বর দিয়ে ইতিমধ্যে আবেদন করা হয়েছে')
+            raise serializers.ValidationError('এই এনআইডি নম্বর দিয়ে ইতিমধ্যে আবেদন করা হয়েছে')
         return clean
 
     def validate_date_of_birth(self, value):

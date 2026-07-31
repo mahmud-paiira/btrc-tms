@@ -1,5 +1,6 @@
 import os
 import tempfile
+from django.db import transaction
 from rest_framework import status
 from rest_framework.decorators import api_view, parser_classes, throttle_classes
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -118,9 +119,9 @@ def public_apply(request):
         data['phone'] = request.user.phone
     serializer = PublicApplySerializer(data=data, context={'request': request})
     serializer.is_valid(raise_exception=True)
-    application = serializer.save()
-
-    confirm = ApplicationConfirmSerializer(application)
+    with transaction.atomic():
+        application = serializer.save()
+        confirm = ApplicationConfirmSerializer(application)
     return Response(
         confirm.data,
         status=status.HTTP_201_CREATED,

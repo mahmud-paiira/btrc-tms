@@ -100,7 +100,7 @@ class Application(models.Model):
     )
     date_of_birth = models.DateField(verbose_name='জন্ম তারিখ')
     nid = models.CharField(
-        max_length=20, verbose_name='জাতীয় পরিচয়পত্র নং',
+        max_length=20, unique=True, verbose_name='জাতীয় পরিচয়পত্র নং',
         validators=[MinLengthValidator(10)],
     )
 
@@ -110,7 +110,7 @@ class Application(models.Model):
         message='ফোন নম্বর ১১ ডিজিটের হতে হবে এবং 01 দিয়ে শুরু হতে হবে',
     )
     phone = models.CharField(
-        max_length=11, validators=[phone_regex],
+        max_length=11, unique=True, validators=[phone_regex],
         verbose_name='মোবাইল নম্বর',
     )
     alternate_phone = models.CharField(
@@ -183,7 +183,6 @@ class Application(models.Model):
         ordering = ('-applied_at',)
         indexes = [
             models.Index(fields=['circular', 'status']),
-            models.Index(fields=['nid']),
             models.Index(fields=['applied_at']),
             models.Index(fields=['auto_screen_pass']),
         ]
