@@ -81,12 +81,18 @@ export default function CircularList() {
     } catch { toast.error('এক্সপোর্ট ব্যর্থ'); }
   };
 
-  const handlePrint = () => {
+  const handlePrint = async () => {
     const ids = selectedIds.size > 0 ? [...selectedIds] : items.map(c => c.id);
     const token = localStorage.getItem('access_token');
-    ids.forEach(id => {
-      window.open(`/api/ho/circulars/${id}/print_circular/?token=${token}`, '_blank');
-    });
+    try {
+      for (const id of ids) {
+        const res = await fetch(`/api/ho/circulars/${id}/print_circular/`, { headers: { 'Authorization': `Bearer ${token}` } });
+        if (!res.ok) throw new Error('Failed');
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+      }
+    } catch { alert('PDF generation failed'); }
   };
 
   const handleImportSubmit = async () => {
@@ -292,7 +298,7 @@ export default function CircularList() {
                           <i className="bi bi-three-dots-vertical"></i>
                         </button>
                         <ul className="dropdown-menu dropdown-menu-end">
-                          <li><button className="dropdown-item text-primary" onClick={() => { const t = localStorage.getItem('access_token'); window.open(`/api/ho/circulars/${c.id}/print_circular/?token=${t}`, '_blank'); }}><i className="bi bi-filetype-pdf me-2"></i>পিডিএফ প্রিন্ট</button></li>
+                          <li><button className="dropdown-item text-primary" onClick={async () => { const t = localStorage.getItem('access_token'); try { const res = await fetch(`/api/ho/circulars/${c.id}/print_circular/`, { headers: { 'Authorization': `Bearer ${t}` } }); if (!res.ok) throw new Error('Failed'); const blob = await res.blob(); const url = URL.createObjectURL(blob); window.open(url, '_blank'); } catch { alert('PDF generation failed'); } }}><i className="bi bi-filetype-pdf me-2"></i>পিডিএফ প্রিন্ট</button></li>
                           <li><button className="dropdown-item text-primary" onClick={() => navigate(`/ho/circulars/${c.id}`)}><i className="bi bi-eye me-2"></i>বিস্তারিত</button></li>
                           {c.status === 'draft' && (
                             <>

@@ -5,6 +5,7 @@ import api from '../../services/api';
 import AssessorFormModal from './AssessorFormModal';
 import { formatDate } from '../../utils/dateFormatter';
 import { formatNumber } from '../../utils/numberFormatter';
+import { escapeHtml } from '../../utils/escapeHtml';
 
 const API_URL = '/api';
 const STATUS_MAP = { pending: 'পেন্ডিং', active: 'সক্রিয়', suspended: 'স্থগিত', inactive: 'নিষ্ক্রিয়' };
@@ -133,23 +134,23 @@ export default function AssessorList() {
         <p>প্রশিক্ষণ ব্যবস্থাপনা সিস্টেম</p>
       </div>
       <div class="report-info">
-        <span>মোট: ${printItems.length} জন</span>
-        <span>প্রিন্টের তারিখ: ${formatDate(new Date())}</span>
+        <span>মোট: ${escapeHtml(printItems.length)} জন</span>
+        <span>প্রিন্টের তারিখ: ${escapeHtml(formatDate(new Date()))}</span>
       </div>
       <table>
         <tr><th>ক্রমিক</th><th>নাম (বাংলা)</th><th>নাম (ইংরেজি)</th><th>ইমেইল</th><th>ফোন</th><th>অভিজ্ঞতা</th></tr>
         ${printItems.map((a, i) => {
           return `<tr>
-            <td style="text-align:center;width:40px;">${i + 1}</td>
-            <td><strong>${a.user_full_name_bn || '—'}</strong></td>
-            <td>${a.user_full_name_en || '—'}</td>
-            <td>${a.user_email || '—'}</td>
-            <td>${a.user_phone || '—'}</td>
-            <td style="text-align:center;">${a.years_of_experience ? formatNumber(a.years_of_experience) + ' বছর' : '—'}</td>
+            <td style="text-align:center;width:40px;">${escapeHtml(i + 1)}</td>
+            <td><strong>${escapeHtml(a.user_full_name_bn || '—')}</strong></td>
+            <td>${escapeHtml(a.user_full_name_en || '—')}</td>
+            <td>${escapeHtml(a.user_email || '—')}</td>
+            <td>${escapeHtml(a.user_phone || '—')}</td>
+            <td style="text-align:center;">${a.years_of_experience ? escapeHtml(formatNumber(a.years_of_experience)) + ' বছর' : '—'}</td>
           </tr>`;
         }).join('')}
       </table>
-      <div class="footer">মূল্যায়নকারী তালিকা - ${formatDate(new Date())}</div>
+      <div class="footer">মূল্যায়নকারী তালিকা - ${escapeHtml(formatDate(new Date()))}</div>
       <script>window.print();</script>
       </body></html>
     `);

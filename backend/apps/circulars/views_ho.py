@@ -217,7 +217,7 @@ class HOCircularViewSet(viewsets.ModelViewSet):
         circular = self.get_object()
         qs = Application.objects.filter(circular=circular).select_related(
             'user', 'reviewed_by',
-        ).order_by('-applied_at')
+        ).prefetch_related('eye_screening').order_by('-applied_at')
 
         status_filter = request.query_params.get('status')
         if status_filter:
@@ -249,7 +249,14 @@ class HOCircularViewSet(viewsets.ModelViewSet):
         try:
             app = Application.objects.get(id=app_id, circular=circular)
         except Application.DoesNotExist:
-            return Response({'error': 'আবেদন পাওয়া যায়নি'}, status=404)
+            return Response({'error': 'আবেদন পাওয়া যায়নি'}, status=404)
+        from apps.applications.models import EyeScreeningTest
+        try:
+            eye_test = EyeScreeningTest.objects.get(application=app)
+            if eye_test.result != EyeScreeningTest.Result.PASS:
+                return Response({'error': 'নির্বাচন করতে হলে চোখের দৃষ্টি পরীক্ষায় পাস করা আবশ্যক। পরীক্ষার ফলাফল: ' + eye_test.get_result_display()}, status=400)
+        except EyeScreeningTest.DoesNotExist:
+            return Response({'error': 'নির্বাচন করতে হলে প্রথমে চোখের দৃষ্টি পরীক্ষা সম্পন্ন করুন'}, status=400)
         app.status = Application.ApplicationStatus.SELECTED
         app.reviewed_by = request.user
         app.reviewed_at = timezone.now()
@@ -322,6 +329,13 @@ class HOCircularViewSet(viewsets.ModelViewSet):
             return Response({'error': 'আবেদন পাওয়া যায়নি'}, status=404)
         if app.status != Application.ApplicationStatus.SELECTED:
             return Response({'error': 'শুধুমাত্র নির্বাচিত আবেদন নথিভুক্ত করা যাবে'}, status=400)
+        from apps.applications.models import EyeScreeningTest
+        try:
+            eye_test = EyeScreeningTest.objects.get(application=app)
+            if eye_test.result != EyeScreeningTest.Result.PASS:
+                return Response({'error': 'চোখের দৃষ্টি পরীক্ষায় পাস করা আবশ্যক। পরীক্ষার ফলাফল: ' + eye_test.get_result_display()}, status=400)
+        except EyeScreeningTest.DoesNotExist:
+            return Response({'error': 'চোখের দৃষ্টি পরীক্ষা করা হয়নি'}, status=400)
         app.status = Application.ApplicationStatus.ENROLLED
         app.save(update_fields=['status'])
         from apps.trainees.models import Trainee

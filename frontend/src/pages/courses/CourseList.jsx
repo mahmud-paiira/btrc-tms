@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from '../../services/api';
 import { formatDate } from '../../utils/dateFormatter';
+import { escapeHtml } from '../../utils/escapeHtml';
 import { useAuth } from '../../contexts/AuthContext';
 
 const STATUS_BG = { active: 'success', inactive: 'secondary', draft: 'warning' };
@@ -154,13 +155,13 @@ export default function CourseList() {
         ${items.map((c, i) => {
           return `<tr>
             <td style="text-align:center;width:40px;">${i + 1}</td>
-            <td><strong>${c.code || '—'}</strong></td>
-            <td>${c.name_bn || '—'}</td>
-            <td>${c.name_en || '—'}</td>
-            <td>${c.course_type_display || c.course_type || '—'}</td>
-            <td style="text-align:center;">${c.duration_months ? c.duration_months + ' মাস' : '—'}</td>
-            <td style="text-align:right;">${c.fee ? '৳' + c.fee.toLocaleString('bn-BD') : '—'}</td>
-          </tr>`;
+            <td><strong>${escapeHtml(c.code) || '—'}</strong></td>
+            <td>${escapeHtml(c.name_bn) || '—'}</td>
+            <td>${escapeHtml(c.name_en) || '—'}</td>
+            <td>${escapeHtml(c.course_type_display || c.course_type || '—')}</td>
+            <td style="text-align:center;">${c.duration_months ? escapeHtml(c.duration_months) + ' মাস' : '—'}</td>
+            <td style="text-align:right;">${c.fee ? '৳' + escapeHtml(c.fee.toLocaleString('bn-BD')) : '—'}</td>
+           </tr>`;
         }).join('')}
       </table>
       <div class="footer">কোর্স তালিকা - ${formatDate(new Date())}</div>

@@ -60,8 +60,8 @@ class LoginSerializer(serializers.Serializer):
         value = to_english_digits(value).strip()
         if '@' in value:
             if not User.objects.filter(email=value).exists():
-                raise serializers.ValidationError('এই ইমেইলে কোনো ব্যবহারকারী নেই')
+                raise serializers.ValidationError('ইমেইল বা পাসওয়ার্ড সঠিক নয়')
         else:
             if not User.objects.filter(phone=value).exists():
-                raise serializers.ValidationError('এই নম্বরে কোনো ব্যবহারকারী নেই')
+                raise serializers.ValidationError('ইমেইল বা পাসওয়ার্ড সঠিক নয়')
         return value

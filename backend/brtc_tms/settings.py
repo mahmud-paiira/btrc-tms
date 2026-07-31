@@ -21,8 +21,23 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ── Security ──────────────────────────────────────────────────────────────
 SECRET_KEY = config('DJANGO_SECRET_KEY', default='django-insecure-change-me-in-production')
 DEBUG = config('DJANGO_DEBUG', default=True, cast=bool)
-TEST_OTP = config('TEST_OTP', default='123456', cast=str)
+TEST_OTP = config('TEST_OTP', default='123456', cast=str) if DEBUG else None
 ALLOWED_HOSTS = config('DJANGO_ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
+
+# ── Production Security Hardening (auto-enable when DEBUG=False) ─────────
+if not DEBUG:
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_HTTPONLY = True
+    CSRF_COOKIE_SECURE = True
+    CSRF_COOKIE_HTTPONLY = True
+    SECURE_SSL_REDIRECT = False  # nginx handles SSL termination
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # ── Custom User Model ─────────────────────────────────────────────────────
 AUTH_USER_MODEL = 'accounts.User'
@@ -179,6 +194,14 @@ REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_RATES': {
         'anon': '100/hour',
         'user': '1000/hour',
+        'auth': '10/minute',
+        'otp': '5/minute',
+        'registration': '3/hour',
+        'public_check': '20/minute',
+        'public_apply': '10/minute',
+        'ocr': '5/minute',
+        'print': '10/minute',
+        'verify_cert': '30/minute',
     },
     'DATETIME_FORMAT': '%Y-%m-%d %H:%M:%S',
     'DATE_FORMAT': '%Y-%m-%d',
@@ -237,12 +260,13 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'Asia/Dhaka'
 
-# ── Swagger ───────────────────────────────────────────────────────────────
-SWAGGER_SETTINGS = {
-    'SECURITY_DEFINITIONS': {
-        'Bearer': {'type': 'apiKey', 'name': 'Authorization', 'in': 'header'}
-    },
-}
+# ── Swagger (only when DEBUG) ──────────────────────────────────────────────
+if DEBUG:
+    SWAGGER_SETTINGS = {
+        'SECURITY_DEFINITIONS': {
+            'Bearer': {'type': 'apiKey', 'name': 'Authorization', 'in': 'header'}
+        },
+    }
 
 # ── Email (SMTP) ──────────────────────────────────────────────────────────
 #EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
@@ -263,7 +287,6 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # ── Tesseract OCR ─────────────────────────────────────────────────────────
 import os
-import subprocess
 import pytesseract
 from dotenv import load_dotenv
 
@@ -272,16 +295,7 @@ load_dotenv()
 TESSERACT_PATH = os.getenv('TESSERACT_PATH', r'C:\Program Files\Tesseract-OCR\tesseract.exe')
 TESSERACT_LANG = os.getenv('TESSERACT_LANG', 'ben+eng')
 
-try:
-    pytesseract.pytesseract.tesseract_cmd = TESSERACT_PATH
-    result = subprocess.run([TESSERACT_PATH, '--version'], capture_output=True, text=True, timeout=10)
-    if result.returncode == 0:
-        print(f"Tesseract found at: {TESSERACT_PATH}")
-    else:
-        print(f"Tesseract at {TESSERACT_PATH} but returned error")
-except Exception as e:
-    print(f"Tesseract not found at {TESSERACT_PATH}. Install from: https://github.com/UB-Mannheim/tesseract/wiki")
-    print(f"Error: {e}")
+pytesseract.pytesseract.tesseract_cmd = TESSERACT_PATH
 
 # ── Logging ───────────────────────────────────────────────────────────────
 LOGGING = {

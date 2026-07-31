@@ -7,6 +7,7 @@ import TrainerApprovalModal from './TrainerApprovalModal';
 import TrainerMapForm from './TrainerMapForm';
 import { formatDate } from '../../utils/dateFormatter';
 import { formatNumber } from '../../utils/numberFormatter';
+import { escapeHtml } from '../../utils/escapeHtml';
 
 const TABS = [
   { key: 'all', label: 'সকল প্রশিক্ষক' },
@@ -185,23 +186,23 @@ export default function TrainerList() {
       </div>
       <div class="report-info">
         <span>মোট: ${items.length} জন</span>
-        <span>প্রিন্টের তারিখ: ${formatDate(new Date())}</span>
+        <span>প্রিন্টের তারিখ: ${escapeHtml(formatDate(new Date()))}</span>
       </div>
       <table>
         <tr><th>ক্রমিক</th><th>নাম (বাংলা)</th><th>নাম (ইংরেজি)</th><th>ইমেইল</th><th>ফোন</th><th>কেন্দ্র</th><th>অভিজ্ঞতা</th></tr>
         ${items.map((t, i) => {
           return `<tr>
             <td style="text-align:center;width:40px;">${i + 1}</td>
-            <td><strong>${t.user_full_name_bn || '—'}</strong></td>
-            <td>${t.user_full_name_en || '—'}</td>
-            <td>${t.user_email || '—'}</td>
-            <td>${t.user_phone || '—'}</td>
-            <td>${t.center_names || '—'}</td>
-            <td style="text-align:center;">${t.years_of_experience ? t.years_of_experience + ' বছর' : '—'}</td>
+            <td><strong>${escapeHtml(t.user_full_name_bn || '—')}</strong></td>
+            <td>${escapeHtml(t.user_full_name_en || '—')}</td>
+            <td>${escapeHtml(t.user_email || '—')}</td>
+            <td>${escapeHtml(t.user_phone || '—')}</td>
+            <td>${escapeHtml(t.center_names || '—')}</td>
+            <td style="text-align:center;">${escapeHtml(t.years_of_experience ? t.years_of_experience + ' বছর' : '—')}</td>
           </tr>`;
         }).join('')}
       </table>
-      <div class="footer">প্রশিক্ষক তালিকা - ${formatDate(new Date())}</div>
+      <div class="footer">প্রশিক্ষক তালিকা - ${escapeHtml(formatDate(new Date()))}</div>
       <script>window.print();</script>
       </body></html>
     `);

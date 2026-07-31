@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import { formatDate } from '../../utils/dateFormatter';
 import { convertToBanglaDigits } from '../../utils/numberFormatter';
+import { escapeHtml } from '../../utils/escapeHtml';
 
 const STATUS_BG = { enrolled: 'success', completed: 'primary', withdrawn: 'danger', suspended: 'warning' };
 
@@ -188,15 +189,15 @@ export default function TraineeList() {
         ${items.map((t, i) => {
           return `<tr>
             <td style="text-align:center;width:40px;">${i + 1}</td>
-            <td><strong>${convertToBanglaDigits(t.registration_no) || '—'}</strong></td>
-            <td>${t.user_name || '—'}</td>
-            <td>${t.user_name_en || '—'}</td>
-            <td>${t.user_email || '—'}</td>
-            <td>${convertToBanglaDigits(t.user_phone) || '—'}</td>
-            <td>${t.center_name || '—'}</td>
-            <td>${t.batch_name || '—'}</td>
-            <td>${t.status_display || t.status || '—'}</td>
-            <td>${t.enrollment_date || '—'}</td>
+            <td><strong>${escapeHtml(convertToBanglaDigits(t.registration_no) || '—')}</strong></td>
+            <td>${escapeHtml(t.user_name || '—')}</td>
+            <td>${escapeHtml(t.user_name_en || '—')}</td>
+            <td>${escapeHtml(t.user_email || '—')}</td>
+            <td>${escapeHtml(convertToBanglaDigits(t.user_phone) || '—')}</td>
+            <td>${escapeHtml(t.center_name || '—')}</td>
+            <td>${escapeHtml(t.batch_name || '—')}</td>
+            <td>${escapeHtml(t.status_display || t.status || '—')}</td>
+            <td>${escapeHtml(t.enrollment_date || '—')}</td>
           </tr>`;
         }).join('')}
       </table>

@@ -1,5 +1,5 @@
 from django.db.models import Avg, Max, Min, Count, Q
-from rest_framework import viewsets, filters, status
+from rest_framework import viewsets, filters, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
@@ -11,7 +11,17 @@ from .serializers import (
 )
 
 
+class IsAssessorOrAdmin(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if not request.user.is_authenticated:
+            return False
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        return request.user.user_type in ('assessor', 'head_office') or request.user.is_superuser
+
+
 class AssessmentViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAuthenticated, IsAssessorOrAdmin]
     queryset = Assessment.objects.select_related(
         'batch', 'trainee__user', 'assessor__user', 'assessed_by',
     ).all()

@@ -349,8 +349,7 @@ export default function ApplicationReview() {
             </div>
           ) : (
             <>
-              <div className="table-responsive">
-                <table className="b-table w-100">
+              <table className="b-table w-100">
                   <thead>
                     <tr>
                       <th>
@@ -366,10 +365,11 @@ export default function ApplicationReview() {
                       <th className="sortable" onClick={() => handleSort('nid')}>
                         এনআইডি <SortIcon field="nid" />
                       </th>
-                      <th>মোবাইল</th>
+                       <th>মোবাইল</th>
                       <th className="sortable" onClick={() => handleSort('applied_at')}>
                         তারিখ <SortIcon field="applied_at" />
                       </th>
+                      <th>চোখের দৃষ্টি</th>
                       <th>অবস্থা</th>
                       <th className="text-center">কার্যক্রম</th>
                     </tr>
@@ -392,6 +392,15 @@ export default function ApplicationReview() {
                           <td className="text-nowrap small">{convertToBanglaDigits(app.nid)}</td>
                           <td className="text-nowrap small">{convertToBanglaDigits(app.phone)}</td>
                           <td className="text-nowrap small">{formatDate(app.applied_at)}</td>
+                          <td>
+                            {app.eye_screening_result === 'pass' ? (
+                              <span className="badge bg-success bg-opacity-10 text-success"><i className="bi bi-check-circle me-1"></i>পাস</span>
+                            ) : app.eye_screening_result === 'fail' ? (
+                              <span className="badge bg-danger bg-opacity-10 text-danger"><i className="bi bi-x-circle me-1"></i>ব্যর্থ</span>
+                            ) : (
+                              <span className="badge bg-secondary bg-opacity-10 text-secondary"><i className="bi bi-hourglass me-1"></i>অপেক্ষমান</span>
+                            )}
+                          </td>
                           <td>{statusBadge(pendingStatus[app.id] ?? app.status)}</td>
                           <td className="act-col">
                             <div className="dropdown act-dropdown">
@@ -432,7 +441,6 @@ export default function ApplicationReview() {
                     })}
                   </tbody>
                 </table>
-              </div>
 
               {/* Pagination + Page Info */}
               <div className="d-flex flex-wrap justify-content-between align-items-center px-3 py-2 border-top bg-light b-pagination">

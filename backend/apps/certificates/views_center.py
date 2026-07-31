@@ -27,9 +27,16 @@ class CenterCertificateViewSet(viewsets.ViewSet):
     permission_classes = [permissions.IsAuthenticated, IsCenterAdminOrHeadOffice]
 
     def get_center_id(self, request):
-        if request.user.user_type == 'head_office':
-            return request.query_params.get('center')
-        return request.user.center_id
+        user = request.user
+        if user.user_type == 'head_office' or user.is_superuser:
+            center_id = request.query_params.get('center')
+            if center_id:
+                from apps.centers.models import Center
+                if not Center.objects.filter(id=center_id).exists():
+                    from rest_framework.exceptions import NotFound
+                    raise NotFound('কেন্দ্র পাওয়া যায়নি')
+            return center_id
+        return user.center_id
 
     @action(detail=False, methods=['get'], url_path='eligible/(?P<batch_id>[^/.]+)')
     def eligible_trainees(self, request, batch_id=None):

@@ -2,6 +2,7 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
+from apps.common.throttles import LoginThrottle
 from .models import User, LoginLog
 from .serializers import UserSerializer, UserCreateSerializer, LoginSerializer
 
@@ -32,11 +33,11 @@ class UserViewSet(viewsets.ModelViewSet):
             super().perform_authentication(request)
 
     def get_permissions(self):
-        if self.action in ('login', 'create'):
+        if self.action in ('login',):
             return [permissions.AllowAny()]
         return [permissions.IsAuthenticated()]
 
-    @action(detail=False, methods=['post'], permission_classes=[permissions.AllowAny])
+    @action(detail=False, methods=['post'], permission_classes=[permissions.AllowAny], throttle_classes=[LoginThrottle])
     def login(self, request):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)

@@ -9,6 +9,7 @@ class ApplicationCenterListSerializer(serializers.ModelSerializer):
     center_code = serializers.CharField(source='chosen_center.code', read_only=True, default=None)
     routed_center_code = serializers.CharField(source='routed_center.code', read_only=True, default=None)
     routed_center_name = serializers.CharField(source='routed_center.name_bn', read_only=True, default=None)
+    eye_screening_result = serializers.SerializerMethodField()
 
     class Meta:
         model = Application
@@ -20,8 +21,14 @@ class ApplicationCenterListSerializer(serializers.ModelSerializer):
             'status', 'merit_score', 'waitlist_position',
             'auto_screen_pass', 'auto_screen_score',
             'applied_at', 'reviewed_at',
-            'profile_image',
+            'profile_image', 'eye_screening_result',
         )
+
+    def get_eye_screening_result(self, obj):
+        try:
+            return obj.eye_screening.result
+        except Exception:
+            return None
 
 
 class ApplicationCenterDetailSerializer(serializers.ModelSerializer):

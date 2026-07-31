@@ -1,5 +1,5 @@
 from django.utils import timezone
-from rest_framework import viewsets, filters, status
+from rest_framework import viewsets, filters, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
@@ -10,7 +10,15 @@ from .serializers import (
 )
 
 
+class IsHeadOfficeOrStaff(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if not request.user.is_authenticated:
+            return False
+        return request.user.user_type in ('head_office',) or request.user.is_superuser or request.user.is_staff
+
+
 class CertificateViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAuthenticated, IsHeadOfficeOrStaff]
     queryset = Certificate.objects.select_related(
         'trainee__user', 'batch', 'verified_by',
     ).all()

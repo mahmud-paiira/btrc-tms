@@ -4,6 +4,11 @@ const api = axios.create({
   baseURL: '/api',
 });
 
+function getCookie(name) {
+  const value = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+  return value ? value.pop() : null;
+}
+
 api.interceptors.request.use((config) => {
   const skipAuth = config.url?.includes('/auth/login/');
   const token = localStorage.getItem('access_token');
@@ -12,6 +17,12 @@ api.interceptors.request.use((config) => {
   }
   if (config.data instanceof FormData) {
     delete config.headers['Content-Type'];
+  }
+  if (['post', 'put', 'patch', 'delete'].includes(config.method)) {
+    const csrfToken = getCookie('csrftoken');
+    if (csrfToken) {
+      config.headers['X-CSRFToken'] = csrfToken;
+    }
   }
   return config;
 });

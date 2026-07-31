@@ -36,7 +36,7 @@ RUN pip install --no-cache-dir /wheels/* && rm -rf /wheels
 
 COPY . .
 
-RUN DJANGO_SECRET_KEY=dummy DJANGO_DEBUG=False \
+RUN SECRET_KEY=build-placeholder DJANGO_DEBUG=False \
     python manage.py collectstatic --noinput --clear
 
 RUN chown -R django:django /app

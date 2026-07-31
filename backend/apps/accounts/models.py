@@ -2,6 +2,7 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db import models
 from django.utils import timezone
 from django.core.validators import MinLengthValidator, MaxLengthValidator
+from apps.common.validators import image_validator
 from .managers import UserManager
 
 
@@ -120,6 +121,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         upload_to='users/profiles/',
         blank=True,
         verbose_name='প্রোফাইল ছবি',
+        validators=[image_validator],
     )
     is_active = models.BooleanField(
         default=True,

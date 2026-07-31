@@ -17,6 +17,7 @@ function imageUrl(path) {
 const TABS = [
   { key: 'overview', label: 'বিবরণ' },
   { key: 'documents', label: 'ডকুমেন্টস' },
+  { key: 'eye_test', label: 'চোখের দৃষ্টি পরীক্ষা' },
 ];
 
 export default function ApplicationDetail() {
@@ -242,6 +243,51 @@ export default function ApplicationDetail() {
                   )}
                 </div>
               ))}
+            </div>
+          )}
+
+          {activeTab === 'eye_test' && (
+            <div>
+              {app.eye_screening ? (
+                <div className="row g-4">
+                  <div className="col-md-6">
+                    <h6 className="fw-bold mb-3 text-muted text-uppercase small">পরীক্ষার ফলাফল</h6>
+                    <table className="b-detail-table align-middle">
+                      <tbody>
+                        <tr>
+                          <th>ফলাফল</th>
+                          <td>
+                            <span className={`badge ${app.eye_screening.result === 'pass' ? 'bg-success' : app.eye_screening.result === 'fail' ? 'bg-danger' : 'bg-secondary'}`}>
+                              {app.eye_screening.result === 'pass' ? 'পাস' : app.eye_screening.result === 'fail' ? 'ব্যর্থ' : 'অপেক্ষমান'}
+                            </span>
+                          </td>
+                        </tr>
+                        {app.eye_screening.remarks && <tr><th>কারণ</th><td>{app.eye_screening.remarks}</td></tr>}
+                        {app.eye_screening.tested_by_name && <tr><th>পরীক্ষক</th><td>{app.eye_screening.tested_by_name}</td></tr>}
+                        {app.eye_screening.tested_at && <tr><th>তারিখ</th><td>{app.eye_screening.tested_at}</td></tr>}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="col-md-6">
+                    <h6 className="fw-bold mb-3 text-muted text-uppercase small">প্রমাণপত্র</h6>
+                    {app.eye_screening.evidence_file_url ? (
+                      <a href={app.eye_screening.evidence_file_url} target="_blank" rel="noopener noreferrer">
+                        <img src={app.eye_screening.evidence_file_url} alt="প্রমাণপত্র"
+                          className="img-thumbnail"
+                          style={{ maxHeight: 300, objectFit: 'contain' }}
+                          onError={(e) => { e.target.style.display = 'none'; }} />
+                      </a>
+                    ) : (
+                      <div className="border rounded p-4 text-muted small">কোনো প্রমাণপত্র নেই</div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="alert alert-warning">
+                  <i className="bi bi-exclamation-triangle me-2"></i>
+                  এই আবেদনের চোখের দৃষ্টি পরীক্ষা এখনো সম্পন্ন হয়নি।
+                </div>
+              )}
             </div>
           )}
         </div>

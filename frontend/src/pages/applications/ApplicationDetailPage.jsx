@@ -18,6 +18,7 @@ function imageUrl(path) {
 const TABS = [
   { key: 'overview', label: 'বিবরণ' },
   { key: 'documents', label: 'ডকুমেন্টস' },
+  { key: 'eye_test', label: 'চোখের দৃষ্টি পরীক্ষা' },
 ];
 
 export default function ApplicationDetailPage() {
@@ -29,6 +30,13 @@ export default function ApplicationDetailPage() {
   const [remarks, setRemarks] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
+  const [eyeTest, setEyeTest] = useState(null);
+  const [eyeResult, setEyeResult] = useState('');
+  const [eyeRemarks, setEyeRemarks] = useState('');
+  const [eyeFile, setEyeFile] = useState(null);
+  const [eyePreview, setEyePreview] = useState(null);
+  const [eyeSubmitting, setEyeSubmitting] = useState(false);
+
   useEffect(() => {
     if (!id) return;
     setLoading(true);
@@ -36,6 +44,13 @@ export default function ApplicationDetailPage() {
       .then(r => {
         setApplication(r.data);
         setRemarks(r.data.remarks || '');
+        const eyeData = r.data.eye_screening || null;
+        setEyeTest(eyeData);
+        if (eyeData) {
+          setEyeResult(eyeData.result || '');
+          setEyeRemarks(eyeData.remarks || '');
+          if (eyeData.evidence_file_url) setEyePreview(eyeData.evidence_file_url);
+        }
       })
       .catch(() => { toast.error('আবেদনের তথ্য লোড করতে ব্যর্থ'); navigate('/center-admin/applications'); })
       .finally(() => setLoading(false));
@@ -67,6 +82,41 @@ export default function ApplicationDetailPage() {
       window.open(url, '_blank');
     } catch {
       toast.error('PDF ডাউনলোড ব্যর্থ হয়েছে');
+    }
+  };
+
+  const handleEyeTest = async () => {
+    if (!eyeResult) { toast.warning('ফলাফল নির্বাচন করুন'); return; }
+    if (eyeResult === 'fail' && !eyeRemarks.trim()) {
+      toast.warning('ব্যর্থ হলে কারণ উল্লেখ করা আবশ্যক');
+      return;
+    }
+    if (!eyeFile && !eyeTest) {
+      toast.warning('প্রমাণপত্র আপলোড করুন');
+      return;
+    }
+    setEyeSubmitting(true);
+    try {
+      const fd = new FormData();
+      fd.append('result', eyeResult);
+      if (eyeRemarks) fd.append('remarks', eyeRemarks);
+      if (eyeFile) fd.append('evidence_file', eyeFile);
+      const { data } = await applicationService.eyeScreening(id, fd);
+      setEyeTest(data);
+      toast.success('চোখের দৃষ্টি পরীক্ষার ফলাফল সংরক্ষিত হয়েছে');
+    } catch (err) {
+      const msg = err.response?.data?.error || err.response?.data?.evidence_file?.[0] || err.response?.data?.remarks?.[0] || 'সংরক্ষণ ব্যর্থ';
+      toast.error(msg);
+    } finally {
+      setEyeSubmitting(false);
+    }
+  };
+
+  const handleEyeFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setEyeFile(file);
+      setEyePreview(URL.createObjectURL(file));
     }
   };
 
@@ -238,6 +288,110 @@ export default function ApplicationDetailPage() {
                   )}
                 </div>
               ))}
+            </div>
+          )}
+
+          {activeTab === 'eye_test' && (
+            <div>
+              {eyeTest && (eyeTest.result === 'pass' || eyeTest.result === 'fail') ? (
+                <>
+                  <div className="alert alert-info mb-4">
+                    <i className="bi bi-info-circle me-2"></i>
+                    এই আবেদনের চোখের দৃষ্টি পরীক্ষা ইতিমধ্যে সম্পন্ন হয়েছে।
+                  </div>
+                  <div className="row g-4">
+                    <div className="col-md-6">
+                      <h6 className="fw-bold mb-3 text-muted text-uppercase small">পরীক্ষার ফলাফল</h6>
+                      <table className="b-detail-table w-100">
+                        <tbody>
+                          <tr>
+                            <th>ফলাফল</th>
+                            <td>
+                              <span className={`badge ${eyeTest.result === 'pass' ? 'bg-success' : 'bg-danger'}`}>
+                                {eyeTest.result === 'pass' ? 'পাস' : 'ব্যর্থ'}
+                              </span>
+                            </td>
+                          </tr>
+                          {eyeTest.remarks && <tr><th>কারণ</th><td>{eyeTest.remarks}</td></tr>}
+                          {eyeTest.tested_by_name && <tr><th>পরীক্ষক</th><td>{eyeTest.tested_by_name}</td></tr>}
+                          {eyeTest.tested_at && <tr><th>তারিখ</th><td>{eyeTest.tested_at}</td></tr>}
+                        </tbody>
+                      </table>
+                    </div>
+                    <div className="col-md-6">
+                      <h6 className="fw-bold mb-3 text-muted text-uppercase small">প্রমাণপত্র</h6>
+                      {eyeTest.evidence_file_url ? (
+                        <a href={eyeTest.evidence_file_url} target="_blank" rel="noopener noreferrer"
+                          className="btn btn-outline-primary btn-sm">
+                          <i className="bi bi-file-earmark me-1"></i>ফাইল দেখুন
+                        </a>
+                      ) : (
+                        <div className="border rounded p-4 text-muted small">কোনো প্রমাণপত্র নেই</div>
+                      )}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="alert alert-warning mb-4">
+                    <i className="bi bi-exclamation-triangle me-2"></i>
+                    এই আবেদনের চোখের দৃষ্টি পরীক্ষা এখনো সম্পন্ন হয়নি। নিচে ফলাফল জমা দিন।
+                  </div>
+                  <div className="row g-4">
+                    <div className="col-md-6">
+                      <h6 className="fw-bold mb-3">ফলাফল নির্বাচন</h6>
+                      <div className="d-flex gap-3 mb-3">
+                        <button className={`btn ${eyeResult === 'pass' ? 'btn-success' : 'btn-outline-success'} d-flex align-items-center gap-2`}
+                          onClick={() => setEyeResult('pass')} type="button">
+                          <i className="bi bi-check-circle"></i> পাস
+                        </button>
+                        <button className={`btn ${eyeResult === 'fail' ? 'btn-danger' : 'btn-outline-danger'} d-flex align-items-center gap-2`}
+                          onClick={() => setEyeResult('fail')} type="button">
+                          <i className="bi bi-x-circle"></i> ব্যর্থ
+                        </button>
+                      </div>
+                      {eyeResult === 'fail' && (
+                        <div className="mb-3">
+                          <label className="form-label fw-semibold">ব্যর্থের কারণ <span className="text-danger">*</span></label>
+                          <textarea className="form-control" rows={3}
+                            value={eyeRemarks}
+                            onChange={(e) => setEyeRemarks(e.target.value)}
+                            placeholder="ব্যর্থ হওয়ার কারণ লিখুন..." />
+                        </div>
+                      )}
+                    </div>
+                    <div className="col-md-6">
+                      <h6 className="fw-bold mb-3">প্রমাণপত্র আপলোড</h6>
+                      {eyePreview ? (
+                        <div className="text-center position-relative">
+                          <img src={eyePreview} alt="প্রমাণপত্র"
+                            className="img-thumbnail"
+                            style={{ maxHeight: 250, objectFit: 'contain' }} />
+                          <button className="btn btn-sm btn-outline-danger mt-2"
+                            onClick={() => { setEyeFile(null); setEyePreview(null); }}>
+                            <i className="bi bi-trash me-1"></i>মুছুন
+                          </button>
+                        </div>
+                      ) : (
+                        <label className="upload-box d-flex flex-column align-items-center justify-content-center p-4 border border-2 border-dashed rounded-3"
+                          style={{ cursor: 'pointer', minHeight: 180 }}>
+                          <input type="file" accept="image/*" className="d-none" onChange={handleEyeFileChange} />
+                          <i className="bi bi-cloud-arrow-up fs-1 text-muted mb-2"></i>
+                          <span className="text-muted small">ছবি আপলোড করুন</span>
+                          <small className="text-muted">JPG, PNG (সর্বোচ্চ 10MB)</small>
+                        </label>
+                      )}
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <button className="btn btn-primary d-flex align-items-center gap-2"
+                      onClick={handleEyeTest} disabled={eyeSubmitting || !eyeResult}>
+                      {eyeSubmitting ? <span className="spinner-border spinner-border-sm" /> : <i className="bi bi-check2-circle"></i>}
+                      সংরক্ষণ করুন
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           )}
         </div>

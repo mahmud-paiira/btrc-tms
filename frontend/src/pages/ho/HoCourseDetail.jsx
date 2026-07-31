@@ -82,9 +82,15 @@ export default function HoCourseDetail() {
         </div>
         <div className="ms-auto d-flex align-items-center gap-2">
           <button className="btn btn-outline-danger btn-sm" title="পিডিএফ প্রিন্ট"
-            onClick={() => {
+            onClick={async () => {
               const token = localStorage.getItem('access_token');
-              window.open(`/api/ho/courses/${course.id}/print_course/?token=${token}`, '_blank');
+              try {
+                const res = await fetch(`/api/ho/courses/${course.id}/print_course/`, { headers: { 'Authorization': `Bearer ${token}` } });
+                if (!res.ok) throw new Error('Failed');
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                window.open(url, '_blank');
+              } catch { alert('PDF generation failed'); }
             }}>
             <i className="bi bi-filetype-pdf me-1"></i>পিডিএফ
           </button>

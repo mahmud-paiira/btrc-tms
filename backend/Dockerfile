@@ -15,11 +15,21 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     tesseract-ocr-ben \
     && rm -rf /var/lib/apt/lists/*
 
+# Create non-root user
+RUN groupadd -r appuser --gid 1000 && \
+    useradd -r -g appuser --uid 1000 --no-create-home appuser
+
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
+# Media dir writable by appuser
+RUN mkdir -p /app/media /app/staticfiles && \
+    chown -R appuser:appuser /app/media /app/staticfiles
+
 EXPOSE 8000
 
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "brtc_tms.wsgi:application"]
+USER appuser
+
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "brtc_tms.wsgi:application", "--workers", "2", "--timeout", "120"]

@@ -5,6 +5,7 @@ import hoService from '../../services/hoService';
 import api from '../../services/api';
 import { formatDate } from '../../utils/dateFormatter';
 import { convertToBanglaDigits, formatNumber } from '../../utils/numberFormatter';
+import { escapeHtml } from '../../utils/escapeHtml';
 
 const TABS = [
   { key: 'trainers', label: 'প্রশিক্ষক', icon: 'bi-person-badge', color: '#6366f1' },
@@ -149,7 +150,7 @@ export default function HoApprovalManagement() {
         th { background: #f0f0f0; }
         .text-center { text-align: center; }
       </style></head><body>
-      <h2>${TABS.find((t) => t.key === activeTab)?.label || ''} তালিকা</h2>
+      <h2>${escapeHtml(TABS.find((t) => t.key === activeTab)?.label || '')} তালিকা</h2>
       <table>
         <thead><tr>
           <th class="text-center">#</th>
@@ -164,11 +165,11 @@ export default function HoApprovalManagement() {
               : activeTab === 'trainers'
                 ? [item.trainer_no, item.user?.full_name_bn || item.user?.email || '—', item.user?.phone || '—', item.expertise_area]
                 : [item.assessor_no, item.user?.full_name_bn || item.user?.email || '—', item.user?.phone || '—', item.expertise_area];
-            return `<tr><td class="text-center">${idx + 1}</td>${fields.map((f) => `<td>${f || '—'}</td>`).join('')}</tr>`;
+            return `<tr><td class="text-center">${idx + 1}</td>${fields.map((f) => `<td>${escapeHtml(f || '—')}</td>`).join('')}</tr>`;
           }).join('')}
         </tbody>
       </table>
-      <p style="text-align:center;margin-top:20px;color:#666;font-size:11px;">প্রিন্টের তারিখ: ${formatDate(new Date())}</p>
+      <p style="text-align:center;margin-top:20px;color:#666;font-size:11px;">প্রিন্টের তারিখ: ${escapeHtml(formatDate(new Date()))}</p>
       <script>window.print();window.close();<\/script>
       </body></html>
     `);
@@ -397,5 +398,11 @@ const TAB_FIELDS = {
     { key: 'name_bn', label: 'নাম' },
     { key: 'nid', label: 'এনআইডি' },
     { key: 'phone', label: 'মোবাইল' },
+    { key: 'eye_test', label: 'চোখের দৃষ্টি', render: (app) => {
+      const r = app.eye_screening?.result;
+      if (r === 'pass') return <span className="badge bg-success bg-opacity-10 text-success"><i className="bi bi-check-circle me-1"></i>পাস</span>;
+      if (r === 'fail') return <span className="badge bg-danger bg-opacity-10 text-danger"><i className="bi bi-x-circle me-1"></i>ব্যর্থ</span>;
+      return <span className="badge bg-secondary bg-opacity-10 text-secondary"><i className="bi bi-hourglass me-1"></i>অপেক্ষমান</span>;
+    }},
   ],
 };

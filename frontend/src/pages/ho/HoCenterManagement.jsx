@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import hoService from '../../services/hoService';
 import BanglaInput from '../../components/common/BanglaInput';
 import { convertToBanglaDigits, formatNumber } from '../../utils/numberFormatter';
+import { escapeHtml } from '../../utils/escapeHtml';
 
 const STATUS_MAP = { active: 'সক্রিয়', suspended: 'স্থগিত' };
 const INFRA_STATUSES = [
@@ -689,12 +690,8 @@ export default function HoCenterManagement() {
       a.click();
       window.URL.revokeObjectURL(url);
       toast.success('এক্সপোর্ট সম্পন্ন');
-    } catch (err) {
-      console.error('Export error:', err);
-      const msg = err.response?.status
-        ? `এক্সপোর্ট ব্যর্থ (${err.response.status}: ${err.response.statusText})`
-        : err.message || 'এক্সপোর্ট ব্যর্থ';
-      toast.error(msg);
+    } catch {
+      toast.error('এক্সপোর্ট ব্যর্থ');
     }
   };
 
@@ -725,10 +722,10 @@ export default function HoCenterManagement() {
         ${rows.map((c, i) => `
           <tr>
             <td class="text-center">${convertToBanglaDigits(i + 1)}</td>
-            <td>${c.name_bn}</td>
-            <td>${c.name_en || ''}</td>
-            <td>${convertToBanglaDigits(c.phone || '')}</td>
-            <td>${c.email || ''}</td>
+            <td>${escapeHtml(c.name_bn)}</td>
+            <td>${escapeHtml(c.name_en || '')}</td>
+            <td>${escapeHtml(convertToBanglaDigits(c.phone || ''))}</td>
+            <td>${escapeHtml(c.email || '')}</td>
           </tr>
         `).join('')}
         </tbody></table>

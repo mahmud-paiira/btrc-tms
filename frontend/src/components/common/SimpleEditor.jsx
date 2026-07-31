@@ -1,4 +1,5 @@
 import React, { useRef, useCallback, useEffect } from 'react';
+import { sanitize } from '../../utils/sanitize';
 
 const TOOLBAR = [
   { cmd: 'bold', icon: 'bi-type-bold', title: 'বোল্ড' },
@@ -16,7 +17,7 @@ export default function SimpleEditor({ value, onChange, placeholder }) {
   useEffect(() => {
     if (!ref.current) return;
     const html = value || '';
-    if (ref.current.innerHTML !== html) ref.current.innerHTML = html;
+    if (ref.current.innerHTML !== html) ref.current.innerHTML = sanitize(html);
   }, [value]);
 
   const exec = useCallback((cmd, val) => {

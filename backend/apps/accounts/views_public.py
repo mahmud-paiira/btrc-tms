@@ -2,11 +2,12 @@ from datetime import timedelta
 from django.conf import settings
 from django.utils import timezone
 from rest_framework import status
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from apps.common.utils import to_english_digits
+from apps.common.throttles import RegistrationThrottle, OTPThrottle, LoginThrottle, PublicCheckThrottle
 
 from .models import User, OTPVerification, LoginLog
 from .serializers_public import (
@@ -19,6 +20,7 @@ from .services import generate_otp, send_otp_sms
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
+@throttle_classes([RegistrationThrottle])
 def public_register(request):
     serializer = PublicRegisterSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
@@ -34,14 +36,14 @@ def public_register(request):
     send_otp_sms(user.phone, otp_code)
 
     return Response({
-        'message': 'নিবন্ধন সফল হয়েছে। OTP কোড পাঠানো হয়েছে।',
+        'message': 'নিবন্ধন সফল হয়েছে। OTP কোড পাঠানো হয়েছে।',
         'phone': user.phone,
-        'user_id': user.id,
     }, status=status.HTTP_201_CREATED)
 
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
+@throttle_classes([OTPThrottle])
 def public_verify_otp(request):
     serializer = PublicOTPVerifySerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
@@ -56,7 +58,7 @@ def public_verify_otp(request):
 
     test_otp = getattr(settings, 'TEST_OTP', None)
 
-    if test_otp and otp_code == str(test_otp):
+    if test_otp and settings.DEBUG and otp_code == str(test_otp):
         OTPVerification.objects.filter(
             user=user,
             purpose=OTPVerification.Purpose.REGISTRATION,
@@ -100,6 +102,7 @@ def public_verify_otp(request):
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
+@throttle_classes([OTPThrottle])
 def public_resend_otp(request):
     phone = request.data.get('phone', '')
     if not phone or not phone.isdigit() or len(phone) != 11:
@@ -108,7 +111,7 @@ def public_resend_otp(request):
     try:
         user = User.objects.get(phone=phone)
     except User.DoesNotExist:
-        return Response({'error': 'এই মোবাইল নম্বর দিয়ে কোন একাউন্ট নেই'}, status=404)
+        return Response({'message': 'OTP পুনরায় পাঠানো হয়েছে যদি এই নম্বরে একাউন্ট থাকে'})
 
     if user.is_phone_verified:
         return Response({'error': 'এই নম্বর ইতিমধ্যে নিশ্চিত করা হয়েছে'}, status=400)
@@ -134,6 +137,7 @@ def public_resend_otp(request):
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
+@throttle_classes([PublicCheckThrottle])
 def public_check_user(request):
     phone = to_english_digits(request.data.get('phone', '')).strip()
     nid = to_english_digits(request.data.get('nid', '')).strip()
@@ -148,6 +152,7 @@ def public_check_user(request):
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
+@throttle_classes([LoginThrottle])
 def public_login(request):
     serializer = PublicLoginSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)

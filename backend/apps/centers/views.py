@@ -2,6 +2,7 @@ from rest_framework import viewsets, filters, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
+from apps.common.permissions import IsAdminOrHeadOffice
 from .models import Center, Infrastructure, Employee
 from .serializers import (
     CenterListSerializer,
@@ -12,7 +13,7 @@ from .serializers import (
 
 
 class CenterViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsAdminOrHeadOffice]
 
     def get_queryset(self):
         user = self.request.user
@@ -48,7 +49,7 @@ class CenterViewSet(viewsets.ModelViewSet):
 
 
 class InfrastructureViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsAdminOrHeadOffice]
 
     def get_queryset(self):
         user = self.request.user
@@ -65,7 +66,7 @@ class InfrastructureViewSet(viewsets.ModelViewSet):
 
 
 class EmployeeViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsAdminOrHeadOffice]
 
     def get_queryset(self):
         user = self.request.user

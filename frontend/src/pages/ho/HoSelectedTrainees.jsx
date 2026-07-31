@@ -5,6 +5,7 @@ import hoService from '../../services/hoService';
 import { useTranslation } from '../../hooks/useTranslation';
 import { formatDate } from '../../utils/dateFormatter';
 import { convertToBanglaDigits, formatNumber } from '../../utils/numberFormatter';
+import { escapeHtml } from '../../utils/escapeHtml';
 
 export default function HoSelectedTrainees() {
   const navigate = useNavigate();
@@ -115,26 +116,26 @@ export default function HoSelectedTrainees() {
       </div>
       <div class="report-info">
         <span>মোট: ${items.length} জন</span>
-        <span>প্রিন্টের তারিখ: ${formatDate(new Date())}</span>
+        <span>প্রিন্টের তারিখ: ${escapeHtml(formatDate(new Date()))}</span>
       </div>
       <table>
         <tr><th>ক্রমিক</th><th>রেজি. নং</th><th>নাম (বাংলা)</th><th>নাম (ইংরেজি)</th><th>ইমেইল</th><th>ফোন</th><th>কেন্দ্র</th><th>ব্যাচ</th><th>অবস্থা</th><th>নথিভুক্তির তারিখ</th></tr>
         ${items.map((t, i) => {
           return `<tr>
             <td style="text-align:center;width:40px;">${i + 1}</td>
-            <td><strong>${convertToBanglaDigits(t.registration_no) || '—'}</strong></td>
-            <td>${t.user_name || '—'}</td>
-            <td>${t.user_name_en || '—'}</td>
-            <td>${t.user_email || '—'}</td>
-            <td>${convertToBanglaDigits(t.user_phone) || '—'}</td>
-            <td>${t.center_name || '—'}</td>
-            <td>${t.batch_name || '—'}</td>
-            <td>${t.status_display || t.status || '—'}</td>
-            <td>${t.enrollment_date || '—'}</td>
+            <td><strong>${escapeHtml(convertToBanglaDigits(t.registration_no) || '—')}</strong></td>
+            <td>${escapeHtml(t.user_name || '—')}</td>
+            <td>${escapeHtml(t.user_name_en || '—')}</td>
+            <td>${escapeHtml(t.user_email || '—')}</td>
+            <td>${escapeHtml(convertToBanglaDigits(t.user_phone) || '—')}</td>
+            <td>${escapeHtml(t.center_name || '—')}</td>
+            <td>${escapeHtml(t.batch_name || '—')}</td>
+            <td>${escapeHtml(t.status_display || t.status || '—')}</td>
+            <td>${escapeHtml(t.enrollment_date || '—')}</td>
           </tr>`;
         }).join('')}
       </table>
-      <div class="footer">প্রশিক্ষণার্থী তালিকা - ${formatDate(new Date())}</div>
+      <div class="footer">প্রশিক্ষণার্থী তালিকা - ${escapeHtml(formatDate(new Date()))}</div>
       <script>window.print();</script>
       </body></html>
     `);

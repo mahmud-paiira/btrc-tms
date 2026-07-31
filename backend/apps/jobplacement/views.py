@@ -1,5 +1,5 @@
 from django.db.models import Count, Q, Avg
-from rest_framework import viewsets, filters, status
+from rest_framework import viewsets, filters, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
@@ -11,7 +11,17 @@ from .serializers import (
 )
 
 
+class IsHeadOfficeOrStaff(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if not request.user.is_authenticated:
+            return False
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        return request.user.user_type in ('head_office',) or request.user.is_superuser or request.user.is_staff
+
+
 class JobPlacementViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAuthenticated, IsHeadOfficeOrStaff]
     queryset = JobPlacement.objects.select_related(
         'trainee__user', 'batch', 'created_by',
     ).all()

@@ -48,13 +48,22 @@ class ApplicationFilter(FilterSet):
 class ApplicationViewSet(viewsets.ModelViewSet):
     queryset = Application.objects.select_related(
         'circular', 'circular__course', 'reviewed_by', 'chosen_center'
-    )
+    ).prefetch_related('eye_screening')
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = ApplicationFilter
     search_fields = ('application_no', 'name_bn', 'name_en', 'nid', 'phone')
     ordering_fields = ('applied_at', 'name_bn', 'status')
     ordering = ('-applied_at',)
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        user = self.request.user
+        if user.user_type == 'center_admin' and user.center:
+            qs = qs.filter(chosen_center=user.center)
+        elif user.user_type == 'center_admin' and not user.center:
+            return Application.objects.none()
+        return qs
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -71,7 +80,18 @@ class ApplicationViewSet(viewsets.ModelViewSet):
         serializer = ApplicationStatusUpdateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        application.status = serializer.validated_data['status']
+        new_status = serializer.validated_data['status']
+
+        if new_status == 'selected':
+            from .models import EyeScreeningTest
+            try:
+                eye_test = EyeScreeningTest.objects.get(application=application)
+                if eye_test.result != EyeScreeningTest.Result.PASS:
+                    return Response({'error': 'নির্বাচন করতে হলে চোখের দৃষ্টি পরীক্ষায় পাস করা আবশ্যক। পরীক্ষার ফলাফল: ' + eye_test.get_result_display()}, status=status.HTTP_400_BAD_REQUEST)
+            except EyeScreeningTest.DoesNotExist:
+                return Response({'error': 'নির্বাচন করতে হলে প্রথমে চোখের দৃষ্টি পরীক্ষা সম্পন্ন করুন'}, status=status.HTTP_400_BAD_REQUEST)
+
+        application.status = new_status
         application.reviewed_by = request.user
         application.reviewed_at = timezone.now()
         if serializer.validated_data.get('remarks'):

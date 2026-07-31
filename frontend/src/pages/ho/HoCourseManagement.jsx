@@ -110,7 +110,6 @@ function CourseFormWizard({ show, course, onClose, onSaved }) {
     setSaving(true);
     try {
       const payload = buildPayload();
-      console.log('Submitting course payload:', JSON.stringify(payload, null, 2));
       if (course) {
         await hoService.updateCourse(course.id, payload);
         toast.success('কোর্স আপডেট হয়েছে');
@@ -120,8 +119,7 @@ function CourseFormWizard({ show, course, onClose, onSaved }) {
       }
       onSaved();
     } catch (err) {
-      console.error('Course save error:', err.response?.data || err);
-      toast.error(err.response?.data?.detail?.[0] || JSON.stringify(err.response?.data) || 'সংরক্ষণ ব্যর্থ');
+      toast.error(err.response?.data?.detail?.[0] || 'সংরক্ষণ ব্যর্থ');
     } finally {
       setSaving(false);
     }

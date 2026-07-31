@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import circularService from '../../services/circularService';
 import { formatDate } from '../../utils/dateFormatter';
 import { convertToBanglaDigits } from '../../utils/numberFormatter';
+import { sanitize } from '../../utils/sanitize';
 import './PublicCircular.css';
 
 export default function PublicCircularList() {
@@ -137,7 +138,7 @@ export default function PublicCircularList() {
               {circular.description && (
                 <div className="col-12">
                   <h6 className="fw-bold mb-3 text-muted text-uppercase small">বিবরণ</h6>
-                  <div className="p-3 bg-light rounded description-content" dangerouslySetInnerHTML={{ __html: circular.description }} />
+                  <div className="p-3 bg-light rounded description-content" dangerouslySetInnerHTML={{ __html: sanitize(circular.description) }} />
                 </div>
               )}
             </div>

@@ -203,8 +203,9 @@ class TraineePortalViewSet(viewsets.ViewSet):
         # attendance trend by week
         trend = []
         from django.db.models import Count, Q
-        weekly = qs.extra(
-            select={'week': "EXTRACT(WEEK FROM session_date)"}
+        from django.db.models.functions import ExtractWeek
+        weekly = qs.annotate(
+            week=ExtractWeek('session_date'),
         ).values('week').annotate(
             total=Count('id'),
             present=Count('id', filter=Q(status='present')),
@@ -361,9 +362,9 @@ class TraineePortalViewSet(viewsets.ViewSet):
                 status=400,
             )
 
-        if len(new_password) < 6:
+        if len(new_password) < 8:
             return Response(
-                {'detail': 'পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে।'},
+                {'detail': 'পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে।'},
                 status=400,
             )
 

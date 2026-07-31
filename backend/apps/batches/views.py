@@ -8,6 +8,8 @@ from rest_framework import viewsets, status, filters, serializers
 from rest_framework.decorators import action
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
+
+from apps.common.permissions import IsAdminOrHeadOffice
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db import transaction
@@ -38,7 +40,7 @@ class BatchViewSet(viewsets.ModelViewSet):
     queryset = Batch.objects.select_related(
         'circular', 'center', 'course', 'created_by'
     ).prefetch_related('week_plans', 'enrollments').all()
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsAdminOrHeadOffice]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ('center', 'course', 'circular', 'status')
     search_fields = ('batch_no', 'custom_batch_no', 'batch_name_bn', 'batch_name_en')
@@ -836,7 +838,7 @@ class BatchWeekPlanViewSet(viewsets.ModelViewSet):
     queryset = BatchWeekPlan.objects.select_related(
         'batch', 'lead_trainer__user', 'associate_trainer__user'
     ).all()
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsAdminOrHeadOffice]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ('batch', 'term_no', 'class_type', 'day_of_week', 'lead_trainer')
     ordering = ('batch', 'term_no', 'term_day', 'session_no')
@@ -860,7 +862,7 @@ class BatchEnrollmentViewSet(viewsets.ModelViewSet):
     queryset = BatchEnrollment.objects.select_related(
         'trainee__user', 'batch'
     ).all()
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsAdminOrHeadOffice]
     serializer_class = BatchEnrollmentSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ('batch', 'status')

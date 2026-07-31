@@ -3,6 +3,7 @@ from datetime import date
 from django.db import models
 from django.core.validators import RegexValidator, MinLengthValidator
 from apps.accounts.models import User
+from apps.common.validators import image_validator, document_validator
 from apps.centers.models import Center
 from apps.circulars.models import Circular
 from apps.system_config.models import Gender, Education, Demography
@@ -137,14 +138,17 @@ class Application(models.Model):
     profile_image = models.ImageField(
         upload_to='applications/photos/', blank=True,
         verbose_name='ছবি',
+        validators=[image_validator],
     )
     nid_front_image = models.ImageField(
         upload_to='applications/nid/', blank=True,
         verbose_name='এনআইডি (সামনে)',
+        validators=[image_validator],
     )
     nid_back_image = models.ImageField(
         upload_to='applications/nid/', blank=True,
         verbose_name='এনআইডি (পেছনে)',
+        validators=[image_validator],
     )
 
     # Review
@@ -283,6 +287,46 @@ class RoutingLog(models.Model):
 
     def __str__(self):
         return f'{self.application.application_no} → {self.to_center}'
+
+
+class EyeScreeningTest(models.Model):
+    class Result(models.TextChoices):
+        PENDING = 'pending', 'অপেক্ষমান'
+        PASS = 'pass', 'পাস'
+        FAIL = 'fail', 'ব্যর্থ'
+
+    application = models.OneToOneField(
+        Application, on_delete=models.CASCADE,
+        related_name='eye_screening', verbose_name='আবেদন',
+    )
+    result = models.CharField(
+        max_length=10, choices=Result.choices,
+        default=Result.PENDING, verbose_name='ফলাফল',
+    )
+    evidence_file = models.FileField(
+        upload_to='applications/eye_screening/', blank=True,
+        verbose_name='প্রমাণপত্র',
+        validators=[document_validator],
+    )
+    remarks = models.TextField(
+        blank=True, verbose_name='কারণ',
+        help_text='ব্যর্থ হলে কারণ উল্লেখ করুন',
+    )
+    tested_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='eye_screening_tests', verbose_name='পরীক্ষক',
+    )
+    tested_at = models.DateTimeField(
+        null=True, blank=True, verbose_name='পরীক্ষার তারিখ',
+    )
+
+    class Meta:
+        verbose_name = 'চোখের দৃষ্টি পরীক্ষা'
+        verbose_name_plural = 'চোখের দৃষ্টি পরীক্ষাসমূহ'
+
+    def __str__(self):
+        return f'{self.application.application_no} - {self.get_result_display()}'
 
 
 class WaitlistHistory(models.Model):

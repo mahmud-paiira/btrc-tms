@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import api from '../../services/api';
 import { formatDate } from '../../utils/dateFormatter';
 import { convertToBanglaDigits, formatNumber } from '../../utils/numberFormatter';
+import { escapeHtml } from '../../utils/escapeHtml';
 
 const API_URL = '/api';
 const STATUS_BG = { pending: 'warning', active: 'success', suspended: 'danger', inactive: 'secondary' };
@@ -59,7 +60,7 @@ export default function TrainerDetailPage() {
     const w = window.open('', '_blank');
     if (!w) { toast.error('পপ-আপ ব্লকার অক্ষম করুন'); return; }
     w.document.write(`
-      <html><head><title>প্রশিক্ষক - ${u.full_name_bn || t.trainer_no}</title>
+      <html><head><title>প্রশিক্ষক - ${escapeHtml(u.full_name_bn || t.trainer_no)}</title>
       <style>
         body { font-family: 'NikoshBAN', 'SolaimanLipi', Arial, sans-serif; padding: 30px; color: #222; }
         .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #1a56db; padding-bottom: 15px; }
@@ -79,29 +80,29 @@ export default function TrainerDetailPage() {
         <h1>প্রশিক্ষকের বিবরণ</h1>
         <p>প্রশিক্ষণ ব্যবস্থাপনা সিস্টেম</p>
       </div>
-      ${u.profile_image ? `<div class="photo"><img src="${imageUrl(u.profile_image)}" /></div>` : ''}
+      ${u.profile_image ? `<div class="photo"><img src="${escapeHtml(imageUrl(u.profile_image))}" /></div>` : ''}
       <div class="section-title">ব্যক্তিগত তথ্য</div>
       <table>
-<tr><th>প্রশিক্ষক নং</th><td>${convertToBanglaDigits(t.trainer_no)}</td></tr>
-        <tr><th>নাম (বাংলা)</th><td><strong>${u.full_name_bn || '—'}</strong></td></tr>
-        <tr><th>নাম (ইংরেজি)</th><td>${u.full_name_en || '—'}</td></tr>
-        <tr><th>ইমেইল</th><td>${u.email || '—'}</td></tr>
-        <tr><th>ফোন</th><td>${convertToBanglaDigits(u.phone) || '—'}</td></tr>
-        <tr><th>এনআইডি</th><td>${convertToBanglaDigits(t.nid) || '—'}</td></tr>
-        <tr><th>জন্ম নিবন্ধন</th><td>${t.birth_certificate_no || '—'}</td></tr>
-        <tr><th>জন্ম তারিখ</th><td>${t.date_of_birth || '—'}</td></tr>
+<tr><th>প্রশিক্ষক নং</th><td>${convertToBanglaDigits(escapeHtml(t.trainer_no))}</td></tr>
+        <tr><th>নাম (বাংলা)</th><td><strong>${escapeHtml(u.full_name_bn || '—')}</strong></td></tr>
+        <tr><th>নাম (ইংরেজি)</th><td>${escapeHtml(u.full_name_en || '—')}</td></tr>
+        <tr><th>ইমেইল</th><td>${escapeHtml(u.email || '—')}</td></tr>
+        <tr><th>ফোন</th><td>${convertToBanglaDigits(escapeHtml(u.phone)) || '—'}</td></tr>
+        <tr><th>এনআইডি</th><td>${convertToBanglaDigits(escapeHtml(t.nid)) || '—'}</td></tr>
+        <tr><th>জন্ম নিবন্ধন</th><td>${escapeHtml(t.birth_certificate_no || '—')}</td></tr>
+        <tr><th>জন্ম তারিখ</th><td>${escapeHtml(t.date_of_birth || '—')}</td></tr>
       </table>
       <div class="section-title">পেশাগত তথ্য</div>
       <table>
-        <tr><th>পিতার নাম</th><td>${t.father_name_bn || '—'}</td></tr>
-        <tr><th>মাতার নাম</th><td>${t.mother_name_bn || '—'}</td></tr>
-        <tr><th>শিক্ষাগত যোগ্যতা</th><td>${t.education_name || t.education_qualification || '—'}</td></tr>
-        <tr><th>অভিজ্ঞতা</th><td>${t.years_of_experience ? formatNumber(t.years_of_experience) + ' বছর' : '—'}</td></tr>
-        <tr><th>দক্ষতার ক্ষেত্র</th><td>${t.expertise_area || '—'}</td></tr>
-        <tr><th>ব্যাংক একাউন্ট</th><td>${convertToBanglaDigits(t.bank_account_no) || '—'}</td></tr>
-        <tr><th>ব্যাংকের নাম</th><td>${t.bank_name || '—'}</td></tr>
+        <tr><th>পিতার নাম</th><td>${escapeHtml(t.father_name_bn || '—')}</td></tr>
+        <tr><th>মাতার নাম</th><td>${escapeHtml(t.mother_name_bn || '—')}</td></tr>
+        <tr><th>শিক্ষাগত যোগ্যতা</th><td>${escapeHtml(t.education_name || t.education_qualification || '—')}</td></tr>
+        <tr><th>অভিজ্ঞতা</th><td>${t.years_of_experience ? escapeHtml(formatNumber(t.years_of_experience)) + ' বছর' : '—'}</td></tr>
+        <tr><th>দক্ষতার ক্ষেত্র</th><td>${escapeHtml(t.expertise_area || '—')}</td></tr>
+        <tr><th>ব্যাংক একাউন্ট</th><td>${convertToBanglaDigits(escapeHtml(t.bank_account_no)) || '—'}</td></tr>
+        <tr><th>ব্যাংকের নাম</th><td>${escapeHtml(t.bank_name || '—')}</td></tr>
       </table>
-      <div class="footer">প্রশিক্ষকের বিবরণ - ${formatDate(new Date())}</div>
+      <div class="footer">প্রশিক্ষকের বিবরণ - ${escapeHtml(formatDate(new Date()))}</div>
       <script>window.print();</script>
       </body></html>
     `);

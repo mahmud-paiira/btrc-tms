@@ -1,11 +1,12 @@
 import os
 import tempfile
 from rest_framework import status
-from rest_framework.decorators import api_view, parser_classes
+from rest_framework.decorators import api_view, parser_classes, throttle_classes
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from django.conf import settings
 from apps.common.utils import to_english_digits
+from apps.common.throttles import OCRThrottle, PublicApplyThrottle, PrintThrottle
 from .models import Application
 from .serializers_public import (
     NIDUploadSerializer,
@@ -17,6 +18,7 @@ from .ocr.utils import extract_nid_data
 
 @api_view(['POST'])
 @parser_classes([MultiPartParser, FormParser])
+@throttle_classes([OCRThrottle])
 def ocr_extract(request):
     serializer = NIDUploadSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
@@ -105,6 +107,7 @@ def verify_nid(request):
 
 @api_view(['POST'])
 @parser_classes([MultiPartParser, FormParser])
+@throttle_classes([PublicApplyThrottle])
 def public_apply(request):
     data = request.data.copy()
     if request.user.is_authenticated:
@@ -125,6 +128,7 @@ def public_apply(request):
 
 
 @api_view(['GET'])
+@throttle_classes([PrintThrottle])
 def print_application(request, application_no):
     try:
         app = Application.objects.select_related(

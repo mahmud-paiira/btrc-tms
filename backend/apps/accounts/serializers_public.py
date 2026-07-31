@@ -6,11 +6,11 @@ from .models import User, UserProfile
 
 class PublicRegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
-        write_only=True, min_length=6,
-        label='পাসওয়ার্ড',
+        write_only=True, min_length=8,
+        label='পাসওয়ার্ড',
     )
     confirm_password = serializers.CharField(
-        write_only=True, min_length=6,
+        write_only=True, min_length=8,
         label='পাসওয়ার্ড নিশ্চিতকরণ',
     )
     email = serializers.EmailField(required=False, allow_blank=True, label='ইমেইল')

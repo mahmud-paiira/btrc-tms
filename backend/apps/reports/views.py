@@ -1,4 +1,4 @@
-from rest_framework import viewsets, filters, status
+from rest_framework import viewsets, filters, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
@@ -7,7 +7,17 @@ from .serializers import ReportSerializer, ReportGenerateSerializer
 from .tasks import generate_report
 
 
+class IsHeadOfficeOrStaff(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if not request.user.is_authenticated:
+            return False
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        return request.user.user_type in ('head_office',) or request.user.is_superuser or request.user.is_staff
+
+
 class ReportViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAuthenticated, IsHeadOfficeOrStaff]
     queryset = Report.objects.select_related('generated_by').all()
     serializer_class = ReportSerializer
     filter_backends = (DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter)

@@ -6,6 +6,7 @@ import { useTranslation } from '../../hooks/useTranslation';
 import { useAuth } from '../../contexts/AuthContext';
 import { formatDate } from '../../utils/dateFormatter';
 import { convertToBanglaDigits } from '../../utils/numberFormatter';
+import { escapeHtml } from '../../utils/escapeHtml';
 import AddTraineeModal from '../../components/batches/AddTraineeModal';
 import TransferModal from '../../components/batches/TransferModal';
 import AssignTrainerModal from '../../components/batches/AssignTrainerModal';
@@ -90,32 +91,32 @@ export default function BatchDetail() {
         <span>প্রিন্টের তারিখ: ${formatDate(new Date())}</span>
       </div>
       <div class="info-grid">
-        <div><span class="label">ব্যাচ নং:</span> <strong>${convertToBanglaDigits(batch.batch_no)}</strong></div>
-        <div><span class="label">অবস্থা:</span> <strong>${statusLabel}</strong></div>
-        <div><span class="label">নাম (বাংলা):</span> <strong>${batch.batch_name_bn || '-'}</strong></div>
-        <div><span class="label">নাম (ইংরেজি):</span> <strong>${batch.batch_name_en || '-'}</strong></div>
-        <div><span class="label">শিফট:</span> <strong>${batch.shift === 'shift_1' ? 'শিফট-১' : batch.shift === 'shift_2' ? 'শিফট-২' : '-'}</strong></div>
-        <div><span class="label">কোর্স:</span> <strong>${batch.course_name}</strong></div>
-        <div><span class="label">কেন্দ্র:</span> <strong>${batch.center_name || '-'}</strong></div>
-        <div><span class="label">শুরুর তারিখ:</span> <strong>${batch.start_date ? formatDate(batch.start_date) : '-'}</strong></div>
-        <div><span class="label">সমাপ্তির তারিখ:</span> <strong>${batch.end_date ? formatDate(batch.end_date) : '-'}</strong></div>
-        <div><span class="label">আসন:</span> <strong>${convertToBanglaDigits(batch.filled_seats || 0)} / ${convertToBanglaDigits(batch.total_seats || 0)}</strong></div>
+        <div><span class="label">ব্যাচ নং:</span> <strong>${convertToBanglaDigits(escapeHtml(batch.batch_no))}</strong></div>
+        <div><span class="label">অবস্থা:</span> <strong>${escapeHtml(statusLabel)}</strong></div>
+        <div><span class="label">নাম (বাংলা):</span> <strong>${escapeHtml(batch.batch_name_bn || '-')}</strong></div>
+        <div><span class="label">নাম (ইংরেজি):</span> <strong>${escapeHtml(batch.batch_name_en || '-')}</strong></div>
+        <div><span class="label">শিফট:</span> <strong>${escapeHtml(batch.shift === 'shift_1' ? 'শিফট-১' : batch.shift === 'shift_2' ? 'শিফট-২' : '-')}</strong></div>
+        <div><span class="label">কোর্স:</span> <strong>${escapeHtml(batch.course_name)}</strong></div>
+        <div><span class="label">কেন্দ্র:</span> <strong>${escapeHtml(batch.center_name || '-')}</strong></div>
+        <div><span class="label">শুরুর তারিখ:</span> <strong>${batch.start_date ? escapeHtml(formatDate(batch.start_date)) : '-'}</strong></div>
+        <div><span class="label">সমাপ্তির তারিখ:</span> <strong>${batch.end_date ? escapeHtml(formatDate(batch.end_date)) : '-'}</strong></div>
+        <div><span class="label">আসন:</span> <strong>${convertToBanglaDigits(escapeHtml(batch.filled_seats || 0))} / ${convertToBanglaDigits(escapeHtml(batch.total_seats || 0))}</strong></div>
       </div>
       <table>
         <tr><th>ক্রমিক</th><th>রেজি. নং</th><th>নাম</th><th>মোবাইল</th><th>শিফট</th><th>নথিভুক্তির তারিখ</th><th>অবস্থা</th></tr>
         ${enrollments.length === 0 ? '<tr><td colspan="7" style="text-align:center">কোনো প্রশিক্ষণার্থী নথিভুক্ত নন</td></tr>' : enrollments.map((e, i) => `
           <tr>
-            <td>${convertToBanglaDigits(i + 1)}</td>
-            <td>${e.trainee_reg_no ? convertToBanglaDigits(e.trainee_reg_no) : '-'}</td>
-            <td>${e.trainee_name || '-'}</td>
-            <td>${e.trainee_phone || '-'}</td>
-            <td>${e.batch_shift || '-'}</td>
-            <td>${e.enrollment_date ? formatDate(e.enrollment_date) : '-'}</td>
-            <td>${e.status === 'active' ? 'সক্রিয়' : e.status === 'completed' ? 'সমাপ্ত' : e.status === 'dropped' ? 'বাতিল' : e.status}</td>
+            <td>${convertToBanglaDigits(escapeHtml(i + 1))}</td>
+            <td>${e.trainee_reg_no ? convertToBanglaDigits(escapeHtml(e.trainee_reg_no)) : '-'}</td>
+            <td>${escapeHtml(e.trainee_name || '-')}</td>
+            <td>${escapeHtml(e.trainee_phone || '-')}</td>
+            <td>${escapeHtml(e.batch_shift || '-')}</td>
+            <td>${e.enrollment_date ? escapeHtml(formatDate(e.enrollment_date)) : '-'}</td>
+            <td>${escapeHtml(e.status === 'active' ? 'সক্রিয়' : e.status === 'completed' ? 'সমাপ্ত' : e.status === 'dropped' ? 'বাতিল' : e.status)}</td>
           </tr>
         `).join('')}
       </table>
-      <div class="footer">ব্যাচ বিবরণ - ${formatDate(new Date())}</div>
+      <div class="footer">ব্যাচ বিবরণ - ${escapeHtml(formatDate(new Date()))}</div>
       <script>window.print();</script>
       </body></html>
     `);

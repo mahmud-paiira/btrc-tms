@@ -1,15 +1,17 @@
 from django.utils import timezone
 from rest_framework import status
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
+from apps.common.throttles import VerifyCertThrottle
 from .models import Certificate
 from .serializers import PublicCertificateSerializer
 
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
+@throttle_classes([VerifyCertThrottle])
 def verify_certificate(request, cert_no):
     try:
         cert = Certificate.objects.select_related(

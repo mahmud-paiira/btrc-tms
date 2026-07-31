@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import hoService from '../../../services/hoService';
 import { formatDate } from '../../../utils/dateFormatter';
 import { convertToBanglaDigits, formatNumber } from '../../../utils/numberFormatter';
+import { sanitize } from '../../../utils/sanitize';
 
 const STATUS_BG = { draft: 'secondary', published: 'success', closed: 'danger', completed: 'info' };
 const APP_STATUS_BG = { pending: 'warning', selected: 'success', rejected: 'danger', waitlisted: 'info' };
@@ -109,9 +110,15 @@ export default function CircularDetail() {
         </div>
         <div className="d-flex align-items-center gap-2">
           <button className="btn btn-outline-danger btn-sm" title="পিডিএফ প্রিন্ট"
-            onClick={() => {
+            onClick={async () => {
               const token = localStorage.getItem('access_token');
-              window.open(`/api/ho/circulars/${circular.id}/print_circular/?token=${token}`, '_blank');
+              try {
+                const res = await fetch(`/api/ho/circulars/${circular.id}/print_circular/`, { headers: { 'Authorization': `Bearer ${token}` } });
+                if (!res.ok) throw new Error('Failed');
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                window.open(url, '_blank');
+              } catch { alert('PDF generation failed'); }
             }}>
             <i className="bi bi-filetype-pdf me-1"></i>পিডিএফ
           </button>
@@ -167,7 +174,7 @@ export default function CircularDetail() {
               </div>
               <div className="col-12">
                 <h6 className="fw-bold mb-3 text-muted text-uppercase small">বিবরণ</h6>
-                <div className="p-3 bg-light rounded description-content" dangerouslySetInnerHTML={{ __html: circular.description }} />
+                <div className="p-3 bg-light rounded description-content" dangerouslySetInnerHTML={{ __html: sanitize(circular.description) }} />
               </div>
               {circular.status === 'published' && (
                 <div className="col-12">

@@ -4,6 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.utils import timezone
 
+from apps.common.permissions import IsReadOnlyOrAdmin
 from .models import AllowanceCategory, AllowanceTier, TraineeAllowance
 from .serializers import (
     AllowanceCategorySerializer,
@@ -16,7 +17,7 @@ from .serializers import (
 class AllowanceCategoryViewSet(viewsets.ModelViewSet):
     queryset = AllowanceCategory.objects.all()
     serializer_class = AllowanceCategorySerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsReadOnlyOrAdmin]
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
@@ -25,7 +26,7 @@ class AllowanceCategoryViewSet(viewsets.ModelViewSet):
 class AllowanceTierViewSet(viewsets.ModelViewSet):
     queryset = AllowanceTier.objects.select_related('category').all()
     serializer_class = AllowanceTierSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsReadOnlyOrAdmin]
     filterset_fields = ('category', 'is_active')
     ordering = ('category', 'min_percentage')
 
@@ -34,7 +35,7 @@ class TraineeAllowanceViewSet(viewsets.ModelViewSet):
     queryset = TraineeAllowance.objects.select_related(
         'trainee', 'batch', 'category'
     )
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsReadOnlyOrAdmin]
     filterset_fields = ('batch', 'category', 'status', 'trainee')
 
     def get_serializer_class(self):

@@ -7,6 +7,7 @@ import TrainerToAssessorConversion from './TrainerToAssessorConversion';
 import AssessorMapForm from './AssessorMapForm';
 import { formatDate } from '../../utils/dateFormatter';
 import { formatNumber } from '../../utils/numberFormatter';
+import { escapeHtml } from '../../utils/escapeHtml';
 
 const TABS = [
   { key: 'all', label: 'সকল মূল্যায়নকারী' },
@@ -181,11 +182,11 @@ export default function AssessorList() {
         ${printItems.map((a, i) => {
           return `<tr>
             <td style="text-align:center;width:40px;">${i + 1}</td>
-            <td><strong>${a.user_full_name_bn || '—'}</strong></td>
-            <td>${a.user_full_name_en || '—'}</td>
-            <td>${a.user_email || '—'}</td>
-            <td>${a.user_phone || '—'}</td>
-            <td style="text-align:center;">${a.years_of_experience ? a.years_of_experience + ' বছর' : '—'}</td>
+            <td><strong>${escapeHtml(a.user_full_name_bn) || '—'}</strong></td>
+            <td>${escapeHtml(a.user_full_name_en) || '—'}</td>
+            <td>${escapeHtml(a.user_email) || '—'}</td>
+            <td>${escapeHtml(a.user_phone) || '—'}</td>
+            <td style="text-align:center;">${a.years_of_experience ? escapeHtml(a.years_of_experience) + ' বছর' : '—'}</td>
           </tr>`;
         }).join('')}
       </table>

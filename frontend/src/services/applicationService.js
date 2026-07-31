@@ -48,6 +48,12 @@ const applicationService = {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
   },
+
+  eyeScreening(id, formData) {
+    return api.post(`/center/applications/${id}/eye_screening/`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
 };
 
 export default applicationService;

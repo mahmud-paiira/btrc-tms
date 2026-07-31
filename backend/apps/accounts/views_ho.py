@@ -213,7 +213,24 @@ class HOUserViewSet(viewsets.ModelViewSet):
             description=f'Password reset for {user.email}',
             ip_address=request.META.get('REMOTE_ADDR', ''),
         )
-        return Response({'new_password': new_password, 'detail': 'Password reset successful'})
+        try:
+            from django.core.mail import send_mail
+            send_mail(
+                subject='BRTC TMS - Password Reset',
+                message=(
+                    f'Dear {user.full_name_bn or user.full_name_en},\n\n'
+                    f'Your password has been reset by an administrator.\n\n'
+                    f'New Password: {new_password}\n\n'
+                    f'Please login and change your password immediately.\n\n'
+                    f'Regards,\nBRTC Management'
+                ),
+                from_email=None,
+                recipient_list=[user.email],
+                fail_silently=True,
+            )
+        except Exception:
+            pass
+        return Response({'detail': 'Password reset successful. Password has been emailed to the user.'})
 
     @action(detail=True, methods=['post'])
     def toggle_status(self, request, pk=None):

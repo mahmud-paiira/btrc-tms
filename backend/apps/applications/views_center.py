@@ -13,7 +13,7 @@ from rest_framework.filters import OrderingFilter
 
 from apps.circulars.models import Circular
 from .models import Application
-from .serializers import ApplicationExportSerializer
+from .serializers import ApplicationExportSerializer, EyeScreeningTestSerializer
 from .serializers_center import (
     ApplicationCenterListSerializer,
     ApplicationCenterDetailSerializer,
@@ -71,7 +71,7 @@ class ApplicationCenterViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         qs = Application.objects.select_related(
             'circular', 'circular__course', 'reviewed_by', 'chosen_center'
-        ).all()
+        ).prefetch_related('eye_screening').all()
 
         user = self.request.user
         if user.user_type == 'center_admin' and user.center:
@@ -94,9 +94,18 @@ class ApplicationCenterViewSet(viewsets.ModelViewSet):
 
         if application.status == new_status:
             return Response(
-                {'error': f'আবেদনটি ইতিমধ্যে {application.get_status_display()} অবস্থায় আছে'},
+                {'error': f'আবেদনটি ইতিমধ্যে {application.get_status_display()} অবস্থায় আছে'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+        if new_status == 'selected':
+            from .models import EyeScreeningTest
+            try:
+                eye_test = EyeScreeningTest.objects.get(application=application)
+                if eye_test.result != EyeScreeningTest.Result.PASS:
+                    return Response({'error': 'নির্বাচন করতে হলে চোখের দৃষ্টি পরীক্ষায় পাস করা আবশ্যক। পরীক্ষার ফলাফল: ' + eye_test.get_result_display()}, status=status.HTTP_400_BAD_REQUEST)
+            except EyeScreeningTest.DoesNotExist:
+                return Response({'error': 'নির্বাচন করতে হলে প্রথমে চোখের দৃষ্টি পরীক্ষা সম্পন্ন করুন'}, status=status.HTTP_400_BAD_REQUEST)
 
         application.status = new_status
         application.reviewed_by = request.user
@@ -124,8 +133,18 @@ class ApplicationCenterViewSet(viewsets.ModelViewSet):
 
         for app in apps:
             if app.status == new_status:
-                errors.append({'id': app.id, 'error': f'ইতিমধ্যে {app.get_status_display()} অবস্থায় আছে'})
+                errors.append({'id': app.id, 'error': f'ইতিমধ্যে {app.get_status_display()} অবস্থায় আছে'})
                 continue
+            if new_status == 'selected':
+                from .models import EyeScreeningTest
+                try:
+                    eye_test = EyeScreeningTest.objects.get(application=app)
+                    if eye_test.result != EyeScreeningTest.Result.PASS:
+                        errors.append({'id': app.id, 'error': f'চোখের দৃষ্টি পরীক্ষায় পাস করা আবশ্যক (ফলাফল: {eye_test.get_result_display()})'})
+                        continue
+                except EyeScreeningTest.DoesNotExist:
+                    errors.append({'id': app.id, 'error': 'চোখের দৃষ্টি পরীক্ষা করা হয়নি'})
+                    continue
             app.status = new_status
             app.reviewed_by = request.user
             app.reviewed_at = timezone.now()
@@ -142,6 +161,20 @@ class ApplicationCenterViewSet(viewsets.ModelViewSet):
             'error_count': len(errors),
             'errors': errors,
         })
+
+    @action(detail=True, methods=['post'])
+    def eye_screening(self, request, pk=None):
+        application = self.get_object()
+        from .models import EyeScreeningTest
+        test, created = EyeScreeningTest.objects.get_or_create(
+            application=application,
+        )
+        serializer = EyeScreeningTestSerializer(
+            test, data=request.data, partial=True, context={'request': request},
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save(tested_by=request.user, tested_at=timezone.now())
+        return Response(serializer.data)
 
     @action(detail=False, methods=['get'])
     def circulars(self, request):

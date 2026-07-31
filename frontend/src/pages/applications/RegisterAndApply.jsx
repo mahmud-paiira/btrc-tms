@@ -400,7 +400,6 @@ export default function RegisterAndApply() {
       const { data } = await publicService.submitApplication(formData);
       setSubmitted(data);
     } catch (err) {
-      console.error('Submit error:', err.response?.data || err.message);
       const serverErrors = err.response?.data || {};
       const fieldErrors = {};
       Object.entries(serverErrors).forEach(([key, msgs]) => {
