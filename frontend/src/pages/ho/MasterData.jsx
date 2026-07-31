@@ -428,11 +428,11 @@ function DemographyTab() {
     try {
       const res = await hoService.seedDemographies();
       toast.success(res.data.message);
-      load();
-    } catch {
-      toast.error('লোকেশন ডাটা সীড করতে ব্যর্থ');
+    } catch (err) {
+      toast.error(err.response?.data?.message || err.response?.data?.detail || 'লোকেশন ডাটা সীড করতে ব্যর্থ');
     } finally {
       setSeeding(false);
+      load();
     }
   }
 
