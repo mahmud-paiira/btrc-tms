@@ -339,3 +339,48 @@ class EducationViewSet(MasterDataModelViewSet):
 class DemographyViewSet(MasterDataModelViewSet):
     queryset = Demography.objects.select_related('parent').all()
     serializer_class = DemographySerializer
+
+    @action(detail=False, methods=['post'])
+    def seed(self, request):
+        from .management.commands.seed_master_data import DIVISIONS, DISTRICTS
+
+        created_count = 0
+        skipped_count = 0
+
+        for name_bn, name_en, code in DIVISIONS:
+            _, created = Demography.objects.get_or_create(
+                name_bn=name_bn, type='division',
+                defaults={'name_en': name_en, 'bbs_code': code},
+            )
+            if created:
+                created_count += 1
+            else:
+                skipped_count += 1
+
+        div_map = {
+            name_bn: Demography.objects.get(name_bn=name_bn, type='division')
+            for name_bn, _, _ in DIVISIONS
+        }
+        for div_name, districts in DISTRICTS.items():
+            parent = div_map[div_name]
+            for name_bn, name_en, code in districts:
+                _, created = Demography.objects.get_or_create(
+                    name_bn=name_bn, type='district',
+                    defaults={'name_en': name_en, 'parent': parent, 'bbs_code': code},
+                )
+                if created:
+                    created_count += 1
+                else:
+                    skipped_count += 1
+
+        return Response({
+            'created': created_count,
+            'skipped': skipped_count,
+            'divisions': Demography.objects.filter(type='division').count(),
+            'districts': Demography.objects.filter(type='district').count(),
+            'upazilas': Demography.objects.filter(type='upazila').count(),
+            'message': (
+                f'{created_count}টি বিভাগ/জেলা যোগ করা হয়েছে, '
+                f'{skipped_count}টি ইতিমধ্যে বিদ্যমান'
+            ),
+        })

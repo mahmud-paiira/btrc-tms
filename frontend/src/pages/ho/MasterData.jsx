@@ -6,7 +6,7 @@ import BanglaInput from '../../components/common/BanglaInput';
 const TABS = [
   { key: 'genders', label: 'লিঙ্গ', icon: 'bi-gender-ambiguous' },
   { key: 'educations', label: 'শিক্ষাগত যোগ্যতা', icon: 'bi-mortarboard' },
-  { key: 'demographies', label: 'জনসংখ্যা তথ্য', icon: 'bi-globe' },
+  { key: 'demographies', label: 'লোকেশন ডাটা', icon: 'bi-globe' },
   { key: 'shifts', label: 'শিফট', icon: 'bi-arrow-left-right' },
   { key: 'holidays', label: 'ছুটির দিন', icon: 'bi-calendar-x' },
 ];
@@ -347,13 +347,14 @@ function DemographyTab() {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({ type: '', name_bn: '', name_en: '', parent: '', bbs_code: '' });
   const [parentOptions, setParentOptions] = useState([]);
+  const [seeding, setSeeding] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
       const { data: res } = await hoService.listDemographies({ ordering: 'type,name_bn' });
       setItems(res.results || res || []);
-    } catch { toast.error('জনসংখ্যা তথ্য লোড করতে ব্যর্থ'); }
+    } catch { toast.error('লোকেশন ডাটা লোড করতে ব্যর্থ'); }
     finally { setLoading(false); }
   }, []);
 
@@ -421,10 +422,30 @@ function DemographyTab() {
 
   const typeLabels = { division: 'বিভাগ', district: 'জেলা', upazila: 'উপজেলা' };
 
+  async function handleSeed() {
+    if (!window.confirm('বাংলাদেশের ৮ বিভাগ ও ৬৪ জেলার ডাটা যোগ করবেন?')) return;
+    setSeeding(true);
+    try {
+      const res = await hoService.seedDemographies();
+      toast.success(res.data.message);
+      load();
+    } catch {
+      toast.error('লোকেশন ডাটা সীড করতে ব্যর্থ');
+    } finally {
+      setSeeding(false);
+    }
+  }
+
   return (
-    <div className="card table-card">
+    <div>
+      <div className="d-flex justify-content-end mb-2">
+        <button className="btn btn-sm btn-outline-success" onClick={handleSeed} disabled={seeding}>
+          <i className="bi bi-database-fill-add me-1"></i>{seeding ? 'যোগ করা হচ্ছে...' : 'সীড ডাটা'}
+        </button>
+      </div>
+      <div className="card table-card">
       <div className="card-header d-flex justify-content-between align-items-center">
-        <span><i className="bi bi-globe me-1"></i>জনসংখ্যা তথ্য</span>
+        <span><i className="bi bi-globe me-1"></i>লোকেশন ডাটা</span>
         <button className="btn btn-sm btn-primary" onClick={openCreate}>
           <i className="bi bi-plus-lg me-1"></i>নতুন
         </button>
@@ -474,7 +495,7 @@ function DemographyTab() {
           <div className="modal-dialog" onClick={e => e.stopPropagation()}>
             <div className="modal-content">
               <div className="modal-header">
-                <h6 className="modal-title">{editing ? 'সম্পাদনা' : 'নতুন'} জনসংখ্যা তথ্য</h6>
+                <h6 className="modal-title">{editing ? 'সম্পাদনা' : 'নতুন'} লোকেশন ডাটা</h6>
                 <button className="btn-close" onClick={() => setShowModal(false)}></button>
               </div>
               <div className="modal-body">
@@ -520,6 +541,7 @@ function DemographyTab() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

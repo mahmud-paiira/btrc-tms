@@ -226,6 +226,7 @@ const hoService = {
   createDemography(data) { return api.post('/ho/system/demographies/', data); },
   updateDemography(id, data) { return api.put(`/ho/system/demographies/${id}/`, data); },
   deleteDemography(id) { return api.delete(`/ho/system/demographies/${id}/`); },
+  seedDemographies() { return api.post('/ho/system/demographies/seed/'); },
 
   // Shifts (Master Data)
   listShifts(params) { return api.get('/batches/shifts/', { params }); },
