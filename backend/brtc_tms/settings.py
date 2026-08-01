@@ -21,7 +21,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ── Security ──────────────────────────────────────────────────────────────
 SECRET_KEY = config('DJANGO_SECRET_KEY', default='django-insecure-change-me-in-production')
 DEBUG = config('DJANGO_DEBUG', default=True, cast=bool)
-TEST_OTP = config('TEST_OTP', default='123456', cast=str) if DEBUG else None
+# Default OTP used while the real SMS gateway is NOT integrated yet.
+# Set TEST_OTP='' (empty) in production to disable once real OTP API is wired up.
+TEST_OTP = config('TEST_OTP', default='123456', cast=str) or None
 ALLOWED_HOSTS = config('DJANGO_ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
 
 # ── Production Security Hardening (auto-enable when DEBUG=False) ─────────

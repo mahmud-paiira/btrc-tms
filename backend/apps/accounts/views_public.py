@@ -58,7 +58,7 @@ def public_verify_otp(request):
 
     test_otp = getattr(settings, 'TEST_OTP', None)
 
-    if test_otp and settings.DEBUG and otp_code == str(test_otp):
+    if test_otp and otp_code == str(test_otp):
         OTPVerification.objects.filter(
             user=user,
             purpose=OTPVerification.Purpose.REGISTRATION,
@@ -104,7 +104,7 @@ def public_verify_otp(request):
 @permission_classes([AllowAny])
 @throttle_classes([OTPThrottle])
 def public_resend_otp(request):
-    phone = request.data.get('phone', '')
+    phone = to_english_digits(request.data.get('phone', '')).strip()
     if not phone or not phone.isdigit() or len(phone) != 11:
         return Response({'error': 'বৈধ মোবাইল নম্বর দিন (01XXXXXXXXX)'}, status=400)
 

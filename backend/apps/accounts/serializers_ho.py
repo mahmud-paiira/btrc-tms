@@ -49,7 +49,7 @@ class HOUserDetailSerializer(serializers.ModelSerializer):
 
 
 class HOUserCreateSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, required=False, min_length=8)
+    password = serializers.CharField(write_only=True, required=False, min_length=8, error_messages={'min_length': 'পাসওয়ার্ড ন্যূনতম ৮ অক্ষরের হতে হবে'})
     auto_generate_password = serializers.BooleanField(write_only=True, default=False)
     profile = HOUserProfileSerializer(required=False)
     send_welcome_email = serializers.BooleanField(write_only=True, default=True)

@@ -30,7 +30,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, min_length=8)
+    password = serializers.CharField(write_only=True, min_length=8, error_messages={'min_length': 'পাসওয়ার্ড ন্যূনতম ৮ অক্ষরের হতে হবে'})
     profile = UserProfileSerializer(required=False)
 
     class Meta:

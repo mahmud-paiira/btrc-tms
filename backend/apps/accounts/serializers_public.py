@@ -7,10 +7,12 @@ from .models import User, UserProfile
 class PublicRegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
         write_only=True, min_length=8,
+        error_messages={'min_length': 'পাসওয়ার্ড ন্যূনতম ৮ অক্ষরের হতে হবে'},
         label='পাসওয়ার্ড',
     )
     confirm_password = serializers.CharField(
         write_only=True, min_length=8,
+        error_messages={'min_length': 'পাসওয়ার্ড ন্যূনতম ৮ অক্ষরের হতে হবে'},
         label='পাসওয়ার্ড নিশ্চিতকরণ',
     )
     email = serializers.EmailField(required=False, allow_blank=True, label='ইমেইল')
@@ -91,6 +93,9 @@ class PublicOTPVerifySerializer(serializers.Serializer):
         if not value.isdigit() or len(value) != 11:
             raise serializers.ValidationError('ফোন নম্বর ১১ ডিজিটের হতে হবে')
         return value
+
+    def validate_otp_code(self, value):
+        return to_english_digits(value).strip()
 
 
 class PublicLoginSerializer(serializers.Serializer):

@@ -318,6 +318,12 @@ export default function RegisterAndApply() {
     }
   };
 
+  const handleCloseOtp = () => {
+    setOtpModal(false);
+    setOtpCode('');
+    setOtpError('');
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoginSubmitting(true);
@@ -578,7 +584,7 @@ export default function RegisterAndApply() {
                               </div>
                               <div className="col-md-6">
                                 <label className="form-label">পাসওয়ার্ড <span className="text-danger">*</span></label>
-                                <input type="password" className={`form-control ${regErrors.password ? 'is-invalid' : ''}`} name="password" value={regForm.password} onChange={handleRegChange} placeholder="ন্যূনতম ৬ অক্ষর" />
+                                <input type="password" className={`form-control ${regErrors.password ? 'is-invalid' : ''}`} name="password" value={regForm.password} onChange={handleRegChange} placeholder="ন্যূনতম ৮ অক্ষর" />
                                 {regErrors.password && <div className="invalid-feedback">{regErrors.password}</div>}
                               </div>
                               <div className="col-md-6">
@@ -1069,7 +1075,8 @@ export default function RegisterAndApply() {
       {otpModal && (
         <div className="modal d-block" tabIndex="-1" style={{ background: 'rgba(0,0,0,0.5)' }}>
           <div className="modal-dialog modal-dialog-centered modal-sm">
-            <div className="modal-content">
+            <div className="modal-content position-relative">
+              <button type="button" className="btn-close position-absolute top-0 end-0 m-2" onClick={handleCloseOtp} aria-label="বন্ধ করুন"></button>
               <div className="modal-body text-center p-4">
                 <div className="alert alert-success py-2 mb-3">
                   <i className="bi bi-check-circle-fill me-1"></i>
