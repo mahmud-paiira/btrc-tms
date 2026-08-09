@@ -156,6 +156,7 @@ urlpatterns = [
     path('api/ho/', include('apps.reports.urls_ho')),
     path('api/ho/', include('apps.accounts.urls_ho')),
     path('api/ho/', include('apps.trainees.urls_ho')),
+    path('api/ho/', include('apps.applications.urls_ho')),
     path('api/ho/system/', include('apps.system_config.urls_ho')),
 
     # Allowance

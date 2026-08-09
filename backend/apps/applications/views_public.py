@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from django.conf import settings
 from apps.common.utils import to_english_digits
 from apps.common.throttles import OCRThrottle, PublicApplyThrottle, PrintThrottle
-from .models import Application
+from .models import Application, NIDAccessLog
 from .serializers_public import (
     NIDUploadSerializer,
     PublicApplySerializer,
@@ -65,14 +65,50 @@ def ocr_extract(request):
         shutil.rmtree(tmp_dir, ignore_errors=True)
 
 
+def _client_ip(request):
+    forwarded = request.META.get('HTTP_X_FORWARDED_FOR')
+    if forwarded:
+        return forwarded.split(',')[0].strip()
+    return request.META.get('REMOTE_ADDR', '')
+
+
+def _log_nid_access(request, action, result, target_nid='', target_name='', message=''):
+    try:
+        user = request.user if request.user.is_authenticated else None
+        NIDAccessLog.objects.create(
+            user=user,
+            action=action,
+            result=result,
+            target_nid=target_nid,
+            target_name=target_name,
+            requester_name=user.full_name_bn if user else '',
+            requester_phone=user.phone if user else '',
+            requester_address=user.profile.present_address if (user and hasattr(user, 'profile')) else '',
+            ip_address=_client_ip(request),
+            user_agent=request.META.get('HTTP_USER_AGENT', ''),
+            request_path=request.get_full_path()[:500],
+            message=message,
+        )
+    except Exception:
+        logger = logging.getLogger(__name__)
+        logger.exception('Failed to write NID access log')
+
+
 @api_view(['GET'])
 def check_nid(request, nid):
     clean_nid = to_english_digits(nid).replace(' ', '').replace('-', '')
     exists = Application.objects.filter(nid=clean_nid).exists()
+    _log_nid_access(
+        request,
+        NIDAccessLog.Action.CHECK_NID,
+        NIDAccessLog.Result.SUCCESS,
+        target_nid=clean_nid,
+        message='এই এনআইডি নম্বর দিয়ে ইতিমধ্যে আবেদন করা হয়েছে' if exists else 'এনআইডি নম্বরটি ব্যবহারযোগ্য',
+    )
     return Response({
         'exists': exists,
         'nid': clean_nid,
-        'message': 'এই এনআইডি নম্বর দিয়ে ইতিমধ্যে আবেদন করা হয়েছে' if exists else 'এনআইডি নম্বরটি ব্যবহারযোগ্য',
+        'message': 'এই এনআইডি নম্বর দিয়ে ইতিমধ্যে আবেদন করা হয়েছে' if exists else 'এনআইডি নম্বরটি ব্যবহারযোগ্য',
     })
 
 
@@ -82,25 +118,47 @@ def verify_nid(request):
     date_of_birth = request.data.get('date_of_birth', '')
 
     if len(nid) not in (10, 13, 17):
+        _log_nid_access(
+            request, NIDAccessLog.Action.VERIFY_NID, NIDAccessLog.Result.FAILED,
+            target_nid=nid, message='এনআইডি ১০, ১৩ বা ১৭ ডিজিটের হতে হবে',
+        )
         return Response({'verified': False, 'message': 'এনআইডি ১০, ১৩ বা ১৭ ডিজিটের হতে হবে'}, status=400)
     if not date_of_birth:
+        _log_nid_access(
+            request, NIDAccessLog.Action.VERIFY_NID, NIDAccessLog.Result.FAILED,
+            target_nid=nid, message='জন্ম তারিখ নির্বাচন করুন',
+        )
         return Response({'verified': False, 'message': 'জন্ম তারিখ নির্বাচন করুন'}, status=400)
 
     from datetime import date
     try:
         dob = date.fromisoformat(date_of_birth)
     except (ValueError, TypeError):
-        return Response({'verified': False, 'message': 'জন্ম তারিখ ফরমেট সঠিক নয়'}, status=400)
+        _log_nid_access(
+            request, NIDAccessLog.Action.VERIFY_NID, NIDAccessLog.Result.FAILED,
+            target_nid=nid, message='জন্ম তারিখ ফরমেট সঠিক নয়',
+        )
+        return Response({'verified': False, 'message': 'জন্ম তারিখ ফরমেট সঠিক নয়'}, status=400)
 
     today = date.today()
     age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
     if age < 21:
-        return Response({'verified': False, 'message': f'বয়স {age} বছর। ন্যূনতম ২১ বছর হতে হবে।'})
+        _log_nid_access(
+            request, NIDAccessLog.Action.VERIFY_NID, NIDAccessLog.Result.FAILED,
+            target_nid=nid, message=f'বয়স {age} বছর। ন্যূনতম ২১ বছর হতে হবে।',
+        )
+        return Response({'verified': False, 'message': f'বয়স {age} বছর। ন্যূনতম ২১ বছর হতে হবে।'})
 
+    name_bn = request.user.full_name_bn if request.user.is_authenticated else ''
+    _log_nid_access(
+        request, NIDAccessLog.Action.VERIFY_NID, NIDAccessLog.Result.SUCCESS,
+        target_nid=nid, target_name=name_bn,
+        message='এনআইডি সফলভাবে যাচাই করা হয়েছে',
+    )
     return Response({
         'verified': True,
-        'message': 'এনআইডি সফলভাবে যাচাই করা হয়েছে',
-        'name_bn': request.user.full_name_bn if request.user.is_authenticated else '',
+        'message': 'এনআইডি সফলভাবে যাচাই করা হয়েছে',
+        'name_bn': name_bn,
         'date_of_birth': date_of_birth,
         'age': age,
     })
@@ -122,6 +180,14 @@ def public_apply(request):
     with transaction.atomic():
         application = serializer.save()
         confirm = ApplicationConfirmSerializer(application)
+    _log_nid_access(
+        request,
+        NIDAccessLog.Action.APPLY,
+        NIDAccessLog.Result.SUCCESS,
+        target_nid=application.nid,
+        target_name=application.name_bn,
+        message=application.application_no,
+    )
     return Response(
         confirm.data,
         status=status.HTTP_201_CREATED,

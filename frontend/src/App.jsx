@@ -70,6 +70,7 @@ import SmsTemplateEditor from './pages/ho/system/SmsTemplateEditor';
 import IntegrationManager from './pages/ho/system/IntegrationManager';
 import SystemHealth from './pages/ho/system/SystemHealth';
 import CertificateTemplateDesigner from './pages/ho/system/CertificateTemplateDesigner';
+import NidAccessLogs from './pages/ho/system/NidAccessLogs';
 import MasterData from './pages/ho/MasterData';
 import HoSelectedTrainees from './pages/ho/HoSelectedTrainees';
 import PublicVerify from './pages/public/PublicVerify';
@@ -178,6 +179,7 @@ function App() {
             <Route path="system/sms-templates" element={<SmsTemplateEditor />} />
             <Route path="system/integrations" element={<IntegrationManager />} />
             <Route path="system/health" element={<SystemHealth />} />
+            <Route path="system/nid-access-logs" element={<NidAccessLogs />} />
             <Route path="system/certificate-template" element={<CertificateTemplateDesigner />} />
             <Route path="master-data" element={<MasterData />} />
             <Route path="allowance-categories" element={<AllowanceCategoryList />} />

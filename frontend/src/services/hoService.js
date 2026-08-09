@@ -112,6 +112,9 @@ const hoService = {
   addCourseBill(id, data) { return api.post(`/ho/courses/${id}/bill/`, data); },
   deleteCourseBill(id) { return api.delete(`/ho/bills/${id}/`); },
 
+  // NID Access Logs (HO)
+  listNidAccessLogs(params) { return api.get('/ho/nid-access-logs/', { params }); },
+
   // Circulars (HO)
   listCirculars(params) { return api.get('/ho/circulars/', { params }); },
   getCircular(id) { return api.get(`/ho/circulars/${id}/`); },

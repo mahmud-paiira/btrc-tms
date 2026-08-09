@@ -7,7 +7,7 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.db.models.functions import TruncDate
 from django.conf import settings
-from .models import Application, OcrAuditLog
+from .models import Application, OcrAuditLog, NIDAccessLog
 from datetime import timedelta
 from django.utils import timezone
 import subprocess
@@ -183,3 +183,53 @@ class OcrAuditLogAdmin(admin.ModelAdmin):
             avg_conf=Avg('confidence_score'),
         )
         return JsonResponse(stats)
+
+
+@admin.register(NIDAccessLog)
+class NIDAccessLogAdmin(admin.ModelAdmin):
+    list_display = (
+        'id', 'action', 'result', 'target_nid',
+        'requester_name', 'requester_phone', 'ip_address', 'created_at',
+    )
+    list_display_links = ('id',)
+    list_filter = ('action', 'result', 'created_at')
+    search_fields = (
+        'target_nid', 'target_name', 'requester_name',
+        'requester_phone', 'ip_address', 'user_agent', 'message',
+    )
+    readonly_fields = (
+        'user', 'action', 'result', 'target_nid', 'target_name',
+        'requester_name', 'requester_phone', 'requester_address',
+        'ip_address', 'user_agent', 'request_path', 'message', 'created_at',
+    )
+    date_hierarchy = 'created_at'
+    list_select_related = True
+    list_per_page = 50
+
+    fieldsets = (
+        (None, {
+            'fields': ('action', 'result', 'target_nid', 'target_name'),
+        }),
+        ('অনুরোধকারী', {
+            'fields': ('user', 'requester_name', 'requester_phone', 'requester_address'),
+        }),
+        ('টেকনিক্যাল', {
+            'fields': ('ip_address', 'user_agent', 'request_path'),
+            'classes': ('collapse',),
+        }),
+        ('ডিটেইলস', {
+            'fields': ('message', 'created_at'),
+        }),
+    )
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions

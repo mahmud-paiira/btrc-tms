@@ -251,6 +251,64 @@ class OcrAuditLog(models.Model):
         return f'{self.session_id} - {self.result} ({self.confidence_score}%)'
 
 
+class NIDAccessLog(models.Model):
+    class Action(models.TextChoices):
+        CHECK_NID = 'check_nid', 'Check NID'
+        VERIFY_NID = 'verify_nid', 'Verify NID'
+        APPLY = 'apply', 'Apply'
+
+    class Result(models.TextChoices):
+        SUCCESS = 'success', 'Success'
+        FAILED = 'failed', 'Failed'
+
+    user = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='nid_access_logs',
+        verbose_name='ব্যবহারকারী',
+    )
+    action = models.CharField(
+        max_length=20, choices=Action.choices, db_index=True,
+        verbose_name='অ্যাকশন',
+    )
+    result = models.CharField(
+        max_length=20, choices=Result.choices, db_index=True,
+        verbose_name='ফলাফল',
+    )
+    target_nid = models.CharField(
+        max_length=20, blank=True, db_index=True,
+        verbose_name='টার্গেট এনআইডি',
+    )
+    target_name = models.CharField(
+        max_length=255, blank=True, verbose_name='টার্গেটের নাম',
+    )
+    requester_name = models.CharField(
+        max_length=255, blank=True, verbose_name='অনুরোধকারীর নাম',
+    )
+    requester_phone = models.CharField(
+        max_length=20, blank=True, verbose_name='অনুরোধকারীর মোবাইল',
+    )
+    requester_address = models.TextField(
+        blank=True, verbose_name='অনুরোধকারীর ঠিকানা',
+    )
+    ip_address = models.GenericIPAddressField(blank=True, null=True)
+    user_agent = models.TextField(blank=True, verbose_name='User Agent')
+    request_path = models.CharField(max_length=500, blank=True, verbose_name='Request Path')
+    message = models.TextField(blank=True, verbose_name='বার্তা')
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name='সময়')
+
+    class Meta:
+        verbose_name = 'এনআইডি অ্যাক্সেস লগ'
+        verbose_name_plural = 'এনআইডি অ্যাক্সেস লগসমূহ'
+        ordering = ('-created_at',)
+        indexes = [
+            models.Index(fields=['target_nid', 'created_at']),
+            models.Index(fields=['action', 'result']),
+        ]
+
+    def __str__(self):
+        return f'{self.get_action_display()} - {self.target_nid} ({self.get_result_display()})'
+
+
 class RoutingLog(models.Model):
     application = models.ForeignKey(
         Application, on_delete=models.CASCADE,

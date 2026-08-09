@@ -59,6 +59,7 @@ const SECTIONS = [
           { to: '/ho/system/sms-templates', labelKey: 'navSub.systemSmsTemplates', labelBn: 'এসএমএস টেমপ্লেট' },
           { to: '/ho/system/integrations', labelKey: 'navSub.systemIntegrations', labelBn: 'ইন্টিগ্রেশন' },
           { to: '/ho/system/health', labelKey: 'navSub.systemHealth', labelBn: 'সিস্টেম হেলথ' },
+          { to: '/ho/system/nid-access-logs', labelKey: 'navSub.systemNidAccessLogs', labelBn: 'এনআইডি অ্যাক্সেস লগ' },
           { to: '/ho/system/certificate-template', labelKey: 'navSub.systemCertificateTemplate', labelBn: 'সার্টিফিকেট টেমপ্লেট' },
         ],
       },
