@@ -62,7 +62,8 @@ export default function BatchList() {
         setTotal(data.length || 0);
       }
     } catch {
-      toast.error(t('batch.list.loadFailed', 'ব্যাচ তালিকা লোড করতে ব্যর্থ'));
+      setBatches([]);
+      setTotal(0);
     } finally {
       setLoading(false);
     }

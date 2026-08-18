@@ -28,7 +28,7 @@ export default function HolidayList() {
         setHolidays(data);
         setTotal(data.length || 0);
       }
-    } catch { toast.error('ছুটির তালিকা লোড করতে ব্যর্থ'); }
+    } catch { setHolidays([]); setTotal(0); }
     setLoading(false);
   }, [page]);
 

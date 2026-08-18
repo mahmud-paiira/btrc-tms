@@ -19,7 +19,7 @@ export default function AllowanceCategoryList() {
     try {
       const { data } = await allowanceService.listCategories();
       setCategories(data.results || data);
-    } catch { toast.error('ভাতার শ্রেণী লোড করতে ব্যর্থ'); }
+    } catch { setCategories([]); }
     setLoading(false);
   }, []);
 

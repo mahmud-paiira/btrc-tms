@@ -26,7 +26,7 @@ export default function ReportList() {
       const res = await hoService.listReports();
       setReports(res.data.results || res.data || []);
     } catch {
-      toast.error('প্রতিবেদন তালিকা লোড করতে ব্যর্থ');
+      setReports([]);
     } finally {
       setLoading(false);
     }

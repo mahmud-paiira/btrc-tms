@@ -626,7 +626,8 @@ export default function HoCenterManagement() {
       setTotalCount(data.count ?? list.length);
       setSelectedIds(new Set());
     } catch {
-      toast.error('কেন্দ্র তালিকা লোড করতে ব্যর্থ');
+      setCenters([]);
+      setTotalCount(0);
     } finally {
       setLoading(false);
     }

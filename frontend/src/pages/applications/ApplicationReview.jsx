@@ -56,7 +56,7 @@ export default function ApplicationReview() {
       const { data } = await applicationService.getCirculars();
       setCirculars(data);
     } catch {
-      toast.error('সার্কুলার তালিকা লোড করতে ব্যর্থ');
+      setCirculars([]);
     }
   }, []);
 
@@ -83,7 +83,8 @@ export default function ApplicationReview() {
       setApplications(data.results || data);
       setTotal(data.count || data.length || 0);
     } catch {
-      toast.error('আবেদন তালিকা লোড করতে ব্যর্থ');
+      setApplications([]);
+      setTotal(0);
     } finally {
       setLoading(false);
     }

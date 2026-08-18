@@ -55,7 +55,7 @@ function InlineCrudTable({ title, icon, columns, fetchItems, createItem, updateI
     try {
       const { data: res } = await fetchItems();
       setItems(res.results || res || []);
-    } catch { toast.error(`${title} লোড করতে ব্যর্থ`); }
+    } catch { setItems([]); }
     finally { setLoading(false); }
   }, [fetchItems, title]);
 
@@ -354,7 +354,7 @@ function DemographyTab() {
     try {
       const { data: res } = await hoService.listDemographies({ ordering: 'type,name_bn' });
       setItems(res.results || res || []);
-    } catch { toast.error('লোকেশন ডাটা লোড করতে ব্যর্থ'); }
+    } catch { setItems([]); }
     finally { setLoading(false); }
   }, []);
 

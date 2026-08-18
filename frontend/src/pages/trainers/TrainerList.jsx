@@ -47,7 +47,8 @@ export default function TrainerList() {
       setTrainers(res.data.results || res.data || []);
       setTotal(res.data.count || (res.data.results || []).length);
     } catch {
-      toast.error('প্রশিক্ষক তালিকা লোড করতে ব্যর্থ');
+      setTrainers([]);
+      setTotal(0);
     } finally {
       setLoading(false);
     }

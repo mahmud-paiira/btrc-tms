@@ -50,8 +50,9 @@ export default function TrainerList() {
       const res = await hoService.listTrainers(params);
       setTrainers(res.data.results || res.data);
       setTotalCount(res.data.count ?? res.data.length ?? 0);
-    } catch (e) {
-      toast.error('প্রশিক্ষক তালিকা লোড করতে ব্যর্থ');
+    } catch {
+      setTrainers([]);
+      setTotalCount(0);
     } finally {
       setLoading(false);
     }

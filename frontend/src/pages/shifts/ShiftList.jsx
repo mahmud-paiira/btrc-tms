@@ -27,7 +27,7 @@ export default function ShiftList() {
         setShifts(data);
         setTotal(data.length || 0);
       }
-    } catch { toast.error('শিফট তালিকা লোড করতে ব্যর্থ'); }
+    } catch { setShifts([]); setTotal(0); }
     setLoading(false);
   }, [page]);
 

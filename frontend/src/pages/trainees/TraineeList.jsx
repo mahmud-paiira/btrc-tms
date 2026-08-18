@@ -40,7 +40,8 @@ export default function TraineeList() {
       setTrainees(res.data.results || res.data || []);
       setTotal(res.data.count || (res.data.results || []).length);
     } catch {
-      toast.error('প্রশিক্ষণার্থী তালিকা লোড করতে ব্যর্থ');
+      setTrainees([]);
+      setTotal(0);
     } finally {
       setLoading(false);
     }

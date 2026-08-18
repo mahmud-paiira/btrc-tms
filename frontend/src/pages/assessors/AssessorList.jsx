@@ -45,7 +45,8 @@ export default function AssessorList() {
       setItems(res.data.results || res.data || []);
       setTotal(res.data.count || (res.data.results || []).length);
     } catch {
-      toast.error('মূল্যায়নকারী তালিকা লোড করতে ব্যর্থ');
+      setItems([]);
+      setTotal(0);
     } finally {
       setLoading(false);
     }

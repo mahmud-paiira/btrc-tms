@@ -46,7 +46,7 @@ export default function AllowanceList() {
       if (selectedStatus) params.status = selectedStatus;
       const { data } = await allowanceService.listAllowances(params);
       setAllowances(data.results || data);
-    } catch { toast.error('ভাতার তালিকা লোড করতে ব্যর্থ'); }
+    } catch { setAllowances([]); }
     setLoading(false);
   }, [selectedBatch, selectedCategory, selectedStatus]);
 

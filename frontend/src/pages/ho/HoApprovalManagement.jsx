@@ -55,7 +55,9 @@ export default function HoApprovalManagement() {
         setApplications(data.results || data || []);
       }
     } catch {
-      toast.error('ডাটা লোড করতে ব্যর্থ');
+      setTrainers([]);
+      setAssessors([]);
+      setApplications([]);
     } finally {
       setLoading(false);
     }

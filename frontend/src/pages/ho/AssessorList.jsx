@@ -47,7 +47,9 @@ export default function AssessorList() {
       const data = res.data;
       setItems(data.results || data);
       setTotalCount(data.count ?? data.length ?? 0);
-    } catch { toast.error('তালিকা লোড করতে ব্যর্থ');
+    } catch {
+      setItems([]);
+      setTotalCount(0);
     } finally { setLoading(false); }
   }, [search, tab, page, ordering]);
 

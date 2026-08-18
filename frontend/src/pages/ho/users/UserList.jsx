@@ -54,8 +54,9 @@ export default function UserList() {
       const res = await hoService.listHOUsers(params);
       setUsers(res.data.results || res.data || []);
       setTotal(res.data.count || (res.data.results || []).length);
-    } catch (err) {
-      toast.error(t('users.loadError', 'ব্যবহারকারী লোড করতে ব্যর্থ'));
+    } catch {
+      setUsers([]);
+      setTotal(0);
     } finally {
       setLoading(false);
     }
