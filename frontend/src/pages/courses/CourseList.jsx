@@ -39,7 +39,8 @@ export default function CourseList() {
       setCourses(res.data.results || res.data || []);
       setTotal(res.data.count || (res.data.results || []).length);
     } catch {
-      toast.error('কোর্স তালিকা লোড করতে ব্যর্থ');
+      setCourses([]);
+      setTotal(0);
     } finally {
       setLoading(false);
     }

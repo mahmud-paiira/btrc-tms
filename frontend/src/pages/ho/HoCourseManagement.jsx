@@ -400,7 +400,7 @@ export default function HoCourseManagement() {
       if (filterStatus) params.status = filterStatus;
       const { data } = await hoService.listCourses(params);
       setCourses(data.results || data || []);
-    } catch { toast.error('কোর্স তালিকা লোড করতে ব্যর্থ'); }
+    } catch { setCourses([]); }
     finally { setLoading(false); }
   }, [search, filterType, filterStatus]);
 
