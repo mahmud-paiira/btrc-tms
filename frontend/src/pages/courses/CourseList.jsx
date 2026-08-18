@@ -151,7 +151,7 @@ export default function CourseList() {
         <span>প্রিন্টের তারিখ: ${formatDate(new Date())}</span>
       </div>
       <table>
-        <tr><th>ক্রমিক</th><th>কোড</th><th>নাম (বাংলা)</th><th>নাম (ইংরেজি)</th><th>ধরণ</th><th>মেয়াদ</th><th>ফি</th></tr>
+        <tr><th>ক্রমিক</th><th>কোড</th><th>Training Program (বাংলা)</th><th>Training Program (English)</th><th>ধরণ</th><th>মেয়াদ</th><th>ফি</th></tr>
         ${items.map((c, i) => {
           return `<tr>
             <td style="text-align:center;width:40px;">${i + 1}</td>
@@ -272,8 +272,8 @@ export default function CourseList() {
                     checked={courses.length > 0 && selectedIds.size === courses.length} />
                 </th>
                 <th>কোড</th>
-                <th>নাম (বাংলা)</th>
-                <th className="d-none d-xl-table-cell">নাম (ইংরেজি)</th>
+                <th>Training Program (বাংলা)</th>
+                <th className="d-none d-xl-table-cell">Training Program (English)</th>
                 <th>ধরণ</th>
                 <th className="d-none d-md-table-cell">মেয়াদ</th>
                 <th className="d-none d-md-table-cell">ফি</th>

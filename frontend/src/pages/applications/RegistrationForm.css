@@ -234,15 +234,25 @@
 }
 
 .gov-header .gov-line-2 {
-  font-size: 13px;
-  color: #2c3e50;
+  font-size: 12px;
+  color: #555;
   margin-top: 3px;
 }
 
 .gov-header .gov-line-3 {
   font-size: 11px;
-  color: #888;
+  color: #1a5276;
   margin-top: 2px;
+  font-style: italic;
+}
+
+.gov-header .gov-line-4 {
+  font-size: 13px;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px dashed #ccc;
 }
 
 .gov-divider {
@@ -307,6 +317,49 @@
 .gov-btn-primary:disabled {
   background-color: #7fa3bd !important;
   border-color: #7fa3bd !important;
+}
+
+/* ── Apply Page Header ───────────────────────────── */
+.apply-header {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.apply-header .gov-header {
+  padding-bottom: 12px;
+}
+
+.apply-header-title {
+  text-align: center;
+  padding: 16px 0 0;
+}
+
+.apply-header-project {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #1a5276;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+
+.apply-header-form-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1a5276;
+  margin: 0;
+}
+
+.apply-header-circular {
+  text-align: center;
+  font-size: 0.85rem;
+  color: #495057;
+  padding-top: 12px;
+  margin-top: 12px;
+  border-top: 1px dashed #ccc;
 }
 
 /* ── Responsive ──────────────────────────────────── */

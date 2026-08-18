@@ -30,7 +30,8 @@
 </head>
 <body>
     <div class="header">
-        <h1>বাংলাদেশ সড়ক পরিবহন কর্পোরেশন</h1>
+        <p style="font-size: 12px; margin: 2px 0;">গণপ্রজাতন্ত্রী বাংলাদেশ সরকার</p>
+        <h1>বাংলাদেশ সড়ক পরিবহন কর্পোরেশন</h1>
         <h2>প্রশিক্ষণ ব্যবস্থাপনা সিস্টেম</h2>
         <p>আবেদন ফর্ম</p>
     </div>
@@ -67,11 +68,16 @@
             {% endif %}
             <tr><th>নাম (বাংলায়)</th><td>{{ app.name_bn }}</td></tr>
             {% if app.name_en %}<tr><th>নাম (ইংরেজিতে)</th><td>{{ app.name_en }}</td></tr>{% endif %}
-            <tr><th>পিতার নাম</th><td>{{ app.father_name_bn }}</td></tr>
-            <tr><th>মাতার নাম</th><td>{{ app.mother_name_bn }}</td></tr>
+            <tr><th>পিতার নাম (বাংলা)</th><td>{{ app.father_name_bn }}</td></tr>
+            {% if app.father_name_en %}<tr><th>পিতার নাম (ইংরেজি)</th><td>{{ app.father_name_en }}</td></tr>{% endif %}
+            <tr><th>মাতার নাম (বাংলা)</th><td>{{ app.mother_name_bn }}</td></tr>
+            {% if app.mother_name_en %}<tr><th>মাতার নাম (ইংরেজি)</th><td>{{ app.mother_name_en }}</td></tr>{% endif %}
             {% if app.spouse_name_bn %}<tr><th>স্বামী/স্ত্রীর নাম</th><td>{{ app.spouse_name_bn }}</td></tr>{% endif %}
             <tr><th>জন্ম তারিখ</th><td>{{ app.date_of_birth|date:"d/m/Y" }}</td></tr>
             <tr><th>জাতীয় পরিচয়পত্র নং</th><td>{{ app.nid }}</td></tr>
+            {% if app.nationality %}<tr><th>জাতীয়তা</th><td>{{ app.nationality }}</td></tr>{% endif %}
+            {% if app.marital_status %}<tr><th>বৈবাহিক অবস্থা</th><td>{{ app.get_marital_status_display }}</td></tr>{% endif %}
+            {% if app.blood_group %}<tr><th>রক্তের গ্রুপ</th><td>{{ app.blood_group }}</td></tr>{% endif %}
             {% if app.nid_front_image %}
             <tr><th>এনআইডি (সামনে)</th><td class="photo-cell"><img src="{{ app.nid_front_image.url }}" alt="NID Front"></td></tr>
             {% endif %}
@@ -86,6 +92,7 @@
         <table>
             <tr><th>মোবাইল নম্বর</th><td>{{ app.phone }}</td></tr>
             {% if app.alternate_phone %}<tr><th>বিকল্প মোবাইল</th><td>{{ app.alternate_phone }}</td></tr>{% endif %}
+            {% if app.emergency_phone %}<tr><th>জরুরি যোগাযোগ</th><td>{{ app.emergency_phone }}</td></tr>{% endif %}
             {% if app.email %}<tr><th>ইমেইল</th><td>{{ app.email }}</td></tr>{% endif %}
             <tr><th>বর্তমান ঠিকানা</th><td>{{ app.present_address }}</td></tr>
             {% if app.permanent_address %}<tr><th>স্থায়ী ঠিকানা</th><td>{{ app.permanent_address }}</td></tr>{% endif %}
@@ -97,6 +104,25 @@
         <table>
             <tr><th>শিক্ষাগত যোগ্যতা</th><td>{{ app.education_level.name_bn|default:app.education_qualification }}</td></tr>
             {% if app.profession %}<tr><th>পেশা</th><td>{{ app.profession }}</td></tr>{% endif %}
+            {% if app.present_profession %}<tr><th>বর্তমান পেশা</th><td>{{ app.present_profession }}</td></tr>{% endif %}
+        </table>
+    </div>
+
+    <div class="section">
+        <div class="section-title">সংযুক্ত নথিসমূহ</div>
+        <table>
+            {% if app.education_certificate %}
+            <tr>
+                <th>শিক্ষাগত সনদপত্র</th>
+                <td class="photo-cell"><a href="{{ app.education_certificate.url }}">নথি দেখুন</a></td>
+            </tr>
+            {% endif %}
+            {% if app.govt_job_certificate %}
+            <tr>
+                <th>সরকারি চাকুরির সনদপত্র</th>
+                <td class="photo-cell"><a href="{{ app.govt_job_certificate.url }}">নথি দেখুন</a></td>
+            </tr>
+            {% endif %}
         </table>
     </div>
 

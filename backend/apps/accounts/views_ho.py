@@ -230,7 +230,11 @@ class HOUserViewSet(viewsets.ModelViewSet):
             )
         except Exception:
             pass
-        return Response({'detail': 'Password reset successful. Password has been emailed to the user.'})
+        return Response({
+            'detail': 'পাসওয়ার্ড রিসেট হয়েছে।',
+            'new_password': new_password,
+            'email_sent': True,
+        })
 
     @action(detail=True, methods=['post'])
     def toggle_status(self, request, pk=None):

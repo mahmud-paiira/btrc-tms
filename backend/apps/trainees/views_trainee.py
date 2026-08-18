@@ -38,7 +38,15 @@ class TraineePortalViewSet(viewsets.ViewSet):
     def me(self, request):
         trainee = self.get_trainee(request.user)
         if not trainee:
-            return Response({'detail': 'আপনি এখনো কোনো ব্যাচে নথিভুক্ত হননি।'}, status=404)
+            return Response({
+                'has_trainee': False,
+                'full_name_bn': request.user.full_name_bn,
+                'full_name_en': request.user.full_name_en,
+                'email': request.user.email,
+                'phone': request.user.phone,
+                'profile_image': request.user.profile_image.url if request.user.profile_image else None,
+                'detail': 'আপনি এখনো কোনো ব্যাচে নথিভুক্ত হননি।',
+            })
         batch = trainee.batch
 
         attendance_pct = None
@@ -94,6 +102,11 @@ class TraineePortalViewSet(viewsets.ViewSet):
             'circular_no': app.circular.circular_no,
             'chosen_center': app.chosen_center.name_bn if app.chosen_center else None,
             'applied_at': app.applied_at,
+            'profile_image': request.build_absolute_uri(app.profile_image.url) if app.profile_image else None,
+            'nid_front_image': request.build_absolute_uri(app.nid_front_image.url) if app.nid_front_image else None,
+            'nid_back_image': request.build_absolute_uri(app.nid_back_image.url) if app.nid_back_image else None,
+            'education_certificate': request.build_absolute_uri(app.education_certificate.url) if app.education_certificate else None,
+            'govt_job_certificate': request.build_absolute_uri(app.govt_job_certificate.url) if app.govt_job_certificate else None,
         })
 
     @action(detail=False, methods=['get'])

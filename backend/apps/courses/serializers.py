@@ -45,7 +45,8 @@ class CourseListSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'code', 'name_bn', 'name_en', 'course_type', 'course_type_display',
             'term', 'term_display', 'duration_months', 'duration_value', 'duration_unit',
-            'fee', 'project_name', 'project_sponsor', 'description',
+            'fee', 'project_name', 'project_code', 'project_sponsor', 'form_type',
+            'description',
             'status', 'status_display', 'created_by_name', 'created_at',
         )
 

@@ -7,8 +7,8 @@ import BanglaInput from '../../components/common/BanglaInput';
 import { convertToBanglaDigits } from '../../utils/numberFormatter';
 
 const TYPE_MAP = { driver: 'ড্রাইভার', mechanic: 'মেকানিক', supervisor: 'সুপারভাইজার' };
-const STATUS_MAP = { draft: 'খসড়া', active: 'সক্রিয়', completed: 'সমাপ্ত' };
-const STEP_LABELS = ['বেসিক তথ্য', 'কনফিগারেশন', 'বিল আইটেম', 'অধ্যায়', 'পূর্বশর্ত'];
+const STATUS_MAP = { draft: 'খসড়া', active: 'সক্রিয়', completed: 'সমাপ্ত' };
+const STEP_LABELS = ['বেসিক তথ্য', 'কনফিগারেশন', 'বিল আইটেম', 'অধ্যায়', 'পূর্বশর্ত'];
 
 const DURATION_UNITS = [
   { value: 'days', label: 'দিন' },
@@ -16,9 +16,24 @@ const DURATION_UNITS = [
   { value: 'months', label: 'মাস' },
 ];
 
+const FORM_TYPES = [
+  { value: 'training', label: 'প্রশিক্ষণ' },
+  { value: 'workshop', label: 'কর্মশালা' },
+  { value: 'orientation', label: 'ওрьентেশন' },
+  { value: 'certification', label: 'সার্টিফিকেশন' },
+  { value: 'other', label: 'অন্যান্য' },
+];
+
+const BRTC_STATIC = {
+  organization: 'বাংলাদেশ সড়ক পরিবহন কর্পোরেশন (বিআরটিসি)',
+  address: 'বিআরটিসি ভবন, ২১ রাজ্জিক এভিনিউ, ঢাকা-১০০০',
+  website: 'www.brtc.gov.bd',
+};
+
 const EMPTY_COURSE = {
   code: '', name_bn: '', name_en: '',
   description: '', project_name: '', project_sponsor: '',
+  form_type: 'training', project_code: '',
   duration_value: 3, duration_unit: 'months',
   fee: 0, stipend_eligible: false, employment_eligible: false, status: 'draft',
 };
@@ -42,6 +57,8 @@ function CourseFormWizard({ show, course, onClose, onSaved }) {
         name_bn: course.name_bn || '', name_en: course.name_en || '',
         description: course.description || '', project_name: course.project_name || '',
         project_sponsor: course.project_sponsor || '',
+        form_type: course.form_type || 'training',
+        project_code: course.project_code || '',
         duration_value: course.duration_value || 3,
         duration_unit: course.duration_unit || 'months',
         fee: course.fee || 0, stipend_eligible: course.stipend_eligible || false,
@@ -89,6 +106,8 @@ function CourseFormWizard({ show, course, onClose, onSaved }) {
     const { code, ...formWithoutCode } = form;
     return {
       ...formWithoutCode,
+      form_type: form.form_type || 'training',
+      project_code: form.project_code || '',
       course_type: 'driver',
       duration_months: durationMonths,
       duration_hours: durationHours,
@@ -106,7 +125,7 @@ function CourseFormWizard({ show, course, onClose, onSaved }) {
   };
 
   const handleSubmit = async () => {
-    if (!form.name_bn) { toast.error('নাম আবশ্যক'); return; }
+    if (!form.name_bn) { toast.error('Training Program (বাংলা) আবশ্যক'); return; }
     setSaving(true);
     try {
       const payload = buildPayload();
@@ -119,7 +138,20 @@ function CourseFormWizard({ show, course, onClose, onSaved }) {
       }
       onSaved();
     } catch (err) {
-      toast.error(err.response?.data?.detail?.[0] || 'সংরক্ষণ ব্যর্থ');
+      console.error('Course save error:', err.response?.data);
+      const data = err.response?.data;
+      let msg = 'সংরক্ষণ ব্যর্থ';
+      if (data?.detail) {
+        msg = Array.isArray(data.detail) ? data.detail[0] : data.detail;
+      } else if (data) {
+        const fields = Object.keys(data);
+        if (fields.length > 0) {
+          const firstField = fields[0];
+          const val = Array.isArray(data[firstField]) ? data[firstField][0] : data[firstField];
+          msg = `${firstField}: ${val}`;
+        }
+      }
+      toast.error(msg);
     } finally {
       setSaving(false);
     }
@@ -131,26 +163,64 @@ function CourseFormWizard({ show, course, onClose, onSaved }) {
     switch (step) {
       case 0: return (
         <div className="row g-3">
+          {/* Static organization info */}
           <div className="col-12 mb-1">
             <h6 className="fw-bold" style={{ color: '#6366f1', fontSize: '0.9rem' }}>
               <i className="bi bi-info-circle me-1"></i>বেসিক তথ্য
             </h6>
             <hr className="mt-1 mb-3" style={{ borderColor: '#e2e8f0' }} />
           </div>
-          <div className="col-4">
-            <label className="form-label">কোড</label>
-            <input name="code" className="form-control bg-light" value={form.code || (course ? course.code : 'স্বয়ংক্রিয়ভাবে জেনারেট হবে')} readOnly />
-            <small className="text-muted" style={{ fontSize: '0.75rem' }}>{form.code ? '' : 'নতুন কোর্সের জন্য স্বয়ংক্রিয়ভাবে জেনারেট হবে'}</small>
+
+          <div className="col-12">
+            <div className="p-3 rounded" style={{ background: '#f1f5f9', border: '1px solid #e2e8f0' }}>
+              <div className="row g-2" style={{ fontSize: 13 }}>
+                <div className="col-md-4">
+                  <span className="text-muted">প্রতিষ্ঠান:</span>{' '}
+                  <span className="fw-semibold">{BRTC_STATIC.organization}</span>
+                </div>
+                <div className="col-md-5">
+                  <span className="text-muted">ঠিকানা:</span>{' '}
+                  <span className="fw-semibold">{BRTC_STATIC.address}</span>
+                </div>
+                <div className="col-md-3">
+                  <span className="text-muted">ওয়েবসাইট:</span>{' '}
+                  <span className="fw-semibold">{BRTC_STATIC.website}</span>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="col-4">
-            <label className="form-label">নাম (বাংলা) <span className="text-danger">*</span></label>
-            <BanglaInput name="name_bn" className="form-control" value={form.name_bn} onChange={handleForm} required />
+
+          {/* Form Type */}
+          <div className="col-md-4">
+            <label className="form-label">ফর্মের ধরণ <span className="text-danger">*</span></label>
+            <select name="form_type" className="form-select" value={form.form_type} onChange={handleForm}>
+              {FORM_TYPES.map((ft) => <option key={ft.value} value={ft.value}>{ft.label}</option>)}
+            </select>
           </div>
-          <div className="col-4">
-            <label className="form-label">নাম (ইংরেজি) <span className="text-muted" style={{ fontSize: '0.75rem' }}>English only</span></label>
-            <input name="name_en" className="form-control" value={form.name_en} onChange={handleForm} />
+
+          {/* Project Code */}
+          <div className="col-md-4">
+            <label className="form-label">প্রকল্পের কোড</label>
+            <input name="project_code" className="form-control" value={form.project_code} onChange={handleForm}
+              placeholder="প্রকল্পের কোড লিখুন" />
           </div>
-          <div className="col-4">
+
+          {/* Project Name */}
+          <div className="col-md-4">
+            <label className="form-label">প্রকল্পের নাম</label>
+            <input name="project_name" className="form-control" value={form.project_name} onChange={handleForm}
+              placeholder="প্রকল্পের নাম লিখুন" />
+          </div>
+
+          {/* Project Sponsor */}
+          <div className="col-md-6">
+            <label className="form-label">প্রকল্পের স্পনসর</label>
+            <input name="project_sponsor" className="form-control" value={form.project_sponsor} onChange={handleForm}
+              placeholder="স্পনসরের নাম লিখুন" />
+          </div>
+
+          {/* Duration */}
+          <div className="col-md-6">
             <label className="form-label">কোর্সের মেয়াদ</label>
             <div className="input-group">
               <input name="duration_value" type="number" min="1" className="form-control"
@@ -161,21 +231,35 @@ function CourseFormWizard({ show, course, onClose, onSaved }) {
               </select>
             </div>
           </div>
-          <div className="col-8">
+
+          <div className="col-12"><hr style={{ borderColor: '#e2e8f0' }} /></div>
+
+          {/* Training Program (Bengali) */}
+          <div className="col-md-6">
+            <label className="form-label">Training Program (বাংলা) <span className="text-danger">*</span></label>
+            <BanglaInput name="name_bn" className="form-control" value={form.name_bn} onChange={handleForm} required
+              placeholder="প্রশিক্ষণ কার্যক্রমের নাম বাংলায়" />
+          </div>
+
+          {/* Training Program (English) */}
+          <div className="col-md-6">
+            <label className="form-label">Training Program (English)</label>
+            <input name="name_en" className="form-control" value={form.name_en} onChange={handleForm}
+              placeholder="Training program name in English" />
+          </div>
+
+          <div className="col-12"><hr style={{ borderColor: '#e2e8f0' }} /></div>
+
+          {/* Description at bottom — rich text area */}
+          <div className="col-12">
             <label className="form-label">কোর্স বিবরণ</label>
-            <BanglaInput as="textarea" name="description" className="form-control" rows="2"
+            <textarea name="description" className="form-control" rows="5"
               value={form.description} onChange={handleForm}
-              placeholder="কোর্স সম্পর্কে সংক্ষিপ্ত বিবরণ..." />
-          </div>
-          <div className="col-6">
-            <label className="form-label">প্রকল্পের নাম</label>
-            <input name="project_name" className="form-control" value={form.project_name} onChange={handleForm}
-              placeholder="প্রকল্পের নাম লিখুন" />
-          </div>
-          <div className="col-6">
-            <label className="form-label">প্রকল্পের স্পনসর</label>
-            <input name="project_sponsor" className="form-control" value={form.project_sponsor} onChange={handleForm}
-              placeholder="স্পনসরের নাম লিখুন" />
+              placeholder="কোর্স সম্পর্কে বিস্তারিত বিবরণ লিখুন...&#10;&#10;প্রশিক্ষণের উদ্দেশ্য, কাঠামো, এবং ফলাফল বর্ণনা করুন।"
+              style={{ resize: 'vertical', minHeight: 120, lineHeight: 1.7 }} />
+            <small className="text-muted" style={{ fontSize: '0.72rem' }}>
+              এখানে কোর্সের সম্পূর্ণ বিবরণ লিখুন — প্রশিক্ষণের উদ্দেশ্য, কাঠামো, পদ্ধতি এবং প্রত্যাশিত ফলাফল।
+            </small>
           </div>
         </div>
       );
@@ -420,11 +504,11 @@ export default function HoCourseManagement() {
                         <th>
                           <input type="checkbox" className="form-check-input" checked={selectAll} onChange={handleSelectAll} />
                         </th>
-                        <th>কোড</th><th>নাম (বাংলা)</th><th>মেয়াদ</th><th>প্রকল্প</th><th>স্পনসর</th><th>বিবরণ</th><th>স্ট্যাটাস</th><th className="text-center">কার্যক্রম</th>
+                        <th>কোড</th><th>Training Program (বাংলা)</th><th>মেয়াদ</th><th>ফর্মের ধরণ</th><th>প্রকল্প কোড</th><th>স্ট্যাটাস</th><th className="text-center">কার্যক্রম</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {courses.length === 0 ? <tr><td colSpan={9} className="text-center text-muted py-4">কোন কোর্স পাওয়া যায়নি</td></tr>
+                      {courses.length === 0 ? <tr><td colSpan={7} className="text-center text-muted py-4">কোন কোর্স পাওয়া যায়নি</td></tr>
                       : courses.map((c) => (
                           <tr key={c.id}>
                             <td>
@@ -440,9 +524,8 @@ export default function HoCourseManagement() {
                         c.duration_months ? <>{convertToBanglaDigits(c.duration_months)} মাস</> : <span className="text-muted">—</span>
                       )}
                             </td>
-                            <td>{c.project_name || '—'}</td>
-                            <td>{c.project_sponsor || '—'}</td>
-                            <td>{c.description ? c.description.slice(0, 60) + (c.description.length > 60 ? '…' : '') : '—'}</td>
+                            <td>{c.form_type === 'training' ? 'প্রশিক্ষণ' : c.form_type === 'workshop' ? 'ওয়ার্কশপ' : c.form_type === 'orientation' ? 'ভূমিকা' : c.form_type === 'certification' ? 'সার্টিফিকেশন' : c.form_type || '—'}</td>
+                            <td>{c.project_code || '—'}</td>
                             <td><span className={`status-dot dot-${c.status}`}></span> {c.status_display || STATUS_MAP[c.status]}</td>
                             <td className="act-col">
                               <div className="dropdown act-dropdown">

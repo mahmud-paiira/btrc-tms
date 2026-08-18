@@ -39,7 +39,7 @@ export default function Navbar({ breadcrumb, extra }) {
     centers: 'কেন্দ্র সমূহ',
     courses: 'কোর্স',
     trainers: 'প্রশিক্ষক',
-    assessors: 'মূল্যায়নকারী',
+    assessors: 'মূল্যায়নকারী',
     circulars: 'সার্কুলার',
     approvals: 'অনুমোদন ব্যবস্থাপনা',
     reports: 'প্রতিবেদন',
@@ -52,19 +52,18 @@ export default function Navbar({ breadcrumb, extra }) {
 
   return (
     <header className="topbar">
-      {/* Left: toggle + page title */}
       <div className="topbar-left">
         <button className="sidebar-toggle" onClick={toggleSidebar}>
           <i className="bi bi-list"></i>
         </button>
-        <div className="d-flex align-items-center gap-3">
+        <div className="d-flex align-items-center gap-2">
           {currentPage && (
             <div className="d-none d-md-flex align-items-center gap-2">
-              <div className="d-flex align-items-center justify-content-center rounded-2"
-                style={{ width: 32, height: 32, background: 'rgba(255,255,255,0.1)' }}>
-                <i className={`bi ${pageIcon}`} style={{ fontSize: 14, color: '#a5b4fc' }}></i>
+              <div className="d-flex align-items-center justify-content-center rounded"
+                style={{ width: 28, height: 28, background: 'var(--primary-light)', color: 'var(--primary)' }}>
+                <i className={`bi ${pageIcon}`} style={{ fontSize: 13 }}></i>
               </div>
-              <span className="fw-semibold" style={{ fontSize: 15, color: '#f1f5f9', whiteSpace: 'nowrap' }}>
+              <span className="fw-semibold" style={{ fontSize: 14, color: 'var(--text-heading)', whiteSpace: 'nowrap' }}>
                 {currentPage.label}
               </span>
             </div>
@@ -76,8 +75,8 @@ export default function Navbar({ breadcrumb, extra }) {
                   <li key={i} className="breadcrumb-item">
                     {cr.to ? (
                       <a href={cr.to} className="text-decoration-none d-flex align-items-center gap-1"
-                        style={{ fontSize: 13, color: '#94a3b8' }}>
-                        {i === 0 && <i className="bi bi-house-door" style={{ fontSize: 12 }}></i>}
+                        style={{ fontSize: 11, color: '#9ca3af' }}>
+                        {i === 0 && <i className="bi bi-house-door" style={{ fontSize: 10 }}></i>}
                         {cr.label}
                       </a>
                     ) : cr.label}
@@ -89,25 +88,23 @@ export default function Navbar({ breadcrumb, extra }) {
         </div>
       </div>
 
-      {/* Center */}
       <div className="topbar-center">
         {extra}
       </div>
 
-      {/* Right: language + user */}
       <div className="topbar-right">
         <LanguageSwitcher dropdown />
         {user && (
           <div className="dropdown">
             <button className="btn d-flex align-items-center gap-2 user-btn" data-bs-toggle="dropdown">
               <div className="rounded-circle d-flex align-items-center justify-content-center"
-                style={{ width: 30, height: 30, background: 'rgba(255,255,255,0.15)' }}>
-                <i className="bi bi-person" style={{ fontSize: 13, color: '#fff' }}></i>
+                style={{ width: 26, height: 26, background: 'var(--primary-light)', color: 'var(--primary)' }}>
+                <i className="bi bi-person" style={{ fontSize: 12 }}></i>
               </div>
-              <span className="d-none d-md-inline" style={{ fontSize: 13, fontWeight: 500 }}>
+              <span className="d-none d-md-inline" style={{ fontSize: 12, fontWeight: 500 }}>
                 {user.full_name_bn || user.email}
               </span>
-              <i className="bi bi-chevron-down" style={{ fontSize: 10, opacity: 0.6 }}></i>
+              <i className="bi bi-chevron-down" style={{ fontSize: 9, opacity: 0.5 }}></i>
             </button>
             <ul className="dropdown-menu dropdown-menu-end">
               <li><span className="dropdown-item-text text-secondary"><small>{user.email}</small></span></li>

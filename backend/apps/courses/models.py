@@ -31,7 +31,7 @@ class Course(models.Model):
         help_text='যেমন: DRV-FND-MRN-001',
     )
     name_bn = models.CharField(max_length=255, verbose_name='কোর্সের নাম (বাংলায়)')
-    name_en = models.CharField(max_length=255, verbose_name='কোর্সের নাম (ইংরেজিতে)')
+    name_en = models.CharField(max_length=255, blank=True, verbose_name='কোর্সের নাম (ইংরেজিতে)')
     course_type = models.CharField(
         max_length=20,
         choices=CourseType.choices,
@@ -51,14 +51,16 @@ class Course(models.Model):
         null=True,
         verbose_name='সেশন',
     )
-    duration_months = models.PositiveIntegerField(verbose_name='মেয়াদ (মাস)')
-    duration_hours = models.PositiveIntegerField(verbose_name='মোট ঘন্টা')
-    total_training_days = models.PositiveIntegerField(verbose_name='মোট প্রশিক্ষণ দিন')
+    duration_months = models.PositiveIntegerField(default=0, verbose_name='মেয়াদ (মাস)')
+    duration_hours = models.PositiveIntegerField(default=0, verbose_name='মোট ঘন্টা')
+    total_training_days = models.PositiveIntegerField(default=0, verbose_name='মোট প্রশিক্ষণ দিন')
     duration_value = models.PositiveIntegerField(default=3, verbose_name='মেয়াদ মান')
     duration_unit = models.CharField(max_length=10, choices=[('days', 'দিন'), ('weeks', 'সপ্তাহ'), ('months', 'মাস')], default='months', verbose_name='মেয়াদ একক')
     project_name = models.CharField(max_length=255, blank=True, verbose_name='প্রকল্পের নাম')
+    project_code = models.CharField(max_length=100, blank=True, verbose_name='প্রকল্পের কোড')
     project_sponsor = models.CharField(max_length=255, blank=True, verbose_name='প্রকল্পের স্পনসর')
-    fee = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='কোর্স ফি')
+    form_type = models.CharField(max_length=50, blank=True, default='training', verbose_name='ফর্মের ধরণ')
+    fee = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name='কোর্স ফি')
     stipend_eligible = models.BooleanField(default=False, verbose_name='স্টাইপেন্ড উপযোগী')
     employment_eligible = models.BooleanField(default=False, verbose_name='চাকরির উপযোগী')
     unit_cost = models.DecimalField(

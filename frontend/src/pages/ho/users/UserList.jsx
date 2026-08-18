@@ -34,6 +34,7 @@ export default function UserList() {
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [showBulkDelete, setShowBulkDelete] = useState(false);
   const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [resetResult, setResetResult] = useState(null);
   const pageSize = 25;
   useEffect(() => {
     hoService.listCenters({ status: 'active', page_size: 50 }).then(res => {
@@ -86,9 +87,12 @@ export default function UserList() {
   const handleResetPassword = async (user) => {
     try {
       const res = await hoService.resetPasswordHOUser(user.id);
-      toast.success('পাসওয়ার্ড রিসেট হয়েছে');
+      setResetResult({
+        userName: user.full_name_bn || user.full_name_en || user.email,
+        new_password: res.data.new_password,
+      });
     } catch {
-      toast.error('Password reset failed');
+      toast.error('পাসওয়ার্ড রিসেট ব্যর্থ হয়েছে');
     }
   };
 
@@ -313,6 +317,43 @@ export default function UserList() {
                 <button className="btn btn-danger" onClick={handleBulkDelete} disabled={bulkDeleting}>
                   {bulkDeleting ? <span className="spinner-border spinner-border-sm me-1" /> : <i className="bi bi-trash me-1"></i>}
                   মুছুন
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {resetResult && (
+        <div className="modal d-block" tabIndex="-1" style={{ background: 'rgba(0,0,0,.5)' }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header bg-success text-white">
+                <h5 className="modal-title"><i className="bi bi-key me-2"></i>পাসওয়ার্ড রিসেট সফল</h5>
+                <button type="button" className="btn-close btn-close-white" onClick={() => setResetResult(null)} />
+              </div>
+              <div className="modal-body text-center">
+                <p className="mb-2 text-muted">{resetResult.userName}</p>
+                <p className="mb-3 fw-bold">নতুন পাসওয়ার্ড:</p>
+                <div className="input-group mb-3">
+                  <input type="text" className="form-control form-control-lg text-center fw-bold font-monospace"
+                    value={resetResult.new_password} readOnly id="resetPasswordInput" />
+                  <button className="btn btn-outline-primary" type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(resetResult.new_password);
+                      toast.success('কপি হয়েছে');
+                    }}>
+                    <i className="bi bi-clipboard me-1"></i>কপি
+                  </button>
+                </div>
+                <div className="alert alert-warning py-2 mb-0 small">
+                  <i className="bi bi-exclamation-triangle me-1"></i>
+                  এই পাসওয়ার্ড ব্যবহারকারীকে দিন এবং লগইন করার পর পরিবর্তন করতে বলুন।
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button className="btn btn-success" onClick={() => setResetResult(null)}>
+                  <i className="bi bi-check-lg me-1"></i>বুঝেছি
                 </button>
               </div>
             </div>

@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BRTC TMS - Technology Stack Documentation</title>
+<style>
+
+@page {
+  size: A4;
+  margin: 20mm 16mm 18mm 16mm;
+  @bottom-center {
+    content: "BRTC TMS - Technology Stack Documentation  \2022  Page " counter(page) " of " counter(pages);
+    font-size: 8.5pt; color: #6b7280; font-family: 'Segoe UI', Arial, sans-serif;
+  }
+}
+@page cover {
+  margin: 0;
+  @bottom-center { content: none; }
+}
+* { box-sizing: border-box; }
+body { font-family: 'Segoe UI', Arial, sans-serif; color: #111827; font-size: 10.5pt; line-height: 1.55; }
+.cover { page: cover; width: 100%; height: 297mm; padding: 40mm 22mm; background: linear-gradient(160deg, #0b3d91 0%, #123f8f 55%, #071f4d 100%); color: #ffffff; }
+.cover .kicker { font-size: 11pt; letter-spacing: 3px; text-transform: uppercase; color: #93c5fd; }
+.cover h1 { font-size: 30pt; margin: 10mm 0 6mm 0; line-height: 1.15; }
+.cover .sub { font-size: 12.5pt; color: #dbeafe; line-height: 1.6; }
+.cover .meta { margin-top: 18mm; font-size: 10pt; color: #bfdbfe; line-height: 1.8; }
+.cover .rule { width: 70mm; height: 3px; background: #60a5fa; margin: 10mm 0; }
+h1.section { font-size: 16pt; color: #0b3d91; border-bottom: 2.5px solid #0b3d91; padding-bottom: 3mm; margin: 10mm 0 5mm 0; }
+h1.first { margin-top: 0; }
+h2 { font-size: 12.5pt; color: #1d4ed8; margin: 7mm 0 3mm 0; }
+p { margin: 0 0 3mm 0; text-align: justify; }
+ul { margin: 0 0 3mm 0; padding-left: 6mm; }
+li { margin-bottom: 1.5mm; }
+table { width: 100%; border-collapse: collapse; margin: 3mm 0 5mm 0; font-size: 9.5pt; }
+th { background: #0b3d91; color: #ffffff; text-align: left; padding: 2mm 2.5mm; }
+td { border: 0.5pt solid #cbd5e1; padding: 2mm 2.5mm; vertical-align: top; }
+tr:nth-child(even) td { background: #f1f5f9; }
+.tech-tag { display: inline-block; background: #dbeafe; color: #1d4ed8; border: 0.5pt solid #bfdbfe; border-radius: 3mm; padding: 0.5mm 2.5mm; font-size: 8.5pt; font-weight: 600; margin: 0 1mm 1mm 0; }
+.callout { background: #fffbeb; border-left: 3mm solid #eab308; padding: 3mm 4mm; margin: 3mm 0; }
+.callout.green { background: #f0fdf4; border-left-color: #16a34a; }
+.fig { text-align: center; margin: 4mm 0; page-break-inside: avoid; }
+.fig svg { width: 100%; height: auto; }
+.fig-caption { font-size: 9pt; color: #6b7280; margin-top: 1.5mm; }
+.two-col { display: flex; }
+.two-col > div { flex: 1; }
+.two-col > div + div { margin-left: 8mm; }
+.small { font-size: 9pt; color: #6b7280; }
+.toc { font-size: 11pt; }
+.toc td { border: none; padding: 1mm 0; background: #ffffff !important; }
+.toc .n { color: #0b3d91; font-weight: 700; width: 10mm; }
+code { font-family: Consolas, monospace; font-size: 9pt; background: #f1f5f9; padding: 0.2mm 1.5mm; border-radius: 1mm; }
+</style>
+</head>
+<body>
+<div class="cover">
+<div class="kicker">BRTC Training Management System</div>
+<h1>Technology Stack<br/>Documentation</h1>
+<div class="rule"></div>
+<div class="sub">The technologies used across the platform &mdash; what they are, why they were chosen, and how the system is secured.</div>
+<div class="meta">Document: BRTC-TMS-TECH-001<br/>Version: 1.0 <br/>Status: Final<br/>Classification: Internal</div>
+</div>
+<h1 class="section first">Contents</h1>
+<table class="toc">
+<tr><td class="n">1</td><td>System Overview &amp; Architecture</td></tr>
+<tr><td class="n">2</td><td>Frontend Technology</td></tr>
+<tr><td class="n">3</td><td>Backend Technology &amp; API</td></tr>
+<tr><td class="n">4</td><td>Data, Cache &amp; Task Queue</td></tr>
+<tr><td class="n">5</td><td>Document Pipeline (OCR, PDF, QR)</td></tr>
+<tr><td class="n">6</td><td>Infrastructure &amp; Deployment</td></tr>
+<tr><td class="n">7</td><td>Security Architecture</td></tr>
+<tr><td class="n">8</td><td>Rationale Summary</td></tr>
+</table>
+<h1 class="section">1. System Overview &amp; Architecture</h1>
+<p>The BRTC Training Management System (BRTC TMS) is a full-stack web platform that administers the entire training lifecycle &mdash; from public circulars and NID-verified applications through batch enrollment, attendance, assessment, certification, job placement and finance/allowance management. It is built as a modern single-page application (SPA) backed by a RESTful API, with asynchronous background processing and a containerised deployment model.</p>
+<div class="fig">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 460" width="1200" height="460" role="img">
+<g font-family="'Segoe UI', Arial, sans-serif">
+<rect x="40" y="60" width="220" height="110" rx="8" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+<text x="150" y="103.3" font-size="13" text-anchor="middle" fill="#111827" font-weight="bold">Web Browser</text>
+<text x="150" y="119.5" font-size="13" text-anchor="middle" fill="#111827" font-weight="bold">(SPA)</text>
+<text x="150" y="135.8" font-size="13" text-anchor="middle" fill="#111827" font-weight="bold">React 18 + Vite 5</text>
+<text x="150" y="44" font-size="10" text-anchor="middle" fill="#6b7280" font-weight="bold">CLIENT</text>
+<rect x="340" y="60" width="220" height="110" rx="8" fill="#ffffff" stroke="#0b3d91" stroke-width="1.5"/>
+<text x="450" y="104.2" font-size="12" text-anchor="middle" fill="#111827" font-weight="bold">Nginx</text>
+<text x="450" y="119.2" font-size="12" text-anchor="middle" fill="#111827" font-weight="bold">Reverse Proxy</text>
+<text x="450" y="134.2" font-size="12" text-anchor="middle" fill="#111827" font-weight="bold">TLS 1.2/1.3 + Rate Limit</text>
+<text x="450" y="44" font-size="10" text-anchor="middle" fill="#6b7280" font-weight="bold">EDGE</text>
+<rect x="640" y="60" width="260" height="110" rx="8" fill="#0b3d91" stroke="#0b3d91" stroke-width="1.5"/>
+<text x="770" y="104.2" font-size="12" text-anchor="middle" fill="#ffffff" font-weight="bold">Django 4.2 + DRF</text>
+<text x="770" y="119.2" font-size="12" text-anchor="middle" fill="#ffffff" font-weight="bold">17 Business Apps</text>
+<text x="770" y="134.2" font-size="12" text-anchor="middle" fill="#ffffff" font-weight="bold">JWT Auth / Celery Beat</text>
+<text x="770" y="44" font-size="10" text-anchor="middle" fill="#6b7280" font-weight="bold">APPLICATION (API)</text>
+<rect x="960" y="40" width="200" height="70" rx="8" fill="#ffffff" stroke="#0b3d91" stroke-width="1.5"/>
+<text x="1060" y="71.7" font-size="12" text-anchor="middle" fill="#111827" font-weight="bold">PostgreSQL 15/16</text>
+<text x="1060" y="86.7" font-size="12" text-anchor="middle" fill="#111827" font-weight="bold">Relational Data</text>
+<rect x="960" y="130" width="200" height="70" rx="8" fill="#ffffff" stroke="#0b3d91" stroke-width="1.5"/>
+<text x="1060" y="161.7" font-size="12" text-anchor="middle" fill="#111827" font-weight="bold">Redis 7</text>
+<text x="1060" y="176.7" font-size="12" text-anchor="middle" fill="#111827" font-weight="bold">Cache + Broker</text>
+<text x="1060" y="24" font-size="10" text-anchor="middle" fill="#6b7280" font-weight="bold">DATA</text>
+<rect x="960" y="360" width="200" height="80" rx="8" fill="#ffffff" stroke="#0b3d91" stroke-width="1.5"/>
+<text x="1060" y="389.2" font-size="12" text-anchor="middle" fill="#111827" font-weight="bold">Celery Worker</text>
+<text x="1060" y="404.2" font-size="12" text-anchor="middle" fill="#111827" font-weight="bold">+ Celery Beat</text>
+<text x="1060" y="419.2" font-size="12" text-anchor="middle" fill="#111827" font-weight="bold">(async jobs / schedules)</text>
+<text x="1060" y="344" font-size="10" text-anchor="middle" fill="#6b7280" font-weight="bold">ASYNC</text>
+<rect x="40" y="360" width="260" height="80" rx="8" fill="#ffffff" stroke="#0b3d91" stroke-width="1.5"/>
+<text x="170" y="389.2" font-size="12" text-anchor="middle" fill="#111827" font-weight="bold">Tesseract OCR (bn+en)</text>
+<text x="170" y="404.2" font-size="12" text-anchor="middle" fill="#111827" font-weight="bold">OpenCV / Pillow</text>
+<text x="170" y="419.2" font-size="12" text-anchor="middle" fill="#111827" font-weight="bold">WeasyPrint PDF</text>
+<text x="170" y="344" font-size="10" text-anchor="middle" fill="#6b7280" font-weight="bold">DOCUMENT PIPELINE</text>
+<line x1="260" y1="115" x2="340" y2="115" stroke="#0b3d91" stroke-width="1.5"/>
+<polygon points="340,115 333,117 333,112" fill="#0b3d91"/>
+<line x1="560" y1="115" x2="640" y2="115" stroke="#0b3d91" stroke-width="1.5"/>
+<polygon points="640,115 633,117 633,112" fill="#0b3d91"/>
+<line x1="900" y1="115" x2="960" y2="115" stroke="#0b3d91" stroke-width="1.5"/>
+<polygon points="960,115 953,117 953,112" fill="#0b3d91"/>
+<line x1="900" y1="115" x2="960" y2="165" stroke="#0b3d91" stroke-width="1.5"/>
+<polygon points="960,165 953,162 956,158" fill="#0b3d91"/>
+<line x1="900" y1="115" x2="1060" y2="360" stroke="#0b3d91" stroke-width="1.5" stroke-dasharray="6,3"/>
+<polygon points="1060,360 1054,355 1058,352" fill="#0b3d91"/>
+<line x1="340" y1="170" x2="170" y2="360" stroke="#0b3d91" stroke-width="1.5" stroke-dasharray="6,3"/>
+<polygon points="170,360 172,353 176,356" fill="#0b3d91"/>
+</g></svg>
+<div class="fig-caption">Figure 1: End-to-end architecture (&#8220;Client &rarr; Edge &rarr; Application &rarr; Data&#8221; pipeline with async workers and the document pipeline).</div>
+</div>
+<h2>Core design principles</h2>
+<ul>
+<li><b>Separation of concerns</b> &mdash; frontend SPA, REST API, background workers, and reverse proxy are independent, containerised components.</li>
+<li><b>Stateless API authentication</b> via JWT so the same backend serves the web application and future integrations.</li>
+<li><b>Asynchronous by default</b> &mdash; slow work (reports, certificates, notifications) is delegated to Celery instead of blocking request threads.</li>
+<li><b>Modular domain design</b> &mdash; the backend is split into 17 Django apps mirroring business areas (accounts, applications, batches, assessments, certificates, finance, etc.).</li>
+</ul>
+<h1 class="section">2. Frontend Technology</h1>
+<p>The client is a React 18 single-page application built with Vite 5. The UI layer uses Bootstrap 5 (via react-bootstrap) with SASS theming, styled-components, and bootstrap-icons for a consistent administrative interface.</p>
+<table>
+<tr><th>Technology</th><th>Role in the system</th><th>Why it was chosen</th></tr>
+<tr><td><b>React 18</b></td><td>Component-based SPA for all admin, trainer and public pages.</td><td>Mature ecosystem, virtual-DOM rendering, huge talent pool, easy to compose complex forms and tables.</td></tr>
+<tr><td><b>Vite 5</b></td><td>Dev server and production build tool.</td><td>Near-instant hot reload, fast Rollup-based production bundles, minimal configuration.</td></tr>
+<tr><td><b>React Router v6</b></td><td>Client-side routing for modules.</td><td>Declarative nested routing with lazy loading support; the standard for React SPAs.</td></tr>
+<tr><td><b>Zustand</b></td><td>Global state management (auth/session, app-wide data).</td><td>Minimal boilerplate compared to Redux, selector-based re-renders, tiny bundle footprint.</td></tr>
+<tr><td><b>React Hook Form</b></td><td>Form state, validation and submission.</td><td>Uncontrolled inputs reduce re-renders; works cleanly with Yup-style validation and large forms (applications, batches).</td></tr>
+<tr><td><b>Axios</b></td><td>HTTP client for the DRF API.</td><td>Interceptors for JWT refresh, unified error handling, cancel tokens and clean async/await API.</td></tr>
+<tr><td><b>Bootstrap 5 + react-bootstrap + SASS</b></td><td>Layout, components, styling.</td><td>Fast, accessible, mobile-responsive UI consistent with government system expectations; SASS for custom theming.</td></tr>
+<tr><td><b>react-data-table-component</b></td><td>Sortable/filterable data grids (trainees, applications, reports).</td><td>High-performance tables with built-in searching, pagination and column customisation.</td></tr>
+<tr><td><b>react-select</b></td><td>Searchable dropdowns (districts, centers, courses, NID fields).</td><td>Accessible multi/async selects with keyboard support for long option lists.</td></tr>
+<tr><td><b>Recharts</b></td><td>Charts on dashboards and reports.</td><td>Composable SVG charts that integrate with React state and responsive containers.</td></tr>
+<tr><td><b>QRCode.react</b></td><td>QR codes on certificates and entry passes.</td><td>Reliable client-side QR rendering for verifiable documents.</td></tr>
+<tr><td><b>DOMPurify</b></td><td>Sanitisation of user/rich-text content before rendering.</td><td>Defence-in-depth against stored/reflected XSS.</td></tr>
+<tr><td><b>nodejs-avro-phonetic</b></td><td>Bengali phonetic input for NID/trainee names.</td><td>Enables Bengali (Bangla) name entry using a standard English keyboard layout.</td></tr>
+<tr><td><b>react-toastify</b></td><td>Non-blocking user notifications.</td><td>Lightweight, themeable toasts for success/error feedback across the app.</td></tr>
+<tr><td><b>Vitest + React Testing Library</b></td><td>Unit/component tests.</td><td>Fast, Vite-native test runner with a component-testing API aligned to user behaviour.</td></tr>
+</table>
+<h1 class="section">3. Backend Technology &amp; API</h1>
+<p>The API layer is built on <b>Django 4.2</b> with the <b>Django REST Framework (DRF) 3.15</b>. Authentication is stateless JSON Web Tokens via <code>djangorestframework-simplejwt</code>. 17 domain apps organise the business logic, all exposed through a single <code>/api/</code> namespace.</p>
+<table>
+<tr><th>Technology</th><th>Role in the system</th><th>Why it was chosen</th></tr>
+<tr><td><b>Django 4.2 LTS</b></td><td>Core web framework, ORM, migrations, admin, middleware.</td><td>Batteries-included LTS with strong security defaults, mature ORM, and automatic schema migrations &mdash; ideal for a data-heavy government training system.</td></tr>
+<tr><td><b>Django REST Framework</b></td><td>RESTful API, serializers, permissions, throttling.</td><td>The de-facto Django API framework; built-in throttling, filtering, pagination and browsable API.</td></tr>
+<tr><td><b>djangorestframework-simplejwt</b></td><td>Stateless JWT authentication.</td><td>Secure token auth with configurable lifetimes, rotation and blacklisting &mdash; suitable for SPA clients.</td></tr>
+<tr><td><b>django-cors-headers</b></td><td>Cross-origin resource sharing for the SPA.</td><td>Controls which origins may call the API (CORS_ALLOWED_ORIGINS is environment-driven).</td></tr>
+<tr><td><b>django-filter</b></td><td>Declarative filtering of list endpoints.</td><td>Standardised query-string filtering for large datasets (applications, trainees, batches).</td></tr>
+<tr><td><b>drf-yasg</b></td><td>Swagger/OpenAPI schema generation.</td><td>Automatic API documentation for integrators and QA (disabled in production).</td></tr>
+<tr><td><b>django-ckeditor</b></td><td>Rich-text editing in admin/notices.</td><td>WYSIWYG content editing for circulars and announcements.</td></tr>
+<tr><td><b>django-simple-history</b></td><td>Full audit trail of model changes.</td><td>Immutable change history satisfies accountability and audit requirements for public services.</td></tr>
+<tr><td><b>django-celery-beat</b></td><td>Database-driven scheduled task definitions.</td><td>Lets administrators schedule recurring jobs (reports, reminders) without code deploys.</td></tr>
+<tr><td><b>python-decouple / python-dotenv</b></td><td>12-factor configuration from environment files.</td><td>Keeps secrets out of source control; every environment supplies its own settings.</td></tr>
+</table>
+<h2>Domain modules</h2>
+<p class="small">accounts, centers, courses, trainers, assessors, circulars, applications, batches, attendance, assessments, certificates, jobplacement, reports, notifications, trainees, finance, allowance, system_config</p>
+<h1 class="section">4. Data, Cache &amp; Task Queue</h1>
+<table>
+<tr><th>Technology</th><th>Role in the system</th><th>Why it was chosen</th></tr>
+<tr><td><b>PostgreSQL 15 / 16</b></td><td>Primary relational database.</td><td>ACID transactions, strong constraint enforcement (e.g. unique NID/phone checks), JSON support, and excellent concurrency &mdash; essential for accurate enrollment and selection processing.</td></tr>
+<tr><td><b>Redis 7</b></td><td>Cache (DRF throttling, sessions) and Celery message broker.</td><td>In-memory speed, built-in persistence option (<code>appendonly yes</code> in production), single service covers both cache and broker roles.</td></tr>
+<tr><td><b>Celery 5</b></td><td>Distributed task queue and beat scheduler.</td><td>Offloads PDF generation, notifications, reporting and scheduled jobs; JSON serialization with bounded concurrency and per-child task limits in production.</td></tr>
+</table>
+<h1 class="section">5. Document Pipeline (OCR, PDF, QR)</h1>
+<table>
+<tr><th>Technology</th><th>Role in the system</th><th>Why it was chosen</th></tr>
+<tr><td><b>Tesseract OCR</b></td><td>Optical character recognition of scanned documents.</td><td>Reads Bengali and English text (<code>TESSERACT_LANG=ben+eng</code>), e.g. for NID / supporting document processing.</td></tr>
+<tr><td><b>OpenCV + Pillow</b></td><td>Image preprocessing and manipulation.</td><td>Improves OCR accuracy (deskew, denoise, contrast) and handles image uploads/crops.</td></tr>
+<tr><td><b>WeasyPrint</b></td><td>Server-side HTML &rarr; PDF rendering.</td><td>Renders certificates, admit cards and reports to print-quality PDF from HTML/CSS templates with Bengali font support via Pango.</td></tr>
+<tr><td><b>qrcode</b></td><td>QR code generation for verifiable documents.</td><td>Embedded in certificates/entry passes for authenticity checks.</td></tr>
+<tr><td><b>openpyxl</b></td><td>Excel import/export.</td><td>Round-trip of batch/roster data with government-standard spreadsheet formats.</td></tr>
+</table>
+<div class="callout green"><b>Production note:</b> PDF/OCR heavy jobs run inside Celery workers (not the request path), keeping the API responsive during bulk certificate generation.</div>
+<h1 class="section">6. Infrastructure &amp; Deployment</h1>
+<h2>Containerised services (Docker Compose)</h2>
+<table>
+<tr><th>Service</th><th>Image</th><th>Responsibility</th></tr>
+<tr><td><b><code>db</code></b></td><td>postgres 16-alpine</td><td>Relational data store; healthchecked; bound to 127.0.0.1 only in production; init script for DB/user creation.</td></tr>
+<tr><td><b><code>redis</code></b></td><td>redis 7-alpine</td><td>Cache + broker; AOF persistence; password-protected in production.</td></tr>
+<tr><td><b><code>backend</code></b></td><td>Django (Gunicorn)</td><td>Serves the DRF API and Django admin; runs as a read-only container with <code>tmpfs /tmp</code> in production.</td></tr>
+<tr><td><b><code>celery_worker</code></b></td><td>Django + Celery</td><td>Executes async jobs; bounded concurrency (<code>--concurrency=4 --max-tasks-per-child=1000</code>).</td></tr>
+<tr><td><b><code>celery_beat</code></b></td><td>Django + Celery Beat</td><td>Schedules recurring jobs from the database scheduler.</td></tr>
+<tr><td><b><code>frontend</code></b></td><td>node:20-alpine (Vite)</td><td>SPA dev/build; runs as a non-root user (<code>appuser</code>).</td></tr>
+<tr><td><b><code>nginx</code></b></td><td>nginx:1.25-alpine</td><td>TLS termination, rate limiting, static/media serving, SPA fallback routing.</td></tr>
+</table>
+<p class="small">Production hardening includes resource limits (CPU/memory), <code>cap_drop: ALL</code>, <code>read_only: true</code> root filesystems, image pinning, Docker healthchecks on all stateful services, and bounded JSON-file logging with rotation.</p>
+<h2>Why this deployment model</h2>
+<ul>
+<li><b>Reproducibility</b> &mdash; identical environments from local laptops to the production server.</li>
+<li><b>Isolation</b> &mdash; each component is a separate process; workers can scale independently under load.</li>
+<li><b>Least privilege</b> &mdash; read-only filesystems, dropped capabilities and non-root users reduce the blast radius of a compromise.</li>
+</ul>
+<h1 class="section">7. Security Architecture</h1>
+<p>Security is applied in layers &mdash; network/edge (Nginx), application (Django/DRF), and client (React). Every layer is described below.</p>
+<h2>7.1 Transport &amp; edge security (Nginx)</h2>
+<ul>
+<li><b>TLS only</b> &mdash; port 80 redirects to HTTPS; TLS 1.2/1.3 enforced, weak ciphers (<code>!aNULL:!MD5:!3DES:!RC4</code>) excluded, session cache configured.</li>
+<li><b>HSTS</b> &mdash; <code>Strict-Transport-Security: max-age=31536000; includeSubDomains; preload</code>.</li>
+<li><b>Security headers</b> &mdash; <code>X-Frame-Options: SAMEORIGIN</code>, <code>X-Content-Type-Options: nosniff</code>, <code>Referrer-Policy</code>, <code>Permissions-Policy</code> (camera/mic/geolocation blocked), and a strict <code>Content-Security-Policy</code> (scripts only from self; frame-ancestors self).</li>
+<li><b>Fingerprint reduction</b> &mdash; <code>server_tokens off</code> hides the Nginx version.</li>
+<li><b>Rate limiting</b> &mdash; per-IP zones per endpoint class: login/OTP 10&nbsp;r/m, admin 10&nbsp;r/m, public API 15&ndash;20&nbsp;r/m, general API 30&nbsp;r/m, all with burst allowances and a 429 response.</li>
+<li><b>Upload cap</b> &mdash; <code>client_max_body_size 20M</code> prevents oversized payloads.</li>
+<li><b>Docs disabled</b> &mdash; <code>/swagger/</code> and <code>/redoc/</code> return 404 in production.</li>
+<li><b>Health endpoint restricted</b> &mdash; only reachable from loopback/private ranges.</li>
+</ul>
+<h2>7.2 Application-layer security (Django / DRF)</h2>
+<ul>
+<li><b>JWT authentication</b> &mdash; Bearer access tokens (2-hour lifetime), refresh token rotation with blacklisting of old tokens (7-day refresh lifetime).</li>
+<li><b>Default deny</b> &mdash; DRF default permission is <code>IsAuthenticated</code>; public endpoints are explicit exceptions.</li>
+<li><b>Throttling</b> &mdash; per-user (1000/hour) and anonymous (100/hour) DRF throttles complement the Nginx rate limits.</li>
+<li><b>Production hardening block</b> &mdash; automatically enforced when <code>DJANGO_DEBUG=False</code>: HSTS, <code>SECURE_CONTENT_TYPE_NOSNIFF</code>, secure/HTTP-only session and CSRF cookies, and <code>SECURE_PROXY_SSL_HEADER</code> for correct schema detection behind Nginx.</li>
+<li><b>Secrets &amp; configuration</b> &mdash; <code>DJANGO_SECRET_KEY</code>, DB password and Redis password come from the environment (<code>.env</code>), never committed; Redis uses <code>--requirepass</code> in production.</li>
+<li><b>Audit trail</b> &mdash; <code>django-simple-history</code> records every model change; NID lookups are logged (<code>NIDAccessLog</code>) for accountability.</li>
+<li><b>Verified identity</b> &mdash; public registration verifies phone via OTP and validates NID through the national NID API before applications are accepted.</li>
+<li><b>CSRF/XSS defaults</b> &mdash; Django CSRF middleware active; security middleware enables <code>X-Content-Type-Options</code> and browser-XSS protection at the application layer as well.</li>
+</ul>
+<h2>7.3 Client-side security (React)</h2>
+<ul>
+<li>All user-generated and rich-text content is sanitised with <b>DOMPurify</b> before rendering (defence-in-depth against XSS).</li>
+<li>Tokens are held in memory/session state and sent only via the Authorization header through Axios interceptors; no secrets are embedded in the bundle.</li>
+<li>The strict CSP header also restricts script sources to self, containing any client-side injection.</li>
+</ul>
+<div class="callout"><b>Operational notes:</b> TLS certificates are mounted read-only into Nginx (<code>/etc/nginx/ssl</code>); the database port is not exposed to the public internet; the frontend runs as a non-root user; and deployments pin versions of every base image for supply-chain stability.</div>
+<h1 class="section">8. Rationale Summary</h1>
+<p>In short, the stack was chosen for <b>maturity, security and maintainability</b>:</p>
+<table>
+<tr><th>Concern</th><th>Decision</th><th>Primary reason</th></tr>
+<tr><td><b>Web framework</b></td><td>Django + DRF</td><td>LTS, security defaults, ORM/migrations, and a large ecosystem; rapid, safe delivery of 17 business modules.</td></tr>
+<tr><td><b>Client</b></td><td>React + Vite</td><td>Fast interactive SPA; excellent ecosystem for complex forms, tables and charts; fast tooling.</td></tr>
+<tr><td><b>Database</b></td><td>PostgreSQL</td><td>ACID integrity and unique-constraint enforcement for enrollment correctness.</td></tr>
+<tr><td><b>AuthN</b></td><td>JWT (SimpleJWT)</td><td>Stateless, works with SPA + mobile, with rotation and blacklisting for token theft mitigation.</td></tr>
+<tr><td><b>Async work</b></td><td>Celery + Redis</td><td>Keeps the API fast by offloading PDFs, notifications and scheduled reports.</td></tr>
+<tr><td><b>Documents</b></td><td>WeasyPrint + Tesseract + QRCode</td><td>Print-quality certificates/reports and Bengali+English OCR without licensed dependencies.</td></tr>
+<tr><td><b>Edge</b></td><td>Nginx</td><td>TLS, rate limiting and static serving in one hardened reverse proxy.</td></tr>
+<tr><td><b>Deployment</b></td><td>Docker Compose</td><td>Reproducible, isolated, least-privilege containers.</td></tr>
+</table>
+<p class="small">Technologies are selected only where they are already used in the repository (see <code>backend/requirements.txt</code>, <code>frontend/package.json</code>, <code>docker-compose.prod.yml</code> and <code>nginx/prod.conf</code>).</p>
+</body>
+</html>

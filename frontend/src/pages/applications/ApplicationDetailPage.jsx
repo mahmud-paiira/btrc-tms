@@ -15,6 +15,29 @@ function imageUrl(path) {
   return `${API_URL}${path.startsWith('/') ? '' : '/'}${path}`;
 }
 
+function DocPreview({ src, label }) {
+  const [imgFailed, setImgFailed] = useState(false);
+  const isPdf = src && src.toLowerCase().endsWith('.pdf');
+  if (isPdf || imgFailed) {
+    return (
+      <a href={src} target="_blank" rel="noopener noreferrer"
+        className="d-inline-block border rounded p-4 text-decoration-none" style={{ width: 200 }}>
+        <i className="bi bi-file-earmark-pdf text-danger" style={{ fontSize: 48 }}></i>
+        <p className="mb-0 mt-2 small text-muted">{label}</p>
+        <small className="text-primary">খুলতে ক্লিক করুন</small>
+      </a>
+    );
+  }
+  return (
+    <a href={src} target="_blank" rel="noopener noreferrer">
+      <img src={src} alt={label}
+        className="img-thumbnail"
+        style={{ height: 200, objectFit: 'cover' }}
+        onError={() => setImgFailed(true)} />
+    </a>
+  );
+}
+
 const TABS = [
   { key: 'overview', label: 'বিবরণ' },
   { key: 'documents', label: 'ডকুমেন্টস' },
@@ -273,18 +296,13 @@ export default function ApplicationDetailPage() {
                 { label: 'প্রোফাইল ছবি', src: imageUrl(app.profile_image) },
                 { label: 'এনআইডি (সামনে)', src: imageUrl(app.nid_front_image) },
                 { label: 'এনআইডি (পেছনে)', src: imageUrl(app.nid_back_image) },
+                { label: 'শিক্ষাগত সনদপত্র', src: imageUrl(app.education_certificate) },
+                { label: 'সরকারি চাকুরির সনদপত্র', src: imageUrl(app.govt_job_certificate) },
               ].map(({ label, src }) => (
                 <div className="col-md-4 text-center" key={label}>
                   <h6 className="fw-bold mb-3 text-muted text-uppercase small">{label}</h6>
-                  {src ? (
-                    <a href={src} target="_blank" rel="noopener noreferrer">
-                      <img src={src} alt={label}
-                        className="img-thumbnail"
-                        style={{ height: 200, objectFit: 'cover' }}
-                        onError={(e) => { e.target.style.display = 'none'; }} />
-                    </a>
-                  ) : (
-                    <div className="border rounded p-4 text-muted small">কোনো ছবি নেই</div>
+                  {src ? <DocPreview src={src} label={label} /> : (
+                    <div className="border rounded p-4 text-muted small">কোনো নথি নেই</div>
                   )}
                 </div>
               ))}

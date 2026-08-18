@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import publicService from '../../services/publicService';
 import circularService from '../../services/circularService';
@@ -7,16 +7,6 @@ import { convertToBanglaDigits, toEnglishDigits } from '../../utils/numberFormat
 import ApplySuccess from './ApplySuccess';
 import './RegistrationForm.css';
 
-const CRITERIA_INPUT_TYPES = {
-  age: 'date',
-  education: 'select',
-  experience_years: 'number',
-  height_cm: 'number',
-  weight_kg: 'number',
-  boolean: 'select',
-  text_match: 'text',
-  number: 'number',
-};
 
 function calculateAge(dob) {
   if (!dob) return null;
@@ -28,11 +18,29 @@ function calculateAge(dob) {
   return age;
 }
 
-function SectionCard({ icon, title, children }) {
+
+function GovHeader({ circular }) {
   return (
-    <div className="form-section-card mb-4">
-      <div className="form-section-header"><i className={`bi ${icon} me-2`}></i><span>{title}</span></div>
-      <div className="form-section-body"><div className="row g-3">{children}</div></div>
+    <div className="apply-header mb-4">
+      <div className="gov-header" style={{ marginBottom: 0, paddingBottom: 12 }}>
+        <div className="gov-line-1">{'গণপ্রজাতন্ত্রী বাংলাদেশ সরকার'}</div>
+        <div className="gov-line-2">{'বাংলাদেশ সড়ক পরিবহন কর্পোরেশন (BRTC)'}</div>
+        <div className="gov-line-3">{'www.brtc.gov.bd'}</div>
+        <div className="gov-line-4">{'প্রশিক্ষণ ব্যবস্থাপনা সিস্টেম — নিবন্ধন ফর্ম'}</div>
+      </div>
+      <div className="apply-header-title">
+        <div className="apply-header-project">{'প্রকল্প: BRTC-BRSP'}</div>
+        <h4 className="apply-header-form-name">
+          <i className="bi bi-file-earmark-text me-2"></i>
+          {'প্রশিক্ষণ ব্যবস্থাপনা সিস্টেম — নিবন্ধন ফরম'}
+        </h4>
+      </div>
+      {circular && (
+        <div className="apply-header-circular">
+          <strong>{'প্রশিক্ষণ প্রতিষ্ঠান:'} </strong>{circular.title_bn || circular.title_en}
+          {circular.course_name && <span className="ms-2 text-muted">| {circular.course_name}</span>}
+        </div>
+      )}
     </div>
   );
 }
@@ -93,28 +101,32 @@ export default function RegisterAndApply() {
     education_level_id: '',
     education_qualification: '',
     chosen_center_id: '',
+    father_name_en: '',
+    mother_name_en: '',
+    nationality: 'বাংলাদেশী',
+    present_profession: '',
+    emergency_phone: '',
+    marital_status: '',
+    blood_group: '',
     profile_image: null,
     nid_front_image: null,
     nid_back_image: null,
+    education_certificate: null,
+    govt_job_certificate: null,
   });
-  const [checklistValues, setChecklistValues] = useState({});
+  const [courseSelected, setCourseSelected] = useState(false);
+  const [undertakingAgreed, setUndertakingAgreed] = useState(false);
   const [photoPreview, setPhotoPreview] = useState(null);
   const [nidFrontPreview, setNidFrontPreview] = useState(null);
   const [nidBackPreview, setNidBackPreview] = useState(null);
+  const [eduCertPreview, setEduCertPreview] = useState(null);
+  const [govtJobPreview, setGovtJobPreview] = useState(null);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(null);
   const [genders, setGenders] = useState([]);
   const [educations, setEducations] = useState([]);
-  const [demographies, setDemographies] = useState([]);
-  const [sameAsPresent, setSameAsPresent] = useState(false);
-  const [applyStep, setApplyStep] = useState(1);
-  const [nidVerified, setNidVerified] = useState(false);
-  const [nidVerifying, setNidVerifying] = useState(false);
-  const [nidVerifyError, setNidVerifyError] = useState('');
-  const [dobDay, setDobDay] = useState('');
-  const [dobMonth, setDobMonth] = useState('');
-  const [dobYear, setDobYear] = useState('');
+
 
   const MONTHS = [
     { value: '1', label: 'জানুয়ারি' }, { value: '2', label: 'ফেব্রুয়ারি' },
@@ -126,28 +138,14 @@ export default function RegisterAndApply() {
   ];
   const DAYS = Array.from({ length: 31 }, (_, i) => ({ value: String(i + 1).padStart(2, '0'), label: String(i + 1) }));
   const YEARS = Array.from({ length: 56 }, (_, i) => ({ value: String(1970 + i), label: String(1970 + i) }));
-  const APPLY_STEPS = ['এনআইডি যাচাই', 'ঠিকানা', 'শিক্ষাগত যোগ্যতা ও ফর্ম', 'যাচাই ও জমা'];
 
-  const divisions = useMemo(() => demographies.filter(d => d.type === 'division'), [demographies]);
 
-  const presentDistricts = useMemo(() =>
-    form.present_division_id
-      ? demographies.filter(d => d.type === 'district' && d.parent === Number(form.present_division_id))
-      : [],
-    [demographies, form.present_division_id]
-  );
 
-  const permanentDistricts = useMemo(() =>
-    form.permanent_division_id
-      ? demographies.filter(d => d.type === 'district' && d.parent === Number(form.permanent_division_id))
-      : [],
-    [demographies, form.permanent_division_id]
-  );
 
   useEffect(() => {
     publicService.getGenders().then(res => setGenders(res.data)).catch(() => {});
     publicService.getEducations().then(res => setEducations(res.data)).catch(() => {});
-    publicService.getDemographies().then(res => setDemographies(res.data)).catch(() => {});
+
   }, []);
 
   useEffect(() => {
@@ -162,20 +160,12 @@ export default function RegisterAndApply() {
   }, [circularUrl, navigate]);
 
   useEffect(() => {
-    if (!circular?.checklist_items) return;
-    const updates = {};
-    circular.checklist_items.forEach(item => {
-      if (item.criteria_type === 'education' && form.education_level_id) {
-        updates[item.id] = form.education_level_id;
-      }
-      if (item.criteria_type === 'age' && form.date_of_birth) {
-        updates[item.id] = form.date_of_birth;
-      }
-    });
-    if (Object.keys(updates).length) {
-      setChecklistValues(prev => ({ ...prev, ...updates }));
+    if (circular?.eligible_centers?.length === 1) {
+      setForm(prev => ({ ...prev, chosen_center_id: circular.eligible_centers[0].id }));
     }
-  }, [form.education_level_id, form.date_of_birth, circular]);
+  }, [circular]);
+
+
 
   const handleRegChange = (e) => {
     const { name, value } = e.target;
@@ -190,19 +180,7 @@ export default function RegisterAndApply() {
     if (loginErrors[name]) setLoginErrors(prev => ({ ...prev, [name]: null }));
   };
 
-  const handleDobChange = (field, value) => {
-    const updaters = { dobDay: setDobDay, dobMonth: setDobMonth, dobYear: setDobYear };
-    updaters[field](value);
-    const day = field === 'dobDay' ? value : dobDay;
-    const month = field === 'dobMonth' ? value : dobMonth;
-    const year = field === 'dobYear' ? value : dobYear;
-    if (day && month && year) {
-      const iso = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-      setForm(prev => ({ ...prev, date_of_birth: iso }));
-    }
-    setNidVerified(false);
-    setNidVerifyError('');
-  };
+
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
@@ -215,34 +193,21 @@ export default function RegisterAndApply() {
     } else if (name === 'nid_back_image' && files[0]) {
       setForm(prev => ({ ...prev, nid_back_image: files[0] }));
       setNidBackPreview(URL.createObjectURL(files[0]));
+    } else if (name === 'education_certificate' && files[0]) {
+      setForm(prev => ({ ...prev, education_certificate: files[0] }));
+      setEduCertPreview(URL.createObjectURL(files[0]));
+    } else if (name === 'govt_job_certificate' && files[0]) {
+      setForm(prev => ({ ...prev, govt_job_certificate: files[0] }));
+      setGovtJobPreview(URL.createObjectURL(files[0]));
     } else {
       setForm(prev => ({ ...prev, [name]: value }));
     }
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: null }));
   };
 
-  const handleChecklistChange = (itemId, value) => {
-    setChecklistValues(prev => ({ ...prev, [itemId]: value }));
-  };
 
-  const handleSameAsPresent = (checked) => {
-    setSameAsPresent(checked);
-    if (checked) {
-      setForm(prev => ({
-        ...prev,
-        permanent_division_id: prev.present_division_id,
-        permanent_district_id: prev.present_district_id,
-        permanent_address: prev.present_address,
-      }));
-    } else {
-      setForm(prev => ({
-        ...prev,
-        permanent_division_id: '',
-        permanent_district_id: '',
-        permanent_address: '',
-      }));
-    }
-  };
+
+
 
   const storeUserSession = (data) => {
     localStorage.setItem('access_token', data.access_token);
@@ -333,12 +298,7 @@ export default function RegisterAndApply() {
       storeUserSession(data);
       const dobStr = data.user?.date_of_birth || '';
       if (dobStr) {
-        const parts = dobStr.split('-');
-        if (parts.length === 3) {
-          setDobDay(parts[2]);
-          setDobMonth(parts[1]);
-          setDobYear(parts[0]);
-        }
+
       }
       setForm(prev => ({
         ...prev,
@@ -349,7 +309,6 @@ export default function RegisterAndApply() {
         date_of_birth: dobStr,
       }));
       setUserId(data.user.id);
-      setApplyStep(1);
       setStep('apply');
     } catch (err) {
       const serverErrors = err.response?.data || {};
@@ -376,15 +335,13 @@ export default function RegisterAndApply() {
     if (!form.present_address.trim()) errs.present_address = 'বর্তমান ঠিকানা লিখুন';
     if (!form.education_level_id) errs.education_level_id = 'শিক্ষাগত যোগ্যতা নির্বাচন করুন';
     if (!form.chosen_center_id) errs.chosen_center_id = 'কেন্দ্র নির্বাচন করুন';
+    if (!form.emergency_phone.trim()) errs.emergency_phone = 'জরুরি মোবাইল নম্বর লিখুন';
+    if (!form.marital_status) errs.marital_status = 'বৈবাহিক অবস্থা নির্বাচন করুন';
+    if (!form.blood_group) errs.blood_group = 'রক্তের গ্রুপ নির্বাচন করুন';
     const age = calculateAge(form.date_of_birth);
-    if (age !== null && age < 21) errs.date_of_birth = `বয়স ${age} বছর। ন্যূনতম ২১ বছর হতে হবে।`;
-    if (circular?.checklist_items) {
-      circular.checklist_items.forEach(item => {
-        if (item.required && !checklistValues[item.id]?.toString().trim()) {
-          errs[`checklist_${item.id}`] = 'এই ক্ষেত্রটি পূরণ করুন';
-        }
-      });
-    }
+    if (age !== null && age < 21) errs.date_of_birth = `বয়স ${age} বছর। ন্যূনতম ২১ বছর হতে হবে।`;
+    if (!courseSelected) errs.course_selected = 'কোর্স সিলেক্ট করুন';
+    if (!undertakingAgreed) errs.undertaking_agreed = 'সত্যাবচন গ্রহণ করুন';
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -397,70 +354,38 @@ export default function RegisterAndApply() {
       formData.append('circular_url', circularUrl);
       formData.append('chosen_center_id', form.chosen_center_id);
       formData.append('user_id', userId);
-
-      if (circular?.checklist_items?.length > 0) {
-        const responses = circular.checklist_items.map(item => ({
-          checklist_item_id: item.id,
-          value: checklistValues[item.id]?.toString() || '',
-        }));
-        formData.append('checklist_responses', JSON.stringify(responses));
-      }
-
-      Object.entries(form).forEach(([key, val]) => {
-        if (val !== null && val !== undefined && key !== 'chosen_center_id') {
-          formData.append(key, val);
-        }
-      });
+      formData.append('present_division_id', '');
+      formData.append('present_district_id', '');
+      formData.append('permanent_division_id', '');
+      formData.append('permanent_district_id', '');
+      formData.append('form_type', 'training');
+      formData.append('project_code', '');
+      const fields = [
+        'name_bn', 'name_en', 'father_name_bn', 'father_name_en',
+        'mother_name_bn', 'mother_name_en', 'date_of_birth', 'nid', 'phone',
+        'email', 'gender_id', 'nationality', 'present_address', 'permanent_address',
+        'education_level_id', 'education_qualification', 'present_profession',
+        'emergency_phone', 'marital_status', 'blood_group',
+      ];
+      fields.forEach(key => { if (form[key] != null) formData.append(key, form[key]); });
+      if (form.profile_image) formData.append('profile_image', form.profile_image);
+      if (form.nid_front_image) formData.append('nid_front_image', form.nid_front_image);
+      if (form.nid_back_image) formData.append('nid_back_image', form.nid_back_image);
+      if (form.education_certificate) formData.append('education_certificate', form.education_certificate);
+      if (form.govt_job_certificate) formData.append('govt_job_certificate', form.govt_job_certificate);
       const { data } = await publicService.submitApplication(formData);
       setSubmitted(data);
     } catch (err) {
       const serverErrors = err.response?.data || {};
       const fieldErrors = {};
       Object.entries(serverErrors).forEach(([key, msgs]) => {
-        if (Array.isArray(msgs)) fieldErrors[key] = msgs[0];
-        else fieldErrors[key] = msgs;
+        fieldErrors[key] = Array.isArray(msgs) ? msgs[0] : msgs;
       });
-      if (!Object.keys(fieldErrors).length) fieldErrors.form = 'আবেদন জমা দেওয়া ব্যর্থ হয়েছে। আবার চেষ্টা করুন।';
+      if (!Object.keys(fieldErrors).length) fieldErrors.form = 'আবেদন জমা দেওয়া ব্যর্থ হয়েছে। আবার চেষ্টা করুন।';
       setErrors(fieldErrors);
-    } finally {
-      setSubmitting(false);
-    }
+    } finally { setSubmitting(false); }
   };
 
-  const renderChecklistField = (item) => {
-    const inputType = CRITERIA_INPUT_TYPES[item.criteria_type] || 'text';
-    const fieldName = `checklist_${item.id}`;
-    const hasError = errors[fieldName];
-
-    if (inputType === 'select') {
-      let options = [];
-      if (item.criteria_type === 'boolean') {
-        options = [{ value: 'true', label: 'হ্যাঁ' }, { value: 'false', label: 'না' }];
-      } else if (item.criteria_type === 'education') {
-        options = educations.map(e => ({ value: e.id, label: e.name_bn }));
-      }
-      return (
-        <div className="col-md-6" key={item.id}>
-          <label className="form-label fw-medium">{item.label_bn}</label>
-          <select className={`form-select ${hasError ? 'is-invalid' : ''}`} value={checklistValues[item.id] || ''} onChange={e => handleChecklistChange(item.id, e.target.value)}>
-            <option value="">-- নির্বাচন করুন --</option>
-            {options.map(o => (<option key={o.value} value={o.value}>{o.label}</option>))}
-          </select>
-          {item.score && <small className="text-muted">স্কোর: {item.score}</small>}
-          {hasError && <div className="invalid-feedback">এই ক্ষেত্রটি প্রয়োজনীয়</div>}
-        </div>
-      );
-    }
-
-    return (
-      <div className="col-md-6" key={item.id}>
-        <label className="form-label fw-medium">{item.label_bn}</label>
-        <input type={inputType} className={`form-control ${hasError ? 'is-invalid' : ''}`} value={checklistValues[item.id] || ''} onChange={e => handleChecklistChange(item.id, e.target.value)} />
-        {item.score && <small className="text-muted">স্কোর: {item.score}</small>}
-        {hasError && <div className="invalid-feedback">এই ক্ষেত্রটি প্রয়োজনীয়</div>}
-      </div>
-    );
-  };
 
   if (submitted) {
     return <ApplySuccess data={submitted} />;
@@ -645,425 +570,360 @@ export default function RegisterAndApply() {
                   </>
                 )}
 
-                {step === 'apply' && (
+                                {step === 'apply' && (
                   <>
                     <div className="d-flex align-items-center gap-2 mb-4 pb-3 border-bottom">
                       <i className="bi bi-check-circle-fill text-success fs-4"></i>
                       <div>
                         <h5 className="mb-0">
-                          {mode === 'register' ? 'একাউন্ট তৈরী হয়েছে' : 'লগইন সফল হয়েছে'}
+                          {mode === 'register' ? 'একাউন্ট তৈরী হয়েছে' : 'লগইন সফল হয়েছে'}
                         </h5>
                         <small className="text-muted">{form.name_bn} ({convertToBanglaDigits(form.phone)})</small>
                       </div>
                     </div>
 
-                    <div className="steps-indicator mb-4">
-                      {APPLY_STEPS.map((label, i) => (
-                        <div key={label} className={`step-item ${i + 1 === applyStep ? 'active' : ''} ${i + 1 < applyStep ? 'completed' : ''}`}>
-                          <div className="step-circle">{i + 1 < applyStep ? <i className="bi bi-check"></i> : i + 1}</div>
-                          <div className="step-label">{label}</div>
-                        </div>
-                      ))}
-                    </div>
+                    <GovHeader circular={circular} />
 
-                    {applyStep === 1 && (
-                      <>
-                        <div className="alert alert-primary d-flex align-items-center gap-3 py-3 px-4 rounded-3 border-start border-4 border-primary mb-4">
-                          <i className="bi bi-shield-check fs-3 text-primary"></i>
-                          <div>
-                            <strong>এনআইডি যাচাই</strong>
-                            <p className="mb-0 mt-1 small text-muted">আপনার এনআইডি ও জন্ম তারিখ যাচাই করে পরবর্তী ধাপে যান</p>
-                          </div>
-                        </div>
+                    <form onSubmit={e => { e.preventDefault(); handleSubmit(); }}>
 
-                        <div className="row g-3 mb-4">
-                          <div className="col-md-6">
-                            <label className="form-label fw-medium">পূর্ণ নাম</label>
-                            <input className="form-control bg-light" value={form.name_bn} readOnly />
-                          </div>
-                          <div className="col-md-6">
-                            <label className="form-label fw-medium">মোবাইল নম্বর</label>
-                            <input className="form-control bg-light" value={convertToBanglaDigits(form.phone)} readOnly />
-                          </div>
-                          <div className="col-md-6">
-                            <label className="form-label fw-medium">এনআইডি নম্বর</label>
-                            <input className="form-control bg-light" value={convertToBanglaDigits(form.nid)} readOnly />
-                          </div>
-                          <div className="col-md-6">
-                            <label className="form-label fw-medium">জন্ম তারিখ</label>
-                            {form.date_of_birth ? (
-                              <input className="form-control bg-light" value={form.date_of_birth} readOnly />
-                            ) : (
-                              <div className="row g-1">
-                                <div className="col-4">
-                                  <select className={`form-select ${nidVerifyError ? 'is-invalid' : nidVerified ? 'is-valid' : ''}`} value={dobDay} onChange={e => handleDobChange('dobDay', e.target.value)}>
-                                    <option value="">দিন</option>
-                                    {DAYS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
-                                  </select>
-                                </div>
-                                <div className="col-4">
-                                  <select className={`form-select ${nidVerifyError ? 'is-invalid' : nidVerified ? 'is-valid' : ''}`} value={dobMonth} onChange={e => handleDobChange('dobMonth', e.target.value)}>
-                                    <option value="">মাস</option>
-                                    {MONTHS.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
-                                  </select>
-                                </div>
-                                <div className="col-4">
-                                  <select className={`form-select ${nidVerifyError ? 'is-invalid' : nidVerified ? 'is-valid' : ''}`} value={dobYear} onChange={e => handleDobChange('dobYear', e.target.value)}>
-                                    <option value="">সাল</option>
-                                    {YEARS.map(y => <option key={y.value} value={y.value}>{y.label}</option>)}
-                                  </select>
-                                </div>
-                              </div>
-                            )}
-                            {nidVerifyError && <div className="invalid-feedback">{nidVerifyError}</div>}
-                          </div>
-                          <div className="col-md-6">
-                            <label className="form-label fw-medium">পিতার নাম <span className="text-danger">*</span></label>
-                            <input className={`form-control ${errors.father_name_bn ? 'is-invalid' : ''}`} name="father_name_bn" value={form.father_name_bn} onChange={handleChange} placeholder="পিতার নাম লিখুন" />
-                            {errors.father_name_bn && <div className="invalid-feedback">{errors.father_name_bn}</div>}
-                          </div>
-                          <div className="col-md-6">
-                            <label className="form-label fw-medium">মাতার নাম <span className="text-danger">*</span></label>
-                            <input className={`form-control ${errors.mother_name_bn ? 'is-invalid' : ''}`} name="mother_name_bn" value={form.mother_name_bn} onChange={handleChange} placeholder="মাতার নাম লিখুন" />
-                            {errors.mother_name_bn && <div className="invalid-feedback">{errors.mother_name_bn}</div>}
-                          </div>
-                          <div className="col-md-6">
-                            <label className="form-label fw-medium">লিঙ্গ <span className="text-danger">*</span></label>
-                            <select className={`form-select ${errors.gender_id ? 'is-invalid' : ''}`} name="gender_id" value={form.gender_id} onChange={handleChange}>
-                              <option value="">-- নির্বাচন করুন --</option>
-                              {genders.map(g => <option key={g.id} value={g.id}>{g.name_bn}</option>)}
-                            </select>
-                            {errors.gender_id && <div className="invalid-feedback">{errors.gender_id}</div>}
-                          </div>
-                          <div className="col-md-6">
-                            <label className="form-label fw-medium">আবেদনের কেন্দ্র <span className="text-danger">*</span></label>
-                            <select className={`form-select ${errors.chosen_center_id ? 'is-invalid' : ''}`} name="chosen_center_id" value={form.chosen_center_id} onChange={handleChange}>
-                              <option value="">-- কেন্দ্র নির্বাচন করুন --</option>
-                              {(circular?.eligible_centers || []).map(c => <option key={c.id} value={c.id}>{c.name_bn}</option>)}
-                            </select>
-                            {errors.chosen_center_id && <div className="invalid-feedback">{errors.chosen_center_id}</div>}
-                          </div>
-                        </div>
-
-                        {nidVerified && (
-                          <div className="alert alert-success d-flex align-items-center gap-2 py-2 px-3 rounded-3 mb-4">
-                            <i className="bi bi-check-circle-fill fs-5"></i>
-                            <span>এনআইডি সফলভাবে যাচাই করা হয়েছে</span>
-                          </div>
-                        )}
-
-                        {circular && (
-                          <div className="alert alert-info d-flex align-items-center gap-2 py-2 px-3 rounded-3 mb-4">
-                            <i className="bi bi-megaphone fs-5"></i>
-                            <span className="small">{circular.title_bn}</span>
-                          </div>
-                        )}
-
-                        <div className="d-flex justify-content-between mt-4 pt-3 border-top">
-                          <button className="btn btn-outline-secondary px-4" onClick={() => navigate('/circulars')}>
-                            <i className="bi bi-x-circle me-1"></i>বাতিল
-                          </button>
-                          <button className="btn btn-success px-4" disabled={nidVerifying || !form.date_of_birth} onClick={async () => {
-                              if (!form.date_of_birth) { setNidVerifyError('জন্ম তারিখ নির্বাচন করুন'); return; }
-                              if (nidVerified) { setApplyStep(2); return; }
-                              setNidVerifying(true); setNidVerifyError('');
-                              try {
-                                const { data } = await publicService.verifyNid({ nid: form.nid, date_of_birth: form.date_of_birth });
-                                if (data.verified) {
-                                  setNidVerified(true);
-                                  setApplyStep(2);
-                                } else {
-                                  setNidVerifyError(data.message || 'যাচাই ব্যর্থ হয়েছে');
-                                }
-                              } catch (err) {
-                                setNidVerifyError(err.response?.data?.message || 'যাচাইকরণ সার্ভারে সমস্যা হয়েছে');
-                              } finally { setNidVerifying(false); }
-                            }}>
-                              {nidVerifying ? <><span className="spinner-border spinner-border-sm me-1"></span>যাচাই করা হচ্ছে...</> : <><i className="bi bi-arrow-right me-1"></i>পরবর্তী</>}
-                            </button>
-                        </div>
-                      </>
-                    )}
-
-                    {applyStep === 2 && (
-                      <>
-                        <SectionCard icon="bi-house-door" title="বর্তমান ঠিকানা">
-                          <div className="col-md-6">
-                            <label className="form-label fw-medium">বিভাগ</label>
-                            <select className="form-select" name="present_division_id" value={form.present_division_id}
-                              onChange={e => { handleChange(e); setForm(p => ({ ...p, present_district_id: '' })); }}>
-                              <option value="">-- নির্বাচন করুন --</option>
-                              {divisions.map(d => <option key={d.id} value={d.id}>{d.name_bn}</option>)}
-                            </select>
-                          </div>
-                          <div className="col-md-6">
-                            <label className="form-label fw-medium">জেলা</label>
-                            <select className="form-select" name="present_district_id" value={form.present_district_id}
-                              onChange={handleChange} disabled={!form.present_division_id}>
-                              <option value="">-- নির্বাচন করুন --</option>
-                              {presentDistricts.map(d => <option key={d.id} value={d.id}>{d.name_bn}</option>)}
-                            </select>
-                          </div>
-                          <div className="col-12">
-                            <label className="form-label fw-medium">বিস্তারিত ঠিকানা <span className="text-danger">*</span></label>
-                            <textarea className={`form-control ${errors.present_address ? 'is-invalid' : ''}`} name="present_address" value={form.present_address} onChange={handleChange} rows={2} placeholder="গ্রাম/রাস্তা, বাড়ি নম্বর, পোস্ট অফিস ইত্যাদি"></textarea>
-                            {errors.present_address && <div className="invalid-feedback">{errors.present_address}</div>}
-                          </div>
-                        </SectionCard>
-
-                        <div className="form-section-card mb-4 border-primary">
-                          <div className="form-section-body pb-2">
-                            <div className="form-check form-switch d-flex align-items-center gap-2 ps-0">
-                              <input className="form-check-input m-0" type="checkbox" role="switch" id="sameAsPresent" checked={sameAsPresent}
-                                onChange={e => handleSameAsPresent(e.target.checked)}
-                                style={{ width: '2.5rem', height: '1.25rem', cursor: 'pointer' }} />
-                              <label className="form-check-label fw-medium user-select-none" htmlFor="sameAsPresent" style={{ cursor: 'pointer' }}>
-                                <i className="bi bi-arrow-down-up text-primary me-1"></i>স্থায়ী ঠিকানা বর্তমান ঠিকানার মতোই
-                              </label>
-                            </div>
-                          </div>
-                        </div>
-
-                        <SectionCard icon="bi-house-gear" title="স্থায়ী ঠিকানা">
-                          <div className="col-md-6">
-                            <label className="form-label fw-medium">বিভাগ</label>
-                            <select className="form-select" name="permanent_division_id" value={form.permanent_division_id}
-                              onChange={e => { handleChange(e); setForm(p => ({ ...p, permanent_district_id: '' })); }}
-                              disabled={sameAsPresent}>
-                              <option value="">-- নির্বাচন করুন --</option>
-                              {divisions.map(d => <option key={d.id} value={d.id}>{d.name_bn}</option>)}
-                            </select>
-                          </div>
-                          <div className="col-md-6">
-                            <label className="form-label fw-medium">জেলা</label>
-                            <select className="form-select" name="permanent_district_id" value={form.permanent_district_id}
-                              onChange={handleChange} disabled={sameAsPresent || !form.permanent_division_id}>
-                              <option value="">-- নির্বাচন করুন --</option>
-                              {permanentDistricts.map(d => <option key={d.id} value={d.id}>{d.name_bn}</option>)}
-                            </select>
-                          </div>
-                          <div className="col-12">
-                            <label className="form-label fw-medium">বিস্তারিত ঠিকানা</label>
-                            <textarea className="form-control" name="permanent_address" value={form.permanent_address}
-                              onChange={handleChange} rows={2} disabled={sameAsPresent}
-                              placeholder={sameAsPresent ? 'বর্তমান ঠিকানার মতোই হবে' : 'গ্রাম/রাস্তা, বাড়ি নম্বর, পোস্ট অফিস ইত্যাদি'}></textarea>
-                          </div>
-                        </SectionCard>
-
-                        <div className="d-flex justify-content-between mt-4 pt-3 border-top">
-                          <button className="btn btn-outline-secondary px-4" onClick={() => setApplyStep(1)}>
-                            <i className="bi bi-arrow-left me-1"></i>পেছনে
-                          </button>
-                          <button className="btn btn-primary px-4" onClick={() => setApplyStep(3)}>
-                            পরবর্তী<i className="bi bi-arrow-right ms-1"></i>
-                          </button>
-                        </div>
-                      </>
-                    )}
-
-                    {applyStep === 3 && (
-                      <>
-                        <SectionCard icon="bi-mortarboard" title="শিক্ষাগত যোগ্যতা ও ছবি">
-                          <div className="col-md-6">
-                            <label className="form-label fw-medium">শিক্ষাগত যোগ্যতা <span className="text-danger">*</span></label>
-                            <select className={`form-select ${errors.education_level_id ? 'is-invalid' : ''}`} name="education_level_id" value={form.education_level_id}
-                              onChange={e => {
-                                handleChange(e);
-                                const edu = educations.find(ed => ed.id === Number(e.target.value));
-                                setForm(p => ({ ...p, education_qualification: edu ? edu.name_bn : '' }));
-                              }}>
-                              <option value="">-- নির্বাচন করুন --</option>
-                              {educations.map(e => <option key={e.id} value={e.id}>{e.name_bn}</option>)}
-                            </select>
-                            {errors.education_level_id && <div className="invalid-feedback">{errors.education_level_id}</div>}
-                          </div>
-                          <div className="col-md-6">
-                            <label className="form-label fw-medium">প্রোফাইল ছবি</label>
-                            <div className={`upload-box border rounded-3 p-3 text-center ${errors.profile_image ? 'border-danger' : 'border-dashed'}`}>
-                              {photoPreview ? (
-                                <div className="d-flex align-items-center gap-3 justify-content-center">
-                                  <img src={photoPreview} alt="Profile" className="rounded-3" style={{ width: 80, height: 80, objectFit: 'cover' }} />
-                                  <div className="text-start">
-                                    <p className="mb-1 small text-muted">ছবি আপলোড করা হয়েছে</p>
-                                    <button className="btn btn-sm btn-outline-danger" onClick={() => { setForm(p => ({ ...p, profile_image: null })); setPhotoPreview(null); }}>
-                                      <i className="bi bi-trash me-1"></i>মুছে ফেলুন
-                                    </button>
+                      <div className="gov-section-title"><i className="bi bi-person-lines-fill"></i>আবেদনকারীর তথ্য</div>
+                      <div className="table-responsive mb-4">
+                        <table className="table table-bordered mb-0">
+                          <tbody>
+                            <tr>
+                              <th style={{ width: 200, background: '#fafbfc' }}>নাম (বাংলা) <span className="text-danger">*</span></th>
+                              <td><input className="form-control bg-light" name="name_bn" value={form.name_bn} onChange={handleChange} readOnly /></td>
+                              <th style={{ width: 200, background: '#fafbfc' }}>নাম (ইংরেজি)</th>
+                              <td><input className="form-control bg-light" name="name_en" value={form.name_en} onChange={handleChange} readOnly /></td>
+                            </tr>
+                            <tr>
+                              <th style={{ background: '#fafbfc' }}>পিতার নাম (বাংলা) <span className="text-danger">*</span></th>
+                              <td><input className={`form-control ${errors.father_name_bn ? 'is-invalid' : ''}`} name="father_name_bn" value={form.father_name_bn} onChange={handleChange} />{errors.father_name_bn && <div className="invalid-feedback">{errors.father_name_bn}</div>}</td>
+                              <th style={{ background: '#fafbfc' }}>পিতার নাম (ইংরেজি)</th>
+                              <td><input className="form-control" name="father_name_en" value={form.father_name_en} onChange={handleChange} /></td>
+                            </tr>
+                            <tr>
+                              <th style={{ background: '#fafbfc' }}>মাতার নাম (বাংলা) <span className="text-danger">*</span></th>
+                              <td><input className={`form-control ${errors.mother_name_bn ? 'is-invalid' : ''}`} name="mother_name_bn" value={form.mother_name_bn} onChange={handleChange} />{errors.mother_name_bn && <div className="invalid-feedback">{errors.mother_name_bn}</div>}</td>
+                              <th style={{ background: '#fafbfc' }}>মাতার নাম (ইংরেজি)</th>
+                              <td><input className="form-control" name="mother_name_en" value={form.mother_name_en} onChange={handleChange} /></td>
+                            </tr>
+                            <tr>
+                              <th style={{ background: '#fafbfc' }}>জন্ম তারিখ <span className="text-danger">*</span></th>
+                              <td>
+                                <div className="row g-1">
+                                  <div className="col-4">
+                                    <select className={`form-select ${errors.date_of_birth ? 'is-invalid' : ''}`} value={form.date_of_birth ? form.date_of_birth.split('-')[2] : ''} onChange={e => { const y = form.date_of_birth ? form.date_of_birth.split('-')[0] : ''; const m = form.date_of_birth ? form.date_of_birth.split('-')[1] : ''; if (y && m && e.target.value) setForm(p => ({ ...p, date_of_birth: y + '-' + m + '-' + e.target.value.padStart(2, '0') })); }}>
+                                      <option value="">দিন</option>{DAYS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
+                                    </select>
+                                  </div>
+                                  <div className="col-4">
+                                    <select className={`form-select ${errors.date_of_birth ? 'is-invalid' : ''}`} value={form.date_of_birth ? form.date_of_birth.split('-')[1] : ''} onChange={e => { const y = form.date_of_birth ? form.date_of_birth.split('-')[0] : ''; const d = form.date_of_birth ? form.date_of_birth.split('-')[2] : ''; if (y && d && e.target.value) setForm(p => ({ ...p, date_of_birth: y + '-' + e.target.value.padStart(2, '0') + '-' + d })); }}>
+                                      <option value="">মাস</option>{MONTHS.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
+                                    </select>
+                                  </div>
+                                  <div className="col-4">
+                                    <select className={`form-select ${errors.date_of_birth ? 'is-invalid' : ''}`} value={form.date_of_birth ? form.date_of_birth.split('-')[0] : ''} onChange={e => { const m = form.date_of_birth ? form.date_of_birth.split('-')[1] : ''; const d = form.date_of_birth ? form.date_of_birth.split('-')[2] : ''; if (m && d && e.target.value) setForm(p => ({ ...p, date_of_birth: e.target.value + '-' + m + '-' + d })); }}>
+                                      <option value="">সাল</option>{YEARS.map(y => <option key={y.value} value={y.value}>{y.label}</option>)}
+                                    </select>
                                   </div>
                                 </div>
-                              ) : (
-                                <label className="mb-0 d-block" style={{ cursor: 'pointer' }}>
-                                  <input type="file" accept="image/*" name="profile_image" onChange={handleChange} className="d-none" />
-                                  <div className="py-2">
-                                    <i className="bi bi-camera fs-2 text-muted"></i>
-                                    <p className="mb-0 mt-2 small text-muted">ছবি নির্বাচন করুন</p>
-                                  </div>
-                                </label>
-                              )}
-                            </div>
-                          </div>
-                          <div className="col-md-6">
-                            <label className="form-label fw-medium">এনআইডি (সামনে)</label>
-                            <div className={`upload-box border rounded-3 p-3 text-center ${errors.nid_front_image ? 'border-danger' : 'border-dashed'}`}>
-                              {nidFrontPreview ? (
-                                <div className="d-flex align-items-center gap-3 justify-content-center">
-                                  <img src={nidFrontPreview} alt="NID Front" className="rounded-3" style={{ width: 120, height: 80, objectFit: 'cover' }} />
-                                  <div className="text-start">
-                                    <p className="mb-1 small text-muted">আপলোড করা হয়েছে</p>
-                                    <button className="btn btn-sm btn-outline-danger" onClick={() => { setForm(p => ({ ...p, nid_front_image: null })); setNidFrontPreview(null); }}>
-                                      <i className="bi bi-trash me-1"></i>মুছে ফেলুন
-                                    </button>
-                                  </div>
-                                </div>
-                              ) : (
-                                <label className="mb-0 d-block" style={{ cursor: 'pointer' }}>
-                                  <input type="file" accept="image/*" name="nid_front_image" onChange={handleChange} className="d-none" />
-                                  <div className="py-2">
-                                    <i className="bi bi-card-image fs-2 text-muted"></i>
-                                    <p className="mb-0 mt-2 small text-muted">এনআইডি (সামনে) নির্বাচন করুন</p>
-                                  </div>
-                                </label>
-                              )}
-                            </div>
-                          </div>
-                          <div className="col-md-6">
-                            <label className="form-label fw-medium">এনআইডি (পেছনে)</label>
-                            <div className={`upload-box border rounded-3 p-3 text-center ${errors.nid_back_image ? 'border-danger' : 'border-dashed'}`}>
-                              {nidBackPreview ? (
-                                <div className="d-flex align-items-center gap-3 justify-content-center">
-                                  <img src={nidBackPreview} alt="NID Back" className="rounded-3" style={{ width: 120, height: 80, objectFit: 'cover' }} />
-                                  <div className="text-start">
-                                    <p className="mb-1 small text-muted">আপলোড করা হয়েছে</p>
-                                    <button className="btn btn-sm btn-outline-danger" onClick={() => { setForm(p => ({ ...p, nid_back_image: null })); setNidBackPreview(null); }}>
-                                      <i className="bi bi-trash me-1"></i>মুছে ফেলুন
-                                    </button>
-                                  </div>
-                                </div>
-                              ) : (
-                                <label className="mb-0 d-block" style={{ cursor: 'pointer' }}>
-                                  <input type="file" accept="image/*" name="nid_back_image" onChange={handleChange} className="d-none" />
-                                  <div className="py-2">
-                                    <i className="bi bi-card-image fs-2 text-muted"></i>
-                                    <p className="mb-0 mt-2 small text-muted">এনআইডি (পেছনে) নির্বাচন করুন</p>
-                                  </div>
-                                </label>
-                              )}
-                            </div>
-                          </div>
-                        </SectionCard>
+                                {errors.date_of_birth && <div className="invalid-feedback d-block">{errors.date_of_birth}</div>}
+                              </td>
+                              <th style={{ background: '#fafbfc' }}>নাগরিকত্ব</th>
+                              <td><input className="form-control" name="nationality" value={form.nationality} onChange={handleChange} /></td>
+                            </tr>
+                            <tr>
+                              <th style={{ background: '#fafbfc' }}>লিঙ্গ <span className="text-danger">*</span></th>
+                              <td>
+                                <select className={`form-select ${errors.gender_id ? 'is-invalid' : ''}`} name="gender_id" value={form.gender_id} onChange={handleChange}>
+                                  <option value="">-- নির্বাচন করুন --</option>
+                                  {genders.map(g => <option key={g.id} value={g.id}>{g.name_bn}</option>)}
+                                </select>
+                                {errors.gender_id && <div className="invalid-feedback">{errors.gender_id}</div>}
+                              </td>
+                              <th style={{ background: '#fafbfc' }}>সাদার্শন তথ্য <span className="text-danger">*</span></th>
+                              <td>
+                                <select className={`form-select ${errors.marital_status ? 'is-invalid' : ''}`} name="marital_status" value={form.marital_status} onChange={handleChange}>
+                                  <option value="">-- নির্বাচন করুন --</option>
+                                  <option value="single">অবিবাহিত</option>
+                                  <option value="married">বিবাহিত</option>
+                                  <option value="divorced">তালাকপ্রাপ্ত</option>
+                                  <option value="widowed">বিধবা</option>
+                                </select>
+                                {errors.marital_status && <div className="invalid-feedback">{errors.marital_status}</div>}
+                              </td>
+                            </tr>
+                            <tr>
+                              <th style={{ background: '#fafbfc' }}>এনআইডি নম্বর <span className="text-danger">*</span></th>
+                              <td><input className="form-control bg-light" name="nid" value={convertToBanglaDigits(form.nid)} readOnly /></td>
+                              <th style={{ background: '#fafbfc' }}>রক্তের গ্রুপ <span className="text-danger">*</span></th>
+                              <td>
+                                <select className={`form-select ${errors.blood_group ? 'is-invalid' : ''}`} name="blood_group" value={form.blood_group} onChange={handleChange}>
+                                  <option value="">-- নির্বাচন করুন --</option>
+                                  <option value="A+">A+</option><option value="A-">A-</option>
+                                  <option value="B+">B+</option><option value="B-">B-</option>
+                                  <option value="O+">O+</option><option value="O-">O-</option>
+                                  <option value="AB+">AB+</option><option value="AB-">AB-</option>
+                                </select>
+                                {errors.blood_group && <div className="invalid-feedback">{errors.blood_group}</div>}
+                              </td>
+                            </tr>
+                            <tr>
+                              <th style={{ background: '#fafbfc' }}>বর্তমান ঠিকানা <span className="text-danger">*</span></th>
+                              <td colSpan="3">
+                                <textarea className={`form-control ${errors.present_address ? 'is-invalid' : ''}`} name="present_address" value={form.present_address} onChange={handleChange} rows={2}></textarea>
+                                {errors.present_address && <div className="invalid-feedback">{errors.present_address}</div>}
+                              </td>
+                            </tr>
+                            <tr>
+                              <th style={{ background: '#fafbfc' }}>স্থায়ী ঠিকানা</th>
+                              <td colSpan="3"><textarea className="form-control" name="permanent_address" value={form.permanent_address} onChange={handleChange} rows={2}></textarea></td>
+                            </tr>
+                            <tr>
+                              <th style={{ background: '#fafbfc' }}>শিক্ষাগত যোগ্যতা <span className="text-danger">*</span></th>
+                              <td>
+                                <select className={`form-select ${errors.education_level_id ? 'is-invalid' : ''}`} name="education_level_id" value={form.education_level_id}
+                                  onChange={e => { handleChange(e); const edu = educations.find(ed => ed.id === Number(e.target.value)); setForm(p => ({ ...p, education_qualification: edu ? edu.name_bn : '' })); }}>
+                                  <option value="">-- নির্বাচন করুন --</option>
+                                  {educations.map(e => <option key={e.id} value={e.id}>{e.name_bn}</option>)}
+                                </select>
+                                {errors.education_level_id && <div className="invalid-feedback">{errors.education_level_id}</div>}
+                              </td>
+                              <th style={{ background: '#fafbfc' }}>শিক্ষাগত যোগ্যতার বিবরণ</th>
+                              <td><input className="form-control" name="education_qualification" value={form.education_qualification} onChange={handleChange} /></td>
+                            </tr>
+                            <tr>
+                              <th style={{ background: '#fafbfc' }}>বর্তমান পেশা</th>
+                              <td><input className="form-control" name="present_profession" value={form.present_profession} onChange={handleChange} /></td>
+                              <th style={{ background: '#fafbfc' }}>ইমেইল</th>
+                              <td><input type="email" className="form-control" name="email" value={form.email} onChange={handleChange} /></td>
+                            </tr>
+                            <tr>
+                              <th style={{ background: '#fafbfc' }}>মোবাইল নম্বর <span className="text-danger">*</span></th>
+                              <td>
+                                <input className={`form-control ${errors.emergency_phone ? 'is-invalid' : ''}`} name="emergency_phone" value={form.emergency_phone} onChange={handleChange} placeholder="01XXXXXXXXX" />
+                                {errors.emergency_phone && <div className="invalid-feedback">{errors.emergency_phone}</div>}
+                              </td>
+                              <th style={{ background: '#fafbfc' }}>আবেদনের কেন্দ্র <span className="text-danger">*</span></th>
+                              <td>
+                                <select className={`form-select ${errors.chosen_center_id ? 'is-invalid' : ''}`} name="chosen_center_id" value={form.chosen_center_id} onChange={handleChange}>
+                                  <option value="">-- কেন্দ্র নির্বাচন করুন --</option>
+                                  {(circular?.eligible_centers || []).map(c => <option key={c.id} value={c.id}>{c.name_bn}</option>)}
+                                </select>
+                                {errors.chosen_center_id && <div className="invalid-feedback">{errors.chosen_center_id}</div>}
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
 
-                        <div className="d-flex justify-content-between mt-4 pt-3 border-top">
-                          <button className="btn btn-outline-secondary px-4" onClick={() => setApplyStep(2)}>
-                            <i className="bi bi-arrow-left me-1"></i>পেছনে
-                          </button>
-                          <button className="btn btn-primary px-4" onClick={() => setApplyStep(4)}>
-                            পরবর্তী<i className="bi bi-arrow-right ms-1"></i>
-                          </button>
-                        </div>
-                      </>
-                    )}
-
-                    {applyStep === 4 && (
-                      <>
-                        <div className="alert alert-success d-flex align-items-center gap-2 py-2 px-3 rounded-3 mb-4">
-                          <i className="bi bi-check-circle-fill fs-5"></i>
-                          <span className="small">আপনার প্রদত্ত তথ্য যাচাই করে নিশ্চিত হন, তারপর জমা দিন</span>
-                        </div>
-
-                        <div className="review-card border rounded-3 overflow-hidden mb-4">
-                          <div className="review-card-header px-4 py-3 border-bottom bg-light">
-                            <h5 className="mb-0 fw-semibold"><i className="bi bi-file-text me-2"></i>আপনার দেয়া তথ্য</h5>
-                          </div>
-                          <div className="table-responsive">
-                            <table className="table table-borderless review-table mb-0">
+                      {circular && (
+                        <>
+                          <div className="gov-section-title"><i className="bi bi-bookmark-check"></i>কোর্সের নির্বাচন</div>
+                          <div className="table-responsive mb-4">
+                            <table className="table table-bordered mb-0">
+                              <thead className="table-light">
+                                <tr>
+                                  <th style={{ width: 60 }}>#</th>
+                                  <th>কোর্সের নাম</th>
+                                  <th>ধরন</th>
+                                  <th style={{ width: 80 }}>নির্বাচন</th>
+                                </tr>
+                              </thead>
                               <tbody>
-                                {[
-                                  ['নাম (বাংলায়)', form.name_bn],
-                                  ['নাম (ইংরেজিতে)', form.name_en || '—'],
-                                  ['পিতার নাম', form.father_name_bn],
-                                  ['মাতার নাম', form.mother_name_bn],
-                                  ['মোবাইল', convertToBanglaDigits(form.phone)],
-                                  ['এনআইডি', convertToBanglaDigits(form.nid)],
-                                  ['ইমেইল', form.email || '—'],
-                                  ['লিঙ্গ', genders.find(g => g.id === Number(form.gender_id))?.name_bn || '—'],
-                                  ['জন্ম তারিখ', form.date_of_birth],
-                                  ['আবেদনের কেন্দ্র', (circular?.eligible_centers || []).find(c => c.id === Number(form.chosen_center_id))?.name_bn || form.chosen_center_id],
-                                  ['বর্তমান বিভাগ', divisions.find(d => d.id === Number(form.present_division_id))?.name_bn || '—'],
-                                  ['বর্তমান জেলা', presentDistricts.find(d => d.id === Number(form.present_district_id))?.name_bn || '—'],
-                                  ['বর্তমান ঠিকানা', form.present_address],
-                                  ['স্থায়ী বিভাগ', sameAsPresent ? 'বর্তমান ঠিকানার মতোই' : (divisions.find(d => d.id === Number(form.permanent_division_id))?.name_bn || '—')],
-                                  ['স্থায়ী জেলা', sameAsPresent ? 'বর্তমান ঠিকানার মতোই' : (permanentDistricts.find(d => d.id === Number(form.permanent_district_id))?.name_bn || '—')],
-                                  ['স্থায়ী ঠিকানা', sameAsPresent ? 'বর্তমান ঠিকানার মতোই' : (form.permanent_address || '—')],
-                                  ['শিক্ষাগত যোগ্যতা', form.education_qualification || educations.find(e => e.id === Number(form.education_level_id))?.name_bn || '—'],
-                                ].map(([label, val]) => (
-                                  <tr key={label}>
-                                    <th className="text-nowrap px-4 py-2" style={{ width: 180, background: '#fafbfc' }}>{label}</th>
-                                    <td className="px-4 py-2">{val}</td>
-                                  </tr>
-                                ))}
-                                {circular?.checklist_items?.filter(i => i.criteria_type !== 'education' && i.criteria_type !== 'age').length > 0 && (
-                                  <tr>
-                                    <th className="text-nowrap px-4 py-2" style={{ width: 180, background: '#fafbfc' }}>চেকলিস্ট</th>
-                                    <td className="px-4 py-2">
-                                      {circular.checklist_items.filter(i => i.criteria_type !== 'education' && i.criteria_type !== 'age').sort((a, b) => a.order - b.order).map(item => (
-                                        <div key={item.id}><strong>{item.label_bn}:</strong> {checklistValues[item.id] || '—'}</div>
-                                      ))}
-                                    </td>
-                                  </tr>
-                                )}
+                                <tr>
+                                  <td>1</td>
+                                  <td>{circular.course_name || circular.title_bn || circular.title_en}</td>
+                                  <td>{circular.course_type_display || 'Training'}</td>
+                                  <td>
+                                    <div className="form-check">
+                                      <input className={`form-check-input ${errors.course_selected ? 'is-invalid' : ''}`} type="checkbox" id="course_check" checked={courseSelected}
+                                        onChange={e => { setCourseSelected(e.target.checked); if (errors.course_selected) setErrors(p => ({ ...p, course_selected: null })); }} />
+                                    </div>
+                                  </td>
+                                </tr>
                               </tbody>
                             </table>
                           </div>
-                          {photoPreview && (
-                            <div className="px-4 py-3 border-top d-flex align-items-center gap-3">
-                              <strong>প্রোফাইল ছবি:</strong>
-                              <img src={photoPreview} alt="Profile" className="rounded-3 border" style={{ width: 80, height: 80, objectFit: 'cover' }} />
-                            </div>
-                          )}
-                          {(nidFrontPreview || nidBackPreview) && (
-                            <div className="px-4 py-3 border-top d-flex align-items-center gap-4 flex-wrap">
-                              {nidFrontPreview && (
-                                <div className="d-flex align-items-center gap-2">
-                                  <strong>এনআইডি (সামনে):</strong>
-                                  <img src={nidFrontPreview} alt="NID Front" className="rounded-3 border" style={{ width: 120, height: 80, objectFit: 'cover' }} />
-                                </div>
-                              )}
-                              {nidBackPreview && (
-                                <div className="d-flex align-items-center gap-2">
-                                  <strong>এনআইডি (পেছনে):</strong>
-                                  <img src={nidBackPreview} alt="NID Back" className="rounded-3 border" style={{ width: 120, height: 80, objectFit: 'cover' }} />
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
+                        </>
+                      )}
 
-                        {errors.form && <div className="alert alert-danger py-2 small">{errors.form}</div>}
-                        {Object.entries(errors).filter(([k]) => k !== 'form').length > 0 && (
-                          <div className="alert alert-danger py-2 small">
-                            <strong>নিচের ক্ষেত্রগুলি ঠিক করুন:</strong>
-                            <ul className="mb-0 mt-1 ps-3">
-                              {Object.entries(errors).filter(([k]) => k !== 'form').map(([k, v]) => <li key={k}>{v}</li>)}
-                            </ul>
+                      <div className="gov-section-title"><i className="bi bi-camera"></i>সংযুক্ত ছবি ও নথি</div>
+                      <div className="row g-3 mb-4">
+                        <div className="col-md-4">
+                          <label className="form-label fw-medium">প্রোফাইল ছবি</label>
+                          <div className={`upload-box border rounded-3 p-3 text-center ${errors.profile_image ? 'border-danger' : 'border-dashed'}`}>
+                            {photoPreview ? (
+                              <div className="d-flex align-items-center gap-3 justify-content-center">
+                                <img src={photoPreview} alt="Profile" className="rounded-3" style={{ width: 80, height: 80, objectFit: 'cover' }} />
+                                <div className="text-start">
+                                  <p className="mb-1 small text-muted">ছবি আপলোড করা হয়েছে</p>
+                                  <button type="button" className="btn btn-sm btn-outline-danger" onClick={() => { setForm(p => ({ ...p, profile_image: null })); setPhotoPreview(null); }}>
+                                    <i className="bi bi-trash me-1"></i>মুছে ফেলুন
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <label className="mb-0 d-block" style={{ cursor: 'pointer' }}>
+                                <input type="file" accept="image/*" name="profile_image" onChange={handleChange} className="d-none" />
+                                <div className="py-2">
+                                  <i className="bi bi-camera fs-2 text-muted"></i>
+                                  <p className="mb-0 mt-2 small text-muted">ছবি নির্বাচন করুন</p>
+                                </div>
+                              </label>
+                            )}
                           </div>
-                        )}
+                        </div>
+                        <div className="col-md-4">
+                          <label className="form-label fw-medium">এনআইডি (সামনে) <span className="text-danger">*</span></label>
+                          <div className={`upload-box border rounded-3 p-3 text-center ${errors.nid_front_image ? 'border-danger' : 'border-dashed'}`}>
+                            {nidFrontPreview ? (
+                              <div className="d-flex align-items-center gap-3 justify-content-center">
+                                <img src={nidFrontPreview} alt="NID Front" className="rounded-3" style={{ width: 100, height: 70, objectFit: 'cover' }} />
+                                <div className="text-start">
+                                  <p className="mb-1 small text-muted">আপলোড করা হয়েছে</p>
+                                  <button type="button" className="btn btn-sm btn-outline-danger" onClick={() => { setForm(p => ({ ...p, nid_front_image: null })); setNidFrontPreview(null); }}>
+                                    <i className="bi bi-trash me-1"></i>মুছে ফেলুন
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <label className="mb-0 d-block" style={{ cursor: 'pointer' }}>
+                                <input type="file" accept="image/*" name="nid_front_image" onChange={handleChange} className="d-none" />
+                                <div className="py-2">
+                                  <i className="bi bi-card-image fs-2 text-muted"></i>
+                                  <p className="mb-0 mt-2 small text-muted">এনআইডি (সামনে) নির্বাচন করুন</p>
+                                </div>
+                              </label>
+                            )}
+                          </div>
+                        </div>
+                        <div className="col-md-4">
+                          <label className="form-label fw-medium">এনআইডি (পেছনে) <span className="text-danger">*</span></label>
+                          <div className={`upload-box border rounded-3 p-3 text-center ${errors.nid_back_image ? 'border-danger' : 'border-dashed'}`}>
+                            {nidBackPreview ? (
+                              <div className="d-flex align-items-center gap-3 justify-content-center">
+                                <img src={nidBackPreview} alt="NID Back" className="rounded-3" style={{ width: 100, height: 70, objectFit: 'cover' }} />
+                                <div className="text-start">
+                                  <p className="mb-1 small text-muted">আপলোড করা হয়েছে</p>
+                                  <button type="button" className="btn btn-sm btn-outline-danger" onClick={() => { setForm(p => ({ ...p, nid_back_image: null })); setNidBackPreview(null); }}>
+                                    <i className="bi bi-trash me-1"></i>মুছে ফেলুন
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <label className="mb-0 d-block" style={{ cursor: 'pointer' }}>
+                                <input type="file" accept="image/*" name="nid_back_image" onChange={handleChange} className="d-none" />
+                                <div className="py-2">
+                                  <i className="bi bi-card-image fs-2 text-muted"></i>
+                                  <p className="mb-0 mt-2 small text-muted">এনআইডি (পেছনে) নির্বাচন করুন</p>
+                                </div>
+                              </label>
+                            )}
+                          </div>
+                        </div>
+                      </div>
 
-                        <div className="d-flex justify-content-between mt-4 pt-3 border-top align-items-center">
-                          <button className="btn btn-outline-secondary px-4" onClick={() => setApplyStep(3)}>
-                            <i className="bi bi-pencil me-1"></i>সম্পাদনা
+                      <div className="gov-section-title"><i className="bi bi-file-earmark-check"></i>প্রয়োজনীয় নথি</div>
+                      <div className="row g-3 mb-4">
+                        <div className="col-md-6">
+                          <label className="form-label fw-medium">শিক্ষাগত সনদপত্র</label>
+                          <div className={`upload-box border rounded-3 p-3 text-center ${errors.education_certificate ? 'border-danger' : 'border-dashed'}`}>
+                            {eduCertPreview ? (
+                              <div className="d-flex align-items-center gap-3 justify-content-center">
+                                <div className="text-start">
+                                  <p className="mb-1 small text-muted"><i className="bi bi-file-earmark-check text-success me-1"></i>{form.education_certificate?.name || 'ফাইল আপলোড করা হয়েছে'}</p>
+                                  <button type="button" className="btn btn-sm btn-outline-danger" onClick={() => { setForm(p => ({ ...p, education_certificate: null })); setEduCertPreview(null); }}>
+                                    <i className="bi bi-trash me-1"></i>মুছে ফেলুন
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <label className="mb-0 d-block" style={{ cursor: 'pointer' }}>
+                                <input type="file" accept="image/*,.pdf" name="education_certificate" onChange={handleChange} className="d-none" />
+                                <div className="py-2">
+                                  <i className="bi bi-file-earmark-pdf fs-2 text-muted"></i>
+                                  <p className="mb-0 mt-2 small text-muted">শিক্ষাগত সনদপত্র নির্বাচন করুন</p>
+                                  <p className="mb-0 small text-muted">স্ক্যান কপি (PDF বা ছবি)</p>
+                                </div>
+                              </label>
+                            )}
+                          </div>
+                        </div>
+                        <div className="col-md-6">
+                          <label className="form-label fw-medium">সরকারি চাকুরির সনদপত্র</label>
+                          <div className={`upload-box border rounded-3 p-3 text-center ${errors.govt_job_certificate ? 'border-danger' : 'border-dashed'}`}>
+                            {govtJobPreview ? (
+                              <div className="d-flex align-items-center gap-3 justify-content-center">
+                                <div className="text-start">
+                                  <p className="mb-1 small text-muted"><i className="bi bi-file-earmark-check text-success me-1"></i>{form.govt_job_certificate?.name || 'ফাইল আপলোড করা হয়েছে'}</p>
+                                  <button type="button" className="btn btn-sm btn-outline-danger" onClick={() => { setForm(p => ({ ...p, govt_job_certificate: null })); setGovtJobPreview(null); }}>
+                                    <i className="bi bi-trash me-1"></i>মুছে ফেলুন
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <label className="mb-0 d-block" style={{ cursor: 'pointer' }}>
+                                <input type="file" accept="image/*,.pdf" name="govt_job_certificate" onChange={handleChange} className="d-none" />
+                                <div className="py-2">
+                                  <i className="bi bi-file-earmark-pdf fs-2 text-muted"></i>
+                                  <p className="mb-0 mt-2 small text-muted">সরকারি চাকুরির সনদপত্র নির্বাচন করুন</p>
+                                  <p className="mb-0 small text-muted">স্ক্যান কপি (PDF বা ছবি)</p>
+                                </div>
+                              </label>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="gov-section-title"><i className="bi bi-signpost-2"></i>সত্যাবচন</div>
+                      <div className="mb-3 p-3 bg-light rounded-3" style={{ fontSize: '0.9rem', lineHeight: 1.8 }}>
+                        <p className="mb-2">আমি ঘোষণা করছি যে, এই আবেদন ফর্মে প্রদত্ত সকল তথ্য আমার জ্ঞান ও বিশ্বাসের ভিত্তিতে সত্য ও সঠিক। কোনো তথ্য মিথ্যা বা ভুল প্রমাণিত হলে আমার আবেদন যেকোনো পর্যায়ে বাতিল করা যেতে পারে এবং আমাকে অযোগ্য ঘোষণা করা যেতে পারে।</p>
+                        <p className="mb-0">আমি আরও ঘোষণা করছি যে, আমি প্রশিক্ষণ কার্যক্রম ও নির্বাচন কমিটির সিদ্ধান্ত সমূহের সকল নিয়মকানুন মেনে চলব।</p>
+                      </div>
+                      <div className="mb-4 p-3 bg-light rounded-3" style={{ fontSize: '0.85rem', lineHeight: 1.7, border: '1px solid #dee2e6' }}>
+                        <p className="mb-2"><strong>DECLARATION</strong></p>
+                        <p className="mb-2">I hereby declare that the information provided in this application form is true and correct to the best of my knowledge and belief. I understand that if any information provided is found to be false or incorrect, my application may be cancelled at any stage and I may be disqualified.</p>
+                        <p className="mb-0">I further declare that I will abide by all the rules and regulations of the training program and the decisions of the selection committee.</p>
+                      </div>
+                      <div className="mb-4">
+                        <div className="form-check">
+                          <input className={`form-check-input ${errors.undertaking_agreed ? 'is-invalid' : ''}`} type="checkbox" id="undertakingCheck" checked={undertakingAgreed}
+                            onChange={e => { setUndertakingAgreed(e.target.checked); if (errors.undertaking_agreed) setErrors(p => ({ ...p, undertaking_agreed: null })); }} />
+                          <label className="form-check-label fw-medium" htmlFor="undertakingCheck">
+                            আমি সত্যাবচন ও শর্তাবলী মেনে নিচ্ছি
+                          </label>
+                          {errors.undertaking_agreed && <div className="invalid-feedback">{errors.undertaking_agreed}</div>}
+                        </div>
+                      </div>
+
+                      {errors.form && <div className="alert alert-danger py-2 small">{errors.form}</div>}
+                      {Object.entries(errors).filter(([k]) => !['form', 'course_selected', 'undertaking_agreed'].includes(k)).length > 0 && (
+                        <div className="alert alert-danger py-2 small">
+                          <strong>নিচের ক্ষেত্রগুলি ঠিক করুন:</strong>
+                          <ul className="mb-0 mt-1 ps-3">
+                            {Object.entries(errors).filter(([k]) => !['form', 'course_selected', 'undertaking_agreed'].includes(k)).map(([k, v]) => <li key={k}>{v}</li>)}
+                          </ul>
+                        </div>
+                      )}
+
+                      <div className="d-flex justify-content-between mt-4 pt-3 border-top align-items-center">
+                        <button type="button" className="btn btn-outline-secondary px-4" onClick={() => setStep('register')}>
+                          <i className="bi bi-arrow-left me-1"></i>পেছনে
+                        </button>
+                        <div className="d-flex align-items-center gap-3">
+                          <small className="text-muted"><i className="bi bi-info-circle me-1"></i>জমা দেওয়ার পর তথ্য পরিবর্তন করা যাবে না</small>
+                          <button type="submit" className="btn btn-success btn-lg px-4" disabled={submitting}>
+                            {submitting ? (
+                              <><span className="spinner-border spinner-border-sm me-1"></span>জমা দেওয়া হচ্ছে...</>
+                            ) : (
+                              <><i className="bi bi-check-circle me-1"></i>জমা দিন</>
+                            )}
                           </button>
-                          <div className="d-flex align-items-center gap-3">
-                            <small className="text-muted"><i className="bi bi-info-circle me-1"></i>জমা দেওয়ার পর তথ্য পরিবর্তন করা যাবে না</small>
-                            <button className="btn btn-success btn-lg px-4" onClick={handleSubmit} disabled={submitting}>
-                              {submitting ? (
-                                <><span className="spinner-border spinner-border-sm me-1"></span>জমা দেওয়া হচ্ছে...</>
-                              ) : (
-                                <><i className="bi bi-check-circle me-1"></i>জমা দিন</>
-                              )}
-                            </button>
-                          </div>
                         </div>
-                      </>
-                    )}
+                      </div>
+                    </form>
                   </>
                 )}
               </div>

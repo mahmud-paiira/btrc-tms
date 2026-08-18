@@ -117,18 +117,24 @@ export default function HoCourseDetail() {
               {tab === 'overview' && (
                 <div className="row g-4">
                   <div className="col-md-6">
+                    <div className="p-3 rounded mb-3" style={{ background: '#f1f5f9', border: '1px solid #e2e8f0', fontSize: 13 }}>
+                      <div className="mb-1"><span className="text-muted">প্রতিষ্ঠান:</span> <span className="fw-semibold">বাংলাদেশ সড়ক পরিবহন কর্পোরেশন (বিআরটিসি)</span></div>
+                      <div className="mb-1"><span className="text-muted">ঠিকানা:</span> <span className="fw-semibold">বিআরটিসি ভবন, ২১ রাজ্জিক এভিনিউ, ঢাকা-১০০০</span></div>
+                      <div><span className="text-muted">ওয়েবসাইট:</span> <span className="fw-semibold">www.brtc.gov.bd</span></div>
+                    </div>
                     <h6 className="fw-bold mb-3 text-muted text-uppercase small">মূল তথ্য</h6>
                     <table className="b-detail-table w-100">
                       <tbody>
-                        <tr><th >কোড</th><td>{convertToBanglaDigits(course.code)}</td></tr>
-                        <tr><th >নাম (বাংলা)</th><td>{course.name_bn}</td></tr>
-                        <tr><th >নাম (ইংরেজি)</th><td>{course.name_en || '—'}</td></tr>
-                        <tr><th >প্রকল্পের নাম</th><td>{course.project_name || '—'}</td></tr>
-                        <tr><th >প্রকল্পের স্পনসর</th><td>{course.project_sponsor || '—'}</td></tr>
-                        <tr><th >বিবরণ</th><td>{course.description || '—'}</td></tr>
-                        <tr><th >ধরন</th><td>{TYPE_MAP[course.course_type]}</td></tr>
-                        <tr><th >টার্ম</th><td>{TERM_MAP[course.term]}</td></tr>
-                        <tr><th >সেশন</th><td>{SESSION_MAP[course.session]}</td></tr>
+                        <tr><th>কোড</th><td>{convertToBanglaDigits(course.code)}</td></tr>
+                        <tr><th>ফর্মের ধরণ</th><td>{course.form_type || '—'}</td></tr>
+                        <tr><th>প্রকল্পের কোড</th><td>{course.project_code || '—'}</td></tr>
+                        <tr><th>Training Program (বাংলা)</th><td>{course.name_bn}</td></tr>
+                        <tr><th>Training Program (English)</th><td>{course.name_en || '—'}</td></tr>
+                        <tr><th>প্রকল্পের নাম</th><td>{course.project_name || '—'}</td></tr>
+                        <tr><th>প্রকল্পের স্পনসর</th><td>{course.project_sponsor || '—'}</td></tr>
+                        <tr><th>ধরন</th><td>{TYPE_MAP[course.course_type]}</td></tr>
+                        <tr><th>টার্ম</th><td>{TERM_MAP[course.term]}</td></tr>
+                        <tr><th>সেশন</th><td>{SESSION_MAP[course.session]}</td></tr>
                       </tbody>
                     </table>
                   </div>

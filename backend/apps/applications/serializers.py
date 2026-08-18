@@ -89,6 +89,7 @@ class ApplicationWriteSerializer(serializers.ModelSerializer):
             'present_address', 'permanent_address',
             'education_qualification', 'profession',
             'profile_image', 'nid_front_image', 'nid_back_image',
+            'education_certificate', 'govt_job_certificate',
         )
         read_only_fields = ('application_no', 'status', 'applied_at', 'reviewed_at')
 

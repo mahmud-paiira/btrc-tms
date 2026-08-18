@@ -150,6 +150,14 @@ class Application(models.Model):
         verbose_name='এনআইডি (পেছনে)',
         validators=[image_validator],
     )
+    education_certificate = models.FileField(
+        upload_to='applications/certificates/', blank=True,
+        verbose_name='শিক্ষাগত সনদপত্র',
+    )
+    govt_job_certificate = models.FileField(
+        upload_to='applications/certificates/', blank=True,
+        verbose_name='সরকারি চাকুরির সনদপত্র',
+    )
 
     # Review
     reviewed_by = models.ForeignKey(
