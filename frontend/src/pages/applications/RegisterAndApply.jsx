@@ -376,13 +376,18 @@ export default function RegisterAndApply() {
       const { data } = await publicService.submitApplication(formData);
       setSubmitted(data);
     } catch (err) {
-      const serverErrors = err.response?.data || {};
-      const fieldErrors = {};
-      Object.entries(serverErrors).forEach(([key, msgs]) => {
-        fieldErrors[key] = Array.isArray(msgs) ? msgs[0] : msgs;
-      });
-      if (!Object.keys(fieldErrors).length) fieldErrors.form = 'আবেদন জমা দেওয়া ব্যর্থ হয়েছে। আবার চেষ্টা করুন।';
-      setErrors(fieldErrors);
+      const resp = err.response?.data;
+      if (typeof resp === 'string' && resp.includes('<!DOCTYPE')) {
+        setErrors({ form: 'সার্ভারে সমস্যা হয়েছে। পরে আবার চেষ্টা করুন।' });
+      } else {
+        const serverErrors = resp || {};
+        const fieldErrors = {};
+        Object.entries(serverErrors).forEach(([key, msgs]) => {
+          fieldErrors[key] = Array.isArray(msgs) ? msgs[0] : msgs;
+        });
+        if (!Object.keys(fieldErrors).length) fieldErrors.form = 'আবেদন জমা দেওয়া ব্যর্থ হয়েছে। আবার চেষ্টা করুন।';
+        setErrors(fieldErrors);
+      }
     } finally { setSubmitting(false); }
   };
 

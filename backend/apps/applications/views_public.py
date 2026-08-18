@@ -2,8 +2,9 @@ import os
 import tempfile
 from django.db import transaction
 from rest_framework import status
-from rest_framework.decorators import api_view, parser_classes, throttle_classes
+from rest_framework.decorators import api_view, parser_classes, throttle_classes, permission_classes
 from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from django.conf import settings
 from apps.common.utils import to_english_digits
@@ -95,6 +96,7 @@ def _log_nid_access(request, action, result, target_nid='', target_name='', mess
 
 
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def check_nid(request, nid):
     clean_nid = to_english_digits(nid).replace(' ', '').replace('-', '')
     exists = Application.objects.filter(nid=clean_nid).exists()
@@ -113,6 +115,7 @@ def check_nid(request, nid):
 
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def verify_nid(request):
     nid = to_english_digits(request.data.get('nid', '')).replace(' ', '').replace('-', '')
     date_of_birth = request.data.get('date_of_birth', '')
@@ -166,6 +169,7 @@ def verify_nid(request):
 
 @api_view(['POST'])
 @parser_classes([MultiPartParser, FormParser])
+@permission_classes([AllowAny])
 @throttle_classes([PublicApplyThrottle])
 def public_apply(request):
     data = request.data.copy()
@@ -195,6 +199,7 @@ def public_apply(request):
 
 
 @api_view(['GET'])
+@permission_classes([AllowAny])
 @throttle_classes([PrintThrottle])
 def print_application(request, application_no):
     try:
